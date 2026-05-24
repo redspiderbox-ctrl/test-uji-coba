@@ -547,7 +547,7 @@
                             <th class="text-center">NO</th>
                             <th>PART NUMBER</th>
                             <th>DESKRIPSI</th>
-                            <th class="text-center">QTY SYSTEM</th>
+                            <th class="text-center">QTY</th>
                             <th class="text-center">QTY ALLOC</th>
                             <th class="text-center">AVAILABLE</th>
                             <th class="text-center">FISIK</th>
@@ -583,15 +583,15 @@
             <div class="space-y-4">
                 <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Qty System</label>
+                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">QTY</label>
                         <p class="text-xl font-bold font-mono mt-1" id="modalQtySystem">0</p>
                     </div>
                     <div>
-                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Qty Alloc</label>
+                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">QTY ALLOC</label>
                         <p class="text-xl font-bold font-mono mt-1 text-[var(--warning)]" id="modalQtyAlloc">0</p>
                     </div>
                     <div>
-                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Available</label>
+                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">AVAILABLE</label>
                         <p class="text-xl font-bold font-mono mt-1 text-[var(--success)]" id="modalAvailable">0</p>
                     </div>
                 </div>
@@ -674,24 +674,31 @@
                         const noIdx = findColIndex(headers, ['no','nomor','number']);
                         const partIdx = findColIndex(headers, ['part number','part_number','partnumber','part no','kode']);
                         const descIdx = findColIndex(headers, ['deskripsi','description','nama','desc','name']);
-                        const qtySysIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem']);
+                        const qtyIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem','qty']); // Ditambah 'qty'
                         const qtyAllocIdx = findColIndex(headers, ['qty alloc','qty_alloc','alloc','alokasi']);
                         const availableIdx = findColIndex(headers, ['available','qty available','qty_available','sedia','tersedia']);
                         const qtyActIdx = findColIndex(headers, ['qty actual','qty_actual','fisik','stock actual','actual','qty act','stok aktual','hasil']);
-                        const selisihIdx = findColIndex(headers, ['selisih','difference','diff','variance']);
 
                         const val = (idx) => (idx >= 0 && row[idx]) ? row[idx].trim() : '';
                         const numVal = (idx) => { const v = val(idx); const n = parseInt(v); return isNaN(n) ? 0 : n; };
+
+                        const qty = qtyIdx >= 0 ? numVal(qtyIdx) : numVal(3);
+                        const qtyAlloc = qtyAllocIdx >= 0 ? numVal(qtyAllocIdx) : 0;
+                        const available = availableIdx >= 0 ? numVal(availableIdx) : 0;
+                        const qtyActual = qtyActIdx >= 0 ? numVal(qtyActIdx) : null;
+
+                        // Rumus baru: Selisih = Available - Fisik
+                        const selisih = qtyActual !== null ? available - qtyActual : null;
 
                         return {
                             no: noIdx >= 0 ? val(noIdx) : String(i + 1),
                             partNumber: partIdx >= 0 ? val(partIdx) : val(0),
                             description: descIdx >= 0 ? val(descIdx) : val(1),
-                            qtySystem: qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(3),
-                            qtyAlloc: qtyAllocIdx >= 0 ? numVal(qtyAllocIdx) : 0,
-                            available: availableIdx >= 0 ? numVal(availableIdx) : 0, // Langsung ambil dari Sheet
-                            qtyActual: qtyActIdx >= 0 ? numVal(qtyActIdx) : null,
-                            selisih: selisihIdx >= 0 ? numVal(selisihIdx) : null
+                            qtySystem: qty, // Tetap pakai qtySystem di variable agar mudah, tapi menampilkan QTY
+                            qtyAlloc: qtyAlloc,
+                            available: available,
+                            qtyActual: qtyActual,
+                            selisih: selisih
                         };
                     });
                     stockData.forEach((item, i) => { if (!item.no) item.no = String(i + 1); });
@@ -739,7 +746,7 @@
                         const noIdx = findColIndex(headers, ['no','nomor','number']);
                         const partIdx = findColIndex(headers, ['part number','part_number','partnumber','part no','kode']);
                         const descIdx = findColIndex(headers, ['deskripsi','description','nama','desc','name']);
-                        const qtySysIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem']);
+                        const qtyIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem','qty']); 
                         const qtyAllocIdx = findColIndex(headers, ['qty alloc','qty_alloc','alloc','alokasi']);
                         const availableIdx = findColIndex(headers, ['available','qty available','qty_available','sedia','tersedia']);
                         const qtyActIdx = findColIndex(headers, ['qty actual','qty_actual','fisik','stock actual','actual','qty act','stok aktual','hasil']);
@@ -747,15 +754,21 @@
                         const val = (idx, def = '') => (idx >= 0 && row[idx] !== undefined) ? String(row[idx]).trim() : def;
                         const numVal = (idx, def = 0) => { const v = val(idx, ''); const n = parseInt(v); return isNaN(n) ? def : n; };
 
+                        const qty = qtyIdx >= 0 ? numVal(qtyIdx) : numVal(3);
+                        const qtyAlloc = qtyAllocIdx >= 0 ? numVal(qtyAllocIdx) : 0;
+                        const available = availableIdx >= 0 ? numVal(availableIdx) : 0;
+                        const qtyActual = qtyActIdx >= 0 ? numVal(qtyActIdx) : null;
+                        const selisih = qtyActual !== null ? available - qtyActual : null;
+
                         return {
                             no: noIdx >= 0 ? val(noIdx) : String(i + 1),
                             partNumber: partIdx >= 0 ? val(partIdx) : val(0),
                             description: descIdx >= 0 ? val(descIdx) : val(1),
-                            qtySystem: qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(3),
-                            qtyAlloc: qtyAllocIdx >= 0 ? numVal(qtyAllocIdx) : 0,
-                            available: availableIdx >= 0 ? numVal(availableIdx) : 0, // Langsung ambil dari Excel
-                            qtyActual: qtyActIdx >= 0 ? numVal(qtyActIdx) : null,
-                            selisih: null
+                            qtySystem: qty,
+                            qtyAlloc: qtyAlloc,
+                            available: available,
+                            qtyActual: qtyActual,
+                            selisih: selisih
                         };
                     });
                     stockData.forEach((item, i) => { if (!item.no) item.no = String(i + 1); });
@@ -812,7 +825,8 @@
             if (qtyActual !== null && isNaN(qtyActual)) { showToast('Fisik harus berupa angka', 'error'); return; }
 
             stockData[currentScanIndex].qtyActual = qtyActual;
-            stockData[currentScanIndex].selisih = qtyActual !== null ? qtyActual - stockData[currentScanIndex].qtySystem : null;
+            // Rumus Selisih Baru: Available - Fisik
+            stockData[currentScanIndex].selisih = qtyActual !== null ? stockData[currentScanIndex].available - qtyActual : null;
 
             saveLocalData(); renderTable(); updateStats(); closeModal();
 
@@ -902,7 +916,7 @@
 
         function exportExcel() {
             if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
-            const wsData = [['NO', 'PART NUMBER', 'DESKRIPSI', 'QTY SYSTEM', 'QTY ALLOC', 'AVAILABLE', 'FISIK', 'SELISIH', 'STATUS']];
+            const wsData = [['NO', 'PART NUMBER', 'DESKRIPSI', 'QTY', 'QTY ALLOC', 'AVAILABLE', 'FISIK', 'SELISIH', 'STATUS']];
             stockData.forEach(item => {
                 const status = item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum Dihitung';
                 wsData.push([item.no, item.partNumber, item.description, item.qtySystem, item.qtyAlloc, item.available, item.qtyActual !== null ? item.qtyActual : '', item.selisih !== null ? item.selisih : '', status]);
@@ -930,7 +944,7 @@
                 item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum'
             ]);
             doc.autoTable({
-                head: [['No', 'Part Number', 'Deskripsi', 'Qty Sys', 'Alloc', 'Avail', 'Fisik', 'Selisih', 'Status']],
+                head: [['No', 'Part Number', 'Deskripsi', 'QTY', 'Alloc', 'Avail', 'Fisik', 'Selisih', 'Status']],
                 body: tableData, startY: 33,
                 styles: { fontSize: 7, cellPadding: 2 },
                 headStyles: { fillColor: [15, 15, 19], textColor: [250, 204, 21], fontStyle: 'bold' },
