@@ -11,9 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
-        tailwind.config = {
-            theme: { extend: { fontFamily: { display: ['Space Grotesk', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } }
-        }
+        tailwind.config = { theme: { extend: { fontFamily: { display: ['Space Grotesk', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } } }
     </script>
     <style>
         :root { --bg:#060608;--card:#0f0f13;--card-hover:#16161c;--border:#1e1e28;--accent:#facc15;--accent-dim:rgba(250,204,21,0.12);--success:#22c55e;--success-dim:rgba(34,197,94,0.12);--danger:#ef4444;--danger-dim:rgba(239,68,68,0.12);--warning:#f97316;--warning-dim:rgba(249,115,22,0.12);--text:#e4e4e7;--muted:#71717a; }
@@ -30,7 +28,7 @@
         .data-table thead th { background:#0a0a0e;padding:12px 10px;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;white-space:nowrap; }
         .data-table tbody tr { transition:background 0.15s ease; } .data-table tbody tr:hover { background:var(--card-hover); }
         .data-table tbody td { padding:10px;font-size:13px;border-bottom:1px solid rgba(30,30,40,0.5);white-space:nowrap; }
-        .data-table tbody tr.counted-ok { background:rgba(34,197,94,0.04); } .data-table tbody tr.has-selisih { background:rgba(249,115,22,0.04); }
+        .data-table tbody tr.counted-ok { background:rgba(34,197,94,0.04); } .data-table tbody tr.has-selisih-minus { background:rgba(239,68,68,0.04); } .data-table tbody tr.has-selisih-plus { background:rgba(34,197,94,0.04); }
         .upload-zone { border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;transition:all 0.3s ease;cursor:pointer;background:var(--card); }
         .upload-zone:hover,.upload-zone.dragover { border-color:var(--accent);background:var(--accent-dim); }
         .btn-primary { background:var(--accent);color:#000;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;transition:all 0.2s ease;font-family:'Space Grotesk',sans-serif;font-size:13px;display:inline-flex;align-items:center;gap:6px; }
@@ -66,8 +64,8 @@
         .row-num { font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:rgba(255,255,255,0.04);padding:2px 8px;border-radius:4px; }
         .badge-selisih { display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace; }
         .badge-selisih.zero { background:var(--success-dim);color:var(--success); }
-        .badge-selisih.plus { background:var(--warning-dim);color:var(--warning); }
-        .badge-selisih.minus { background:var(--danger-dim);color:var(--danger); }
+        .badge-selisih.plus { background:var(--success-dim);color:var(--success); } /* DIUBAH: Lebih jadi Hijau */
+        .badge-selisih.minus { background:var(--danger-dim);color:var(--danger); } /* Kurang tetap Merah */
         .status-dot { width:8px;height:8px;border-radius:50%;display:inline-block; }
         .status-dot.connected { background:var(--success);box-shadow:0 0 6px rgba(34,197,94,0.5); }
         .status-dot.disconnected { background:var(--danger);box-shadow:0 0 6px rgba(239,68,68,0.5); }
@@ -142,7 +140,12 @@
         saveApiUrl = () => { const u=document.getElementById('apiUrlInput').value.trim(); if(!u){showToast('URL tidak boleh kosong!','error');return;} localStorage.setItem(API_URL_KEY,u); showToast('Tersimpan. Menghubungkan...','info'); fetchGoogleSheet(true); startAutoSync(); };
         
         updateStatus = (s,t) => { document.getElementById('statusDot').className=`status-dot ${s}`; document.getElementById('statusText').textContent=t; };
-        calculateSelisih = (f,a) => (f===null||isNaN(f))?null:f-a;
+        
+        // Kalkulasi: Hanya ada hasilnya jika Fisik sudah diisi (tidak null)
+        calculateSelisih = (fisik, available) => {
+            if(fisik === null || isNaN(fisik)) return null; // Jika fisik kosong, selisih kosong
+            return fisik - available;
+        };
 
         findColIndex = (h,kw) => { for(let i=0;i<h.length;i++){ const hd=h[i].toLowerCase().trim(); for(const k of kw){ if(hd.includes(k)) return i; } } return -1; };
 
@@ -170,9 +173,9 @@
                         const qty=qtyIdx>=0?numVal(qtyIdx):numVal(3);
                         const alloc=allocIdx>=0?numVal(allocIdx):0;
                         const avail=availIdx>=0?numVal(availIdx):0;
-                        const act=actIdx>=0?numVal(actIdx):null;
+                        const actVal=(actIdx>=0 && row[actIdx] && row[actIdx].trim()!=='') ? numVal(actIdx) : null; // Cek empty string agar null
 
-                        return { no:noIdx>=0?val(noIdx):String(i+1), partNumber:partIdx>=0?val(partIdx):val(0), description:descIdx>=0?val(descIdx):val(1), qtySystem:qty, qtyAlloc:alloc, available:avail, qtyActual:act, selisih:calculateSelisih(act,avail) };
+                        return { no:noIdx>=0?val(noIdx):String(i+1), partNumber:partIdx>=0?val(partIdx):val(0), description:descIdx>=0?val(descIdx):val(1), qtySystem:qty, qtyAlloc:alloc, available:avail, qtyActual:actVal, selisih:calculateSelisih(actVal,avail) };
                     });
                     saveLocalData(); renderTable(); updateStats();
                     updateStatus('connected', `Terhubung — ${stockData.length} item`);
@@ -182,7 +185,6 @@
             finally { if(manual) setTimeout(()=>icon.classList.remove('sync-spin'),1000); }
         }
 
-        // Push data ke Google Sheet saat scan
         async function pushToSheet(item) {
             const url = localStorage.getItem(API_URL_KEY); if(!url) return;
             try {
@@ -191,19 +193,17 @@
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ partNumber: item.partNumber, qtyActual: item.qtyActual, selisih: item.selisih })
                 });
-                console.log("Data pushed to sheet successfully");
             } catch(e) { console.error("Push to sheet error:", e); }
         }
 
-        // Auto Sync setiap 15 detik
         function startAutoSync() {
             if(autoSyncInterval) clearInterval(autoSyncInterval);
-            autoSyncInterval = setInterval(() => fetchGoogleSheet(false), 15000); // 15000ms = 15 detik
+            autoSyncInterval = setInterval(() => fetchGoogleSheet(false), 15000);
         }
 
         handleExcelUpload = (e) => { const f=e.target.files[0]; if(!f)return; processExcelFile(f); };
         function processExcelFile(file) {
-            const reader=new FileReader(); reader.onload=function(e){ try { const d=new Uint8Array(e.target.result); const wb=XLSX.read(d,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; const json=XLSX.utils.sheet_to_json(ws,{header:1}); if(json.length<2){showToast('File kosong','error');return;} const hd=json[0].map(h=>String(h||'').toLowerCase().trim()); const rows=json.slice(1).filter(r=>r.some(c=>c!==undefined&&c!=='')); stockData=rows.map((row,i)=>{ const numVal=(idx,def=0)=>{const v=(idx>=0&&row[idx]!==undefined)?String(row[idx]).trim():'';const n=parseInt(v);return isNaN(n)?def:n;}; const val=(idx,def='')=>(idx>=0&&row[idx]!==undefined)?String(row[idx]).trim():def; const qtyIdx=findColIndex(hd,['qty system','qty_system','qty']); const allocIdx=findColIndex(hd,['qty alloc','alloc']); const availIdx=findColIndex(hd,['available']); const actIdx=findColIndex(hd,['qty actual','fisik','actual','hasil']); const qty=qtyIdx>=0?numVal(qtyIdx):numVal(3); const alloc=allocIdx>=0?numVal(allocIdx):0; const avail=availIdx>=0?numVal(availIdx):0; const act=actIdx>=0?numVal(actIdx):null; return {no:findColIndex(hd,['no'])>=0?val(findColIndex(hd,['no'])):String(i+1),partNumber:findColIndex(hd,['part number','kode'])>=0?val(findColIndex(hd,['part number','kode'])):val(0),description:findColIndex(hd,['deskripsi','nama'])>=0?val(findColIndex(hd,['deskripsi','nama'])):val(1),qtySystem:qty,qtyAlloc:alloc,available:avail,qtyActual:act,selisih:calculateSelisih(act,avail)}; }); saveLocalData();renderTable();updateStats();updateStatus('connected',`Excel — ${stockData.length} item`);showToast('Berhasil memuat dari Excel','success'); } catch(err){ showToast('Gagal baca Excel: '+err.message,'error'); } }; reader.readAsArrayBuffer(file);
+            const reader=new FileReader(); reader.onload=function(e){ try { const d=new Uint8Array(e.target.result); const wb=XLSX.read(d,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; const json=XLSX.utils.sheet_to_json(ws,{header:1}); if(json.length<2){showToast('File kosong','error');return;} const hd=json[0].map(h=>String(h||'').toLowerCase().trim()); const rows=json.slice(1).filter(r=>r.some(c=>c!==undefined&&c!=='')); stockData=rows.map((row,i)=>{ const numVal=(idx,def=0)=>{const v=(idx>=0&&row[idx]!==undefined)?String(row[idx]).trim():'';const n=parseInt(v);return isNaN(n)?def:n;}; const val=(idx,def='')=>(idx>=0&&row[idx]!==undefined)?String(row[idx]).trim():def; const qtyIdx=findColIndex(hd,['qty system','qty_system','qty']); const allocIdx=findColIndex(hd,['qty alloc','alloc']); const availIdx=findColIndex(hd,['available']); const actIdx=findColIndex(hd,['qty actual','fisik','actual','hasil']); const qty=qtyIdx>=0?numVal(qtyIdx):numVal(3); const alloc=allocIdx>=0?numVal(allocIdx):0; const avail=availIdx>=0?numVal(availIdx):0; const actVal=(actIdx>=0 && row[actIdx]!==undefined && String(row[actIdx]).trim()!=='') ? numVal(actIdx) : null; return {no:findColIndex(hd,['no'])>=0?val(findColIndex(hd,['no'])):String(i+1),partNumber:findColIndex(hd,['part number','kode'])>=0?val(findColIndex(hd,['part number','kode'])):val(0),description:findColIndex(hd,['deskripsi','nama'])>=0?val(findColIndex(hd,['deskripsi','nama'])):val(1),qtySystem:qty,qtyAlloc:alloc,available:avail,qtyActual:actVal,selisih:calculateSelisih(actVal,avail)}; }); saveLocalData();renderTable();updateStats();updateStatus('connected',`Excel — ${stockData.length} item`);showToast('Berhasil memuat dari Excel','success'); } catch(err){ showToast('Gagal baca Excel: '+err.message,'error'); } }; reader.readAsArrayBuffer(file);
         }
 
         const uz=document.getElementById('uploadZone'); uz.addEventListener('dragover',(e)=>{e.preventDefault();uz.classList.add('dragover');}); uz.addEventListener('dragleave',()=>uz.classList.remove('dragover')); uz.addEventListener('drop',(e)=>{e.preventDefault();uz.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f&&(f.name.endsWith('.xlsx')||f.name.endsWith('.xls')))processExcelFile(f);else showToast('Format tidak didukung','error');});
@@ -214,20 +214,28 @@
 
         async function confirmScan() {
             if(currentScanIndex<0) return;
-            const actStr=document.getElementById('modalQtyActual').value; const act=actStr!==''?parseInt(actStr):null;
+            const actStr=document.getElementById('modalQtyActual').value; 
+            const act=actStr!==''?parseInt(actStr):null;
             if(act!==null&&isNaN(act)){showToast('Fisik harus angka','error');return;}
             
             stockData[currentScanIndex].qtyActual=act;
             stockData[currentScanIndex].selisih=calculateSelisih(act,stockData[currentScanIndex].available);
-            
             const item = stockData[currentScanIndex];
             
-            // Langsung push ke Google Sheet!
             await pushToSheet(item); 
             
             saveLocalData(); renderTable(); updateStats(); closeModal();
-            const sv=item.selisih; let st=''; if(sv!==null){if(sv===0)st='SESUAI';else if(sv>0)st=`LEBIH +${sv}`;else st=`KURANG ${sv}`;}
-            showToast(`${item.partNumber} — Fisik: ${act} ${st}`, sv===0?'success':'info');
+            
+            const sv=item.selisih; 
+            let st=''; 
+            let toastType = 'info';
+            if(sv!==null){
+                if(sv===0) { st='SESUAI'; toastType='success'; }
+                else if(sv>0) { st=`LEBIH +${sv}`; toastType='success'; } // Toast hijau untuk lebih
+                else { st=`KURANG ${sv}`; toastType='error'; } // Toast merah untuk kurang
+            }
+            showToast(`${item.partNumber} — Fisik: ${act} ${st}`, toastType);
+            
             setTimeout(()=>{const r=document.querySelector(`[data-index="${currentScanIndex}"]`);if(r){r.classList.add('scan-flash');setTimeout(()=>r.classList.remove('scan-flash'),1500);}},50);
             document.getElementById('barcodeInput').focus();
         }
@@ -236,13 +244,45 @@
             const tbody=document.getElementById('tableBody'); const es=document.getElementById('emptyState'); const srch=document.getElementById('searchInput').value.toLowerCase().trim();
             let fltr=stockData; if(srch) fltr=stockData.filter(it=>it.no.toLowerCase().includes(srch)||it.partNumber.toLowerCase().includes(srch)||it.description.toLowerCase().includes(srch));
             if(fltr.length===0){tbody.innerHTML='';es.style.display='block';return;} es.style.display='none';
-            tbody.innerHTML=fltr.map((it,i)=>{ const oi=stockData.indexOf(it); const ic=it.qtyActual!==null; const sv=it.selisih; const hs=sv!==null&&sv!==0; const ok=sv!==null&&sv===0; const ip=sv!==null&&sv>0; let rc='';if(ok)rc='counted-ok';else if(hs)rc='has-selisih'; let bc='zero';if(ip)bc='plus';else if(hs)bc='minus'; const sb=sv!==null?`<span class="badge-selisih ${bc}">${sv>0?'+':''}${sv}</span>`:'<span class="text-[var(--muted)]">-</span>'; let stb='';if(!ic)stb='<span class="inline-flex items-center gap-1 text-[11px] text-[var(--muted)]"><i class="fas fa-hourglass-half"></i> Belum</span>';else{if(ok)stb='<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--success)]"><i class="fas fa-check-circle"></i> Sesuai</span>';else if(ip)stb=`<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--warning)]"><i class="fas fa-arrow-up"></i> Lebih +${sv}</span>`;else if(hs)stb=`<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--danger)]"><i class="fas fa-arrow-down"></i> Kurang ${sv}</span>`;} return `<tr class="${rc}" data-index="${oi}"><td class="text-center"><span class="row-num">${it.no}</span></td><td class="font-mono font-semibold text-[var(--accent)]">${it.partNumber}</td><td class="max-w-[200px] truncate" title="${it.description}">${it.description||'-'}</td><td class="text-center font-mono">${it.qtySystem}</td><td class="text-center font-mono text-[var(--warning)]">${it.qtyAlloc}</td><td class="text-center font-mono text-[var(--success)]">${it.available}</td><td class="text-center font-mono">${it.qtyActual!==null?it.qtyActual:'-'}</td><td class="text-center">${sb}</td><td class="text-center">${stb}</td></tr>`; }).join('');
+            
+            tbody.innerHTML=fltr.map((it,i)=>{ 
+                const oi=stockData.indexOf(it); 
+                const isCounted = it.qtyActual !== null; // Apakah fisik sudah diisi?
+                const sv = it.selisih; 
+                const hs = sv !== null && sv !== 0; // Ada selisih?
+                const ok = sv !== null && sv === 0; // Hasil 0 / Sesuai?
+                const ip = sv !== null && sv > 0; // Hasil Plus / Lebih?
+                const im = sv !== null && sv < 0; // Hasil Minus / Kurang?
+                
+                let rc=''; 
+                if(ok) rc='counted-ok'; 
+                else if(ip) rc='has-selisih-plus'; // Baris hijau
+                else if(im) rc='has-selisih-minus'; // Baris merah
+                
+                // Badge Selisih (Kosong jika Fisik belum diisi)
+                let bc='zero'; 
+                if(ip) bc='plus'; 
+                else if(im) bc='minus'; 
+                const sb = isCounted 
+                    ? `<span class="badge-selisih ${bc}">${sv>0?'+':''}${sv}</span>` 
+                    : '-'; // Tampilkan strip jika belum dihitung
+                
+                // Badge Status (Kosong jika Fisik belum diisi)
+                let stb = '-'; 
+                if(isCounted) {
+                    if(ok) stb='<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--success)]"><i class="fas fa-check-circle"></i> Sesuai</span>';
+                    else if(ip) stb=`<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--success)]"><i class="fas fa-arrow-up"></i> Lebih +${sv}</span>`; // Hijau
+                    else if(im) stb=`<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--danger)]"><i class="fas fa-arrow-down"></i> Kurang ${sv}</span>`; // Merah
+                }
+                
+                return `<tr class="${rc}" data-index="${oi}"><td class="text-center"><span class="row-num">${it.no}</span></td><td class="font-mono font-semibold text-[var(--accent)]">${it.partNumber}</td><td class="max-w-[200px] truncate" title="${it.description}">${it.description||'-'}</td><td class="text-center font-mono">${it.qtySystem}</td><td class="text-center font-mono text-[var(--warning)]">${it.qtyAlloc}</td><td class="text-center font-mono text-[var(--success)]">${it.available}</td><td class="text-center font-mono">${it.qtyActual!==null?it.qtyActual:'-'}</td><td class="text-center">${sb}</td><td class="text-center">${stb}</td></tr>`; 
+            }).join('');
         }
 
         function updateStats() { const t=stockData.length; const c=stockData.filter(i=>i.qtyActual!==null).length; const u=t-c; const s=stockData.filter(i=>i.selisih!==null&&i.selisih!==0).length; ['statTotal','statCounted','statUncounted','statSelisih'].forEach((id,idx)=>{const tgt=[t,c,u,s][idx];const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;if(cur===tgt)return;const df=tgt-cur;const st=Math.min(Math.abs(df),20);const ss=df/st;let sp=0;const iv=setInterval(()=>{sp++;if(sp>=st){el.textContent=tgt;clearInterval(iv);}else{el.textContent=Math.round(cur+ss*sp);}},30);}); }
         
-        function exportExcel() { if(!stockData.length){showToast('Tidak ada data','error');return;} const d=[['NO','PART NUMBER','DESKRIPSI','QTY','QTY ALLOC','AVAILABLE','FISIK','SELISIH','STATUS']]; stockData.forEach(it=>{let st='Belum';const s=it.selisih;if(it.qtyActual!==null){if(s===0)st='Sesuai';else if(s>0)st=`Lebih +${s}`;else st=`Kurang ${s}`;} d.push([it.no,it.partNumber,it.description,it.qtySystem,it.qtyAlloc,it.available,it.qtyActual!==null?it.qtyActual:'',s!==null?s:'',st]);}); const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(d);ws['!cols']=[{wch:5},{wch:18},{wch:30},{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:15}];XLSX.utils.book_append_sheet(wb,ws,'Stock Opname');XLSX.writeFile(wb,`Stock_Opname_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('Excel berhasil di-export','success'); }
-        function exportPDF() { if(!stockData.length){showToast('Tidak ada data','error');return;} const{jsPDF}=window.jspdf;const doc=new jsPDF('l','mm','a4');doc.setFontSize(16);doc.setFont(undefined,'bold');doc.text('Stock Opname Report',14,15);doc.setFontSize(10);doc.setFont(undefined,'normal');doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`,14,22);const td=stockData.map(it=>{let st='Belum';const s=it.selisih;if(it.qtyActual!==null){if(s===0)st='Sesuai';else if(s>0)st=`Lebih +${s}`;else st=`Kurang ${s}`;} return[it.no,it.partNumber,it.description.substring(0,30),it.qtySystem,it.qtyAlloc,it.available,it.qtyActual!==null?it.qtyActual:'-',s!==null?(s>0?'+':'')+s:'-',st];});doc.autoTable({head:[['No','Part Number','Deskripsi','QTY','Alloc','Avail','Fisik','Selisih','Status']],body:td,startY:33,styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[15,15,19],textColor:[250,204,21],fontStyle:'bold'},alternateRowStyles:{fillColor:[20,20,28]}});doc.save(`Stock_Opname_${new Date().toISOString().slice(0,10)}.pdf`);showToast('PDF berhasil di-export','success'); }
+        function exportExcel() { if(!stockData.length){showToast('Tidak ada data','error');return;} const d=[['NO','PART NUMBER','DESKRIPSI','QTY','QTY ALLOC','AVAILABLE','FISIK','SELISIH','STATUS']]; stockData.forEach(it=>{let st='';const s=it.selisih;if(it.qtyActual!==null){if(s===0)st='Sesuai';else if(s>0)st=`Lebih +${s}`;else st=`Kurang ${s}`;} d.push([it.no,it.partNumber,it.description,it.qtySystem,it.qtyAlloc,it.available,it.qtyActual!==null?it.qtyActual:'',s!==null?s:'',st]);}); const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(d);ws['!cols']=[{wch:5},{wch:18},{wch:30},{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:15}];XLSX.utils.book_append_sheet(wb,ws,'Stock Opname');XLSX.writeFile(wb,`Stock_Opname_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('Excel berhasil di-export','success'); }
+        function exportPDF() { if(!stockData.length){showToast('Tidak ada data','error');return;} const{jsPDF}=window.jspdf;const doc=new jsPDF('l','mm','a4');doc.setFontSize(16);doc.setFont(undefined,'bold');doc.text('Stock Opname Report',14,15);doc.setFontSize(10);doc.setFont(undefined,'normal');doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`,14,22);const td=stockData.map(it=>{let st='';const s=it.selisih;if(it.qtyActual!==null){if(s===0)st='Sesuai';else if(s>0)st=`Lebih +${s}`;else st=`Kurang ${s}`;} return[it.no,it.partNumber,it.description.substring(0,30),it.qtySystem,it.qtyAlloc,it.available,it.qtyActual!==null?it.qtyActual:'-',s!==null?(s>0?'+':'')+s:'-',st];});doc.autoTable({head:[['No','Part Number','Deskripsi','QTY','Alloc','Avail','Fisik','Selisih','Status']],body:td,startY:33,styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[15,15,19],textColor:[250,204,21],fontStyle:'bold'},alternateRowStyles:{fillColor:[20,20,28]}});doc.save(`Stock_Opname_${new Date().toISOString().slice(0,10)}.pdf`);showToast('PDF berhasil di-export','success'); }
         function clearData() { if(!stockData.length){showToast('Data sudah kosong','info');return;} const ov=document.createElement('div');ov.className='modal-overlay active';ov.innerHTML=`<div class="modal-content" style="max-width:380px;"><div class="text-center mb-5"><div class="w-14 h-14 rounded-xl bg-[var(--danger-dim)] flex items-center justify-center mx-auto mb-3"><i class="fas fa-trash-alt text-[var(--danger)] text-xl"></i></div><h3 class="text-lg font-bold">Hapus Semua Data?</h3><p class="text-sm text-[var(--muted)] mt-2">Tindakan ini tidak dapat dibatalkan.</p></div><div class="flex gap-3"><button class="btn-secondary flex-1 justify-center" id="cc">Batal</button><button class="btn-danger flex-1 justify-center" id="rc">Hapus</button></div></div>`;document.body.appendChild(ov);ov.querySelector('#cc').onclick=()=>ov.remove();ov.querySelector('#rc').onclick=()=>{stockData=[];localStorage.removeItem(STORAGE_KEY);renderTable();updateStats();updateStatus('disconnected','Data kosong');ov.remove();showToast('Semua data dihapus','success');}; }
 
         document.addEventListener('keydown',(e)=>{if(e.ctrlKey&&e.shiftKey&&e.key==='S'){e.preventDefault();document.getElementById('barcodeInput').focus();}if(e.key==='Escape'){closeModal();const co=document.querySelector('.modal-overlay.active:not(#scanModal)');if(co)co.remove();}});
