@@ -139,11 +139,26 @@
 
         <div class="card overflow-hidden mb-6">
             <div class="overflow-x-auto" style="max-height: 520px; overflow-y: auto;">
-                <table class="data-table" id="dataTable"><thead><tr><th class="text-center" style="width: 50px;">NO</th><th>PART NUMBER</th><th>DESKRIPSI</th><th class="text-center">QTY SISTEM</th><th class="text-center">QTY AKTUAL</th><th class="text-center">AVAILABLE</th><th class="text-center">FISIK</th><th class="text-center">SELIH</th><th class="text-center">STATUS</th></tr></thead><tbody id="tableBody"></tbody></table>
+                <table class="data-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 50px;">NO</th>
+                            <th>PART NUMBER</th>
+                            <th>DESKRIPSI</th>
+                            <th class="text-center">QTY SISTEM</th>
+                            <th class="text-center">QTY ALLOC</th>
+                            <th class="text-center">AVAILABLE</th>
+                            <th class="text-center">FISIK</th>
+                            <th class="text-center">SELIH</th>
+                            <th class="text-center">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
             </div>
             <div class="empty-state" id="emptyState"><i class="fas fa-inbox block"></i><p class="text-sm font-medium mb-1">Tidak ada data</p><p class="text-xs" style="color: var(--fg-muted);">Unggah file Excel, ambil dari Google Sheet, atau pindai barcode</p></div>
         </div>
-        <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);"><p>Stock Opname System v4.0 &mdash; Realtime Sync</p></footer>
+        <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);"><p>Stock Opname System v4.2 &mdash; Realtime Sync</p></footer>
     </div>
 
     <script>
@@ -179,10 +194,10 @@
             const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase() || item.partNumber.toLowerCase().includes(code.toLowerCase()));
             if (found) {
                 const currentFisik = found.fisik === '-' ? 0 : parseInt(found.fisik) || 0;
-                updateItemFisik(found, currentFisik + 1, true); // Trigger Sync
+                updateItemFisik(found, currentFisik + 1, true); // Trigger Sync & Auto Calculate
                 lastScannedPartNumber = found.partNumber; document.getElementById('btnConfirmQty').disabled = false;
                 document.getElementById('qtyInput').value = found.fisik;
-                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> +1 Fisik</span><strong>${found.partNumber}</strong><div class="flex gap-3 mt-1"><span class="text-xs">Fisik: <strong style="color: var(--info);">${found.fisik}</strong></span></div></div>`;
+                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> +1 Fisik</span><strong>${found.partNumber}</strong><div class="flex gap-3 mt-1"><span class="text-xs">Fisik: <strong style="color: var(--info);">${found.fisik}</strong></span><span class="text-xs">Selisih: <strong style="color: ${found.status==='deficit'?'var(--danger)':'var(--accent)'};">${found.remarks}</strong></span></div></div>`;
                 highlightRow(found.partNumber); showToast(`${found.partNumber} → Fisik = ${found.fisik}`, 'success');
             } else {
                 lastScannedPartNumber = code; document.getElementById('btnConfirmQty').disabled = false;
@@ -191,45 +206,44 @@
             }
         }
 
+        // Fungsi Update yang Menghitung Otomatis dan Sync ke Sheet
         function updateItemFisik(item, newFisikVal, shouldSync = false) {
-            item.fisik = newFisikVal; const isSet = item.fisik !== '-'; const selisih = isSet ? item.available - item.fisik : 0;
-            if (!isSet) { item.status = 'pending'; item.remarks = 'Menunggu input fisik'; } else { item.status = selisih === 0 ? 'match' : selisih > 0 ? 'deficit' : 'surplus'; item.remarks = selisih === 0 ? 'Sesuai' : selisih > 0 ? `Kurang ${selisih}` : `Lebih +${Math.abs(selisih)}`; }
-            item.scanned = true; renderTable(mergedData); updateStats();
-            if (shouldSync) syncToSheet(item); // Kirim ke Google Sheet
+            item.fisik = newFisikVal; 
+            const isSet = item.fisik !== '-'; 
+            // RUMUS: Available (dari sheet) dikurangi Fisik (dari scan)
+            const selisih = isSet ? item.available - item.fisik : 0;
+            
+            if (!isSet) { item.status = 'pending'; item.remarks = 'Menunggu input fisik'; } 
+            else { 
+                item.status = selisih === 0 ? 'match' : selisih > 0 ? 'deficit' : 'surplus'; 
+                item.remarks = selisih === 0 ? 'Sesuai' : selisih > 0 ? `Kurang ${selisih}` : `Lebih +${Math.abs(selisih)}`; 
+            }
+            item.scanned = true; 
+            renderTable(mergedData); updateStats();
+            if (shouldSync) syncToSheet(item);
         }
 
-        // === FUNGSI REALTIME SYNC KE GOOGLE SHEET ===
         async function syncToSheet(item) {
             if (!apiUrl) { updateSyncBadge('error', 'NO URL'); return; }
             updateSyncBadge('syncing', 'SYNCING...');
-            
             try {
-                const payload = {
-                    partNumber: item.partNumber,
-                    description: item.description,
-                    fisik: item.fisik,
-                    selisih: item.available - item.fisik
-                };
+                const payload = { partNumber: item.partNumber, description: item.description, fisik: item.fisik, selisih: item.available - item.fisik };
+                // 1. Kirim update ke Sheet
+                await fetch(apiUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 
-                // Menggunakan Fetch API dengan mode no-cors agar bisa mengirim POST ke Google Script
-                await fetch(apiUrl, {
-                    method: 'POST',
-                    mode: 'no-cors', // Wajib no-cors untuk Google Apps Script Web App
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                // 2. Ambil data terbaru dari Sheet untuk memastikan sinkron (mengatasi rumus sheet yg berubah)
+                await new Promise(resolve => setTimeout(resolve, 800)); // Delay sedikit agar script google selesai memproses
+                await fetchFromSheet(true); // true = silent mode (tanpa toast banyak)
                 
-                // Karena no-cors, response selalu opaque, kita asumsikan sukses jika tidak error jaringan
                 updateSyncBadge('synced', 'SYNCED');
-            } catch (error) {
-                console.error('Sync error:', error);
-                updateSyncBadge('error', 'ERROR');
+            } catch (error) { 
+                console.error('Sync error:', error); 
+                updateSyncBadge('error', 'ERROR'); 
             }
         }
 
         function updateSyncBadge(state, text) {
-            const badge = document.getElementById('syncStatusBadge');
-            badge.className = 'sync-badge';
+            const badge = document.getElementById('syncStatusBadge'); badge.className = 'sync-badge';
             if (state === 'syncing') { badge.classList.add('syncing'); badge.innerHTML = `<div class="spinner" style="width:10px;height:10px;border-width:1px;"></div> ${text}`; }
             else if (state === 'error') { badge.classList.add('error'); badge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${text}`; }
             else { badge.innerHTML = `<i class="fas fa-cloud"></i> ${text}`; }
@@ -240,17 +254,58 @@
 
         function highlightRow(partNumber) { document.querySelectorAll('.highlight-row').forEach(el => el.classList.remove('highlight-row')); document.querySelectorAll('#tableBody tr').forEach(row => { const pnCell = row.cells[1]; if (pnCell && pnCell.textContent.trim().toLowerCase() === partNumber.toLowerCase()) { row.classList.add('highlight-row'); row.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }); }
 
-        async function fetchFromSheet() { if (!apiUrl) { showToast('Atur API URL', 'warning'); toggleConfig(); return; } const btn = document.getElementById('btnFetch'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Mengambil...'; try { const response = await fetch(apiUrl); if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json(); if (Array.isArray(data) && data.length > 1) { sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => { const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: sysQty, fisik: '-', status: 'pending', remarks: 'Menunggu', scanned: false }; }); updateConnectionStatus(true); showToast(`${sheetData.length} data dimuat`, 'success'); if (mergedData.length === 0) mergedData = [...sheetData]; renderTable(mergedData); updateStats(); checkCompareReady(); } } catch (error) { updateConnectionStatus(false); showToast(`Gagal: ${error.message}`, 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Ambil dari Sheet'; } }
+        // Fetch data dari Google Sheet
+        async function fetchFromSheet(isSilent = false) { 
+            if (!apiUrl) { if(!isSilent){ showToast('Atur API URL', 'warning'); toggleConfig(); } return; } 
+            const btn = document.getElementById('btnFetch'); 
+            if(!isSilent) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Mengambil...'; }
+            try { 
+                const response = await fetch(apiUrl); 
+                if (!response.ok) throw new Error(`HTTP ${response.status}`); 
+                const data = await response.json(); 
+                if (Array.isArray(data) && data.length > 1) { 
+                    sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => { 
+                        const sysQty = parseFloat(row[2]) || 0; 
+                        const actQty = parseFloat(row[3]) || 0; 
+                        const availQty = parseFloat(row[4]) || sysQty; // Kolom E (index 4) = Available
+                        const fisikVal = row[6] !== undefined && row[6] !== '' && row[6] !== null ? parseFloat(row[6]) || 0 : '-'; // Kolom G (index 6) = Fisik
+                        const selisihVal = row[7] !== undefined && row[7] !== '' && row[7] !== null ? parseFloat(row[7]) : (fisikVal !== '-' ? availQty - fisikVal : 0); // Kolom H (index 7) = Selisih / Rumus
+                        
+                        const isSet = fisikVal !== '-';
+                        let status = 'pending', remarks = 'Menunggu';
+                        if(isSet) {
+                            status = selisihVal === 0 ? 'match' : selisihVal > 0 ? 'deficit' : 'surplus';
+                            remarks = selisihVal === 0 ? 'Sesuai' : selisihVal > 0 ? `Kurang ${selisihVal}` : `Lebih +${Math.abs(selisihVal)}`;
+                        }
+
+                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: availQty, fisik: fisikVal, status, remarks, scanned: isSet }; 
+                    }); 
+                    updateConnectionStatus(true); 
+                    if(!isSilent) showToast(`${sheetData.length} data dimuat & disinkronkan`, 'success');
+                    mergedData = [...sheetData]; // Selalu overwrite agar sinkron dengan Sheet
+                    renderTable(mergedData); updateStats(); checkCompareReady(); 
+                } 
+            } catch (error) { 
+                updateConnectionStatus(false); 
+                if(!isSilent) showToast(`Gagal: ${error.message}`, 'error'); 
+            } finally { 
+                if(!isSilent) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Ambil dari Sheet'; }
+            } 
+        }
+
         function handleFileUpload(event) { const file = event.target.files[0]; if (file) processFile(file); }
         function processFile(file) { const ext = file.name.split('.').pop().toLowerCase(); if (!['xlsx', 'xls', 'csv'].includes(ext)) { showToast('Format salah', 'error'); return; } const reader = new FileReader(); reader.onload = (e) => { try { const data = new Uint8Array(e.target.result); const wb = XLSX.read(data, { type: 'array' }); const ws = wb.Sheets[wb.SheetNames[0]]; const json = XLSX.utils.sheet_to_json(ws, { header: 1 }); if (json.length < 2) { showToast('File kosong', 'warning'); return; } let hIdx = 0; for (let i = 0; i < Math.min(json.length, 5); i++) { if (json[i].map(c => String(c||'').toLowerCase()).some(c => c.includes('part'))) { hIdx = i; break; } } excelData = json.slice(hIdx + 1).filter(r => r.some(c => c !== '' && c !== null)).map((row, idx) => { const s = parseFloat(row[2])||0; const a = parseFloat(row[3])||0; return { no: idx+1, partNumber: String(row[0]||'').trim(), description: String(row[1]||'').trim(), systemQty: s, actualQty: a, available: s, fisik: '-', status: 'pending', remarks: 'Menunggu', scanned: false }; }); showToast(`${excelData.length} data dimuat`, 'success'); if (!mergedData.length) mergedData = [...excelData]; renderTable(mergedData); updateStats(); checkCompareReady(); } catch (err) { showToast('Gagal baca file', 'error'); } }; reader.readAsArrayBuffer(file); }
-        function compareData() { if (!sheetData.length || !excelData.length) { showToast('Butuh Sheet & Excel', 'warning'); return; } mergedData = []; const sm = {}, em = {}; sheetData.forEach(i => sm[i.partNumber] = i); excelData.forEach(i => em[i.partNumber] = i); let no = 1; new Set([...Object.keys(sm), ...Object.keys(em)]).forEach(pn => { const s = sm[pn], e = em[pn]; let o = { no: no++, partNumber: pn, description: (e||s).description, systemQty: s?s.systemQty:0, actualQty: e?e.actualQty:0, available: s?s.available:0, fisik: '-', status: 'pending', remarks: 'Menunggu', scanned: false }; if (s && !e) { o.status='missing'; o.remarks='Hilang'; } else if (!s && e) { o.status='extra'; o.remarks='Tambahan'; o.available=0; } mergedData.push(o); }); const order = { deficit:0, missing:1, surplus:2, extra:3, match:4, pending:5 }; mergedData.sort((a,b) => (order[a.status]||0)-(order[b.status]||0)); mergedData.forEach((i,idx)=>i.no=idx+1); renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false; showToast('Banding selesai', 'success'); }
+        
+        function compareData() { if (!sheetData.length || !excelData.length) { showToast('Butuh Sheet & Excel', 'warning'); return; } mergedData = []; const sm = {}, em = {}; sheetData.forEach(i => sm[i.partNumber] = i); excelData.forEach(i => em[i.partNumber] = i); let no = 1; new Set([...Object.keys(sm), ...Object.keys(em)]).forEach(pn => { const s = sm[pn], e = em[pn]; let o = { no: no++, partNumber: pn, description: (e||s).description, systemQty: s?s.systemQty:0, actualQty: e?e.actualQty:0, available: s?s.available:0, fisik: s && s.fisik !== '-' ? s.fisik : '-', status: s ? s.status : 'pending', remarks: s ? s.remarks : 'Menunggu', scanned: s ? s.scanned : false }; if (s && !e) { o.status='missing'; o.remarks='Hilang'; } else if (!s && e) { o.status='extra'; o.remarks='Tambahan'; o.available=0; } mergedData.push(o); }); const order = { deficit:0, missing:1, surplus:2, extra:3, match:4, pending:5 }; mergedData.sort((a,b) => (order[a.status]||0)-(order[b.status]||0)); mergedData.forEach((i,idx)=>i.no=idx+1); renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false; showToast('Banding selesai', 'success'); }
         function checkCompareReady() { document.getElementById('btnCompare').disabled = !(sheetData.length > 0 && excelData.length > 0); }
 
         function renderTable(data) { const tbody = document.getElementById('tableBody'); const empty = document.getElementById('emptyState'); if (!data || !data.length) { tbody.innerHTML=''; empty.style.display='block'; document.getElementById('visibleCount').textContent='0'; document.getElementById('totalCount').textContent='0'; return; } empty.style.display='none'; const sv = document.getElementById('searchInput').value.toLowerCase(); const stv = document.getElementById('statusFilter').value; const f = data.filter(i => (!sv || i.partNumber.toLowerCase().includes(sv) || i.description.toLowerCase().includes(sv)) && (stv==='all' || (stv==='scanned'?i.scanned:i.status===stv))); document.getElementById('visibleCount').textContent=f.length; document.getElementById('totalCount').textContent=data.length; const sl = { pending:'<i class="fas fa-clock"></i> Menunggu', match:'<i class="fas fa-check-circle"></i> Sesuai', deficit:'<i class="fas fa-arrow-down"></i> Kurang', surplus:'<i class="fas fa-arrow-up"></i> Lebih', missing:'<i class="fas fa-minus-circle"></i> Hilang', extra:'<i class="fas fa-plus-circle"></i> Tambahan' }; tbody.innerHTML = f.map(i => { const isSet = i.fisik !== '-'; const s = isSet ? i.available - i.fisik : '-'; const sc = !isSet ? 'color: var(--fg-muted)' : s>0?'color:#ff5252':s<0?'color:#00e676':'color:var(--fg-muted)'; const sp = s>0?'-':s<0?'+':''; const sv2 = isSet ? `${sp}${Math.abs(s)}` : '-'; const bc = `badge badge-${i.status||'pending'}`; const sb = i.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : ''; const fd = !isSet ? '<span style="color:var(--fg-muted);opacity:0.4;">-</span>' : `<span style="color:var(--info);font-weight:600;">${i.fisik}</span>`; return `<tr data-pn="${i.partNumber.toLowerCase()}"><td class="text-center" style="color:var(--fg-muted);">${i.no}</td><td style="color:var(--fg);font-weight:500;">${i.partNumber}${sb}</td><td style="color:var(--fg-muted);font-family:'Space Grotesk';font-size:0.82rem;">${i.description}</td><td class="text-center" style="color:var(--fg-muted);">${i.systemQty}</td><td class="text-center" style="color:var(--fg-muted);">${i.actualQty}</td><td class="text-center" style="color:var(--fg);font-weight:500;">${i.available}</td><td class="text-center">${fd}</td><td class="text-center" style="${sc};font-weight:600;">${sv2}</td><td class="text-center"><span class="${bc}">${sl[i.status]||i.status}</span></td></tr>`; }).join(''); }
         function filterTable() { renderTable(mergedData); }
         function updateStats() { const t=mergedData.length, m=mergedData.filter(d=>d.status==='match').length, d=mergedData.filter(d=>d.status==='deficit').length, s=mergedData.filter(d=>d.status==='surplus').length, mi=mergedData.filter(d=>d.status==='missing').length, e=mergedData.filter(d=>d.status==='extra').length; ['statTotal','statMatch','statDeficit','statSurplus','statMissing','statExtra'].forEach((id,i)=>animateNumber(id,[t,m,d,s,mi,e][i])); }
         function animateNumber(id, target) { const el=document.getElementById(id); const c=parseInt(el.textContent)||0; const df=target-c; if(!df)return; const st=20; const inc=df/st; let s=0; const tm=setInterval(()=>{s++;if(s>=st){el.textContent=target;clearInterval(tm);}else{el.textContent=Math.round(c+inc*s);}},20); }
-        function exportResult() { if(!mergedData.length){showToast('Kosong','warning');return;} const sm={pending:'Menunggu',match:'Sesuai',deficit:'Kurang',surplus:'Lebih',missing:'Hilang',extra:'Tambahan'}; const ed=mergedData.map(i=>{const isSet=i.fisik!=='-';const s=isSet?i.available-i.fisik:'';return{'NO':i.no,'PART NUMBER':i.partNumber,'DESKRIPSI':i.description,'QTY SISTEM':i.systemQty,'QTY AKTUAL':i.actualQty,'AVAILABLE':i.available,'FISIK':isSet?i.fisik:'','SELIH':s,'STATUS':sm[i.status]||i.status,'DI-SCAN':i.scanned?'YA':'TIDAK'};}); const ws=XLSX.utils.json_to_sheet(ed);ws['!cols']=[{wch:5},{wch:18},{wch:30},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:12},{wch:10}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Hasil Stock Opname');XLSX.writeFile(wb,`Hasil_Stock_Opname_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('Diekspor','success'); }
+        
+        function exportResult() { if(!mergedData.length){showToast('Kosong','warning');return;} const sm={pending:'Menunggu',match:'Sesuai',deficit:'Kurang',surplus:'Lebih',missing:'Hilang',extra:'Tambahan'}; const ed=mergedData.map(i=>{const isSet=i.fisik!=='-';const s=isSet?i.available-i.fisik:'';return{'NO':i.no,'PART NUMBER':i.partNumber,'DESKRIPSI':i.description,'QTY SISTEM':i.systemQty,'QTY ALLOC':i.actualQty,'AVAILABLE':i.available,'FISIK':isSet?i.fisik:'','SELIH':s,'STATUS':sm[i.status]||i.status,'DI-SCAN':i.scanned?'YA':'TIDAK'};}); const ws=XLSX.utils.json_to_sheet(ed);ws['!cols']=[{wch:5},{wch:18},{wch:30},{wch:12},{wch:12},{wch:12},{wch:10},{wch:10},{wch:12},{wch:10}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Hasil Stock Opname');XLSX.writeFile(wb,`Hasil_Stock_Opname_${new Date().toISOString().slice(0,10)}.xlsx`);showToast('Diekspor','success'); }
+        
         function clearAll() { sheetData=[]; excelData=[]; mergedData=[]; document.getElementById('searchInput').value=''; document.getElementById('statusFilter').value='all'; document.getElementById('fileInput').value=''; document.getElementById('manualBarcode').value=''; document.getElementById('qtyInput').value=1; document.getElementById('btnCompare').disabled=true; document.getElementById('btnExport').disabled=true; document.getElementById('btnConfirmQty').disabled=true; document.getElementById('lastScannedInfo').innerHTML='<span style="color:var(--fg-muted);">Belum ada</span>'; lastScannedPartNumber=''; if(isPanelOpen) toggleScannerPanel(); renderTable([]); updateStats(); showToast('Dihapus','info'); }
         document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); } });
     </script>
