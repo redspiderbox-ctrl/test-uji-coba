@@ -5,327 +5,966 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Opname - Spare Part Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { display: ['Space Grotesk', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
     </script>
     <style>
         :root {
-            --bg: #0a0a0f; --bg-card: #12121a; --bg-card-hover: #1a1a26; --border: #1e1e2e; --border-accent: #2a2a3e;
-            --fg: #e8e8f0; --fg-muted: #6b6b80; --accent: #00e676; --accent-dim: #00c853; --accent-glow: rgba(0, 230, 118, 0.15);
-            --warning: #ffab00; --danger: #ff5252; --info: #40c4ff;
+            --bg: #060608;
+            --card: #0f0f13;
+            --card-hover: #16161c;
+            --border: #1e1e28;
+            --accent: #facc15;
+            --accent-dim: rgba(250,204,21,0.12);
+            --success: #22c55e;
+            --success-dim: rgba(34,197,94,0.12);
+            --danger: #ef4444;
+            --danger-dim: rgba(239,68,68,0.12);
+            --warning: #f97316;
+            --warning-dim: rgba(249,115,22,0.12);
+            --text: #e4e4e7;
+            --muted: #71717a;
         }
-        * { box-sizing: border-box; }
-        body { background: var(--bg); color: var(--fg); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
-        body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 20% 20%, rgba(0, 230, 118, 0.03) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(64, 196, 255, 0.02) 0%, transparent 50%); pointer-events: none; z-index: 0; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; } ::-webkit-scrollbar-thumb:hover { background: var(--fg-muted); }
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; transition: all 0.3s ease; } .card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
-        .stat-card { position: relative; overflow: hidden; } .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); opacity: 0; transition: opacity 0.3s ease; } .stat-card:hover::before { opacity: 1; }
-        .stat-card .stat-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; transition: all 0.3s ease; } .stat-card:hover .stat-icon { transform: scale(1.1); }
-        .upload-zone { border: 2px dashed var(--border-accent); border-radius: 12px; transition: all 0.3s ease; position: relative; cursor: pointer; } .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-glow); }
-        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .data-table thead th { background: rgba(18, 18, 26, 0.95); backdrop-filter: blur(8px); padding: 12px 16px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; white-space: nowrap; }
-        .data-table tbody tr { transition: background 0.2s ease; } .data-table tbody tr:hover { background: rgba(0, 230, 118, 0.04); } .data-table tbody tr.highlight-row { background: rgba(0, 230, 118, 0.1) !important; }
-        .data-table tbody td { padding: 11px 16px; font-size: 0.85rem; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; } .data-table tbody tr:last-child td { border-bottom: none; }
-        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.03em; }
-        .badge-match { background: rgba(0, 230, 118, 0.12); color: #00e676; } .badge-deficit { background: rgba(255, 82, 82, 0.12); color: #ff5252; } .badge-surplus { background: rgba(0, 230, 118, 0.12); color: #00e676; }
-        .badge-missing { background: rgba(255, 171, 0, 0.12); color: #ffab00; } .badge-extra { background: rgba(64, 196, 255, 0.12); color: #40c4ff; }
-        .badge-scanned { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0,230,118,0.3); } .badge-pending { background: rgba(107, 107, 128, 0.12); color: #6b6b80; }
-        .btn-primary { background: var(--accent); color: #0a0a0f; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; font-family: 'Space Grotesk', sans-serif; }
-        .btn-primary:hover { background: var(--accent-dim); box-shadow: 0 0 20px rgba(0, 230, 118, 0.25); transform: translateY(-1px); } .btn-primary:active { transform: translateY(0); } .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-outline { background: transparent; color: var(--fg); font-weight: 500; padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-accent); cursor: pointer; transition: all 0.2s ease; font-family: 'Space Grotesk', sans-serif; }
-        .btn-outline:hover { border-color: var(--fg-muted); background: rgba(255,255,255,0.03); } .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
-        .input-field { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--fg); font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; width: 100%; }
-        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1); } .input-field::placeholder { color: var(--fg-muted); }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-        .toast { padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 10px; animation: toastIn 0.35s ease; backdrop-filter: blur(12px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-        .toast-success { background: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.3); color: #00e676; } .toast-error { background: rgba(255, 82, 82, 0.15); border: 1px solid rgba(255, 82, 82, 0.3); color: #ff5252; }
-        .toast-info { background: rgba(64, 196, 255, 0.15); border: 1px solid rgba(64, 196, 255, 0.3); color: #40c4ff; } .toast-warning { background: rgba(255, 171, 0, 0.15); border: 1px solid rgba(255, 171, 0, 0.3); color: #ffab00; }
-        @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); } }
-        .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; } @keyframes spin { to { transform: rotate(360deg); } }
-        .empty-state { padding: 60px 20px; text-align: center; color: var(--fg-muted); } .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; }
-        .config-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0; } .config-panel.open { max-height: 500px; opacity: 1; }
-        #barcodeReader video { border-radius: 8px !important; } #barcodeReader { border-radius: 8px; overflow: hidden; } #barcodeReader img[alt="Info icon"] { display: none; }
-        .scan-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 50%; border: 2px solid var(--accent); border-radius: 8px; pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,0.4); }
-        .scan-line { position: absolute; top: 0; left: 5%; width: 90%; height: 2px; background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: scanMove 2s linear infinite; }
-        @keyframes scanMove { 0%,100%{ top:5%; } 50%{ top:90%; } }
-        .scan-success-flash { animation: flashGreen 0.5s ease; } @keyframes flashGreen { 0% { background: rgba(0, 230, 118, 0.2); } 100% { background: transparent; } }
-        .search-highlight { border-color: var(--accent) !important; box-shadow: 0 0 12px rgba(0, 230, 118, 0.3) !important; transition: all 0.3s ease; }
-        .fab-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: #0a0a0f; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,230,118,0.4); z-index: 1000; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
-        .fab-btn:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(0,230,118,0.6); }
-        .fab-btn.active { background: var(--danger); box-shadow: 0 4px 20px rgba(255,82,82,0.4); }
-        .scanner-panel { position: fixed; bottom: 100px; right: 30px; width: 380px; max-height: calc(100vh - 140px); overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 16px; box-shadow: 0 15px 50px rgba(0,0,0,0.5); z-index: 999; transform: scale(0.8) translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .scanner-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
-        @media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr) !important; } .action-bar { flex-direction: column; } .scanner-panel { width: calc(100% - 30px); right: 15px; bottom: 90px; } }
-        @media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr !important; } }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Space Grotesk',sans-serif;
+            background:var(--bg);
+            color:var(--text);
+            min-height:100vh;
+            overflow-x:hidden;
+        }
+        body::before {
+            content:'';
+            position:fixed;
+            inset:0;
+            background:
+                radial-gradient(ellipse 600px 400px at 15% 10%, rgba(250,204,21,0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 500px at 85% 90%, rgba(34,197,94,0.03) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 300px at 50% 50%, rgba(239,68,68,0.02) 0%, transparent 70%);
+            pointer-events:none;
+            z-index:0;
+        }
+        body::after {
+            content:'';
+            position:fixed;
+            inset:0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events:none;
+            z-index:0;
+        }
+        main, header, footer { position:relative; z-index:1; }
+
+        ::-webkit-scrollbar { width:6px; height:6px; }
+        ::-webkit-scrollbar-track { background:var(--bg); }
+        ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+        ::-webkit-scrollbar-thumb:hover { background:#333; }
+
+        @keyframes statPulse {
+            0%,100% { box-shadow:0 0 0 0 rgba(250,204,21,0.15); }
+            50% { box-shadow:0 0 20px 2px rgba(250,204,21,0.08); }
+        }
+        .stat-card {
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:20px;
+            transition:all 0.3s ease;
+            position:relative;
+            overflow:hidden;
+        }
+        .stat-card::before {
+            content:'';
+            position:absolute;
+            top:0;left:0;right:0;
+            height:2px;
+            background:var(--accent);
+            opacity:0.6;
+        }
+        .stat-card:hover {
+            border-color:rgba(250,204,21,0.3);
+            transform:translateY(-2px);
+        }
+        .stat-card.sudah::before { background:var(--success); }
+        .stat-card.belum::before { background:var(--danger); }
+        .stat-card.selisih::before { background:var(--warning); }
+
+        .data-table {
+            width:100%;
+            border-collapse:separate;
+            border-spacing:0;
+        }
+        .data-table thead th {
+            background:#0a0a0e;
+            padding:12px 10px;
+            font-size:11px;
+            text-transform:uppercase;
+            letter-spacing:0.05em;
+            color:var(--muted);
+            font-weight:600;
+            border-bottom:1px solid var(--border);
+            position:sticky;
+            top:0;
+            z-index:10;
+            white-space:nowrap;
+        }
+        .data-table tbody tr {
+            transition:background 0.15s ease;
+        }
+        .data-table tbody tr:hover {
+            background:var(--card-hover);
+        }
+        .data-table tbody td {
+            padding:10px;
+            font-size:13px;
+            border-bottom:1px solid rgba(30,30,40,0.5);
+            white-space:nowrap;
+        }
+        .data-table tbody tr.counted-ok {
+            background:rgba(34,197,94,0.04);
+        }
+        .data-table tbody tr.counted-ok:hover {
+            background:rgba(34,197,94,0.08);
+        }
+        .data-table tbody tr.has-selisih {
+            background:rgba(249,115,22,0.04);
+        }
+        .data-table tbody tr.has-selisih:hover {
+            background:rgba(249,115,22,0.08);
+        }
+
+        .upload-zone {
+            border:2px dashed var(--border);
+            border-radius:12px;
+            padding:28px;
+            text-align:center;
+            transition:all 0.3s ease;
+            cursor:pointer;
+            background:var(--card);
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color:var(--accent);
+            background:var(--accent-dim);
+        }
+
+        .btn-primary {
+            background:var(--accent);
+            color:#000;
+            font-weight:600;
+            padding:10px 20px;
+            border-radius:8px;
+            border:none;
+            cursor:pointer;
+            transition:all 0.2s ease;
+            font-family:'Space Grotesk',sans-serif;
+            font-size:13px;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+        }
+        .btn-primary:hover {
+            background:#eab308;
+            transform:translateY(-1px);
+            box-shadow:0 4px 15px rgba(250,204,21,0.25);
+        }
+        .btn-secondary {
+            background:var(--card);
+            color:var(--text);
+            font-weight:500;
+            padding:10px 20px;
+            border-radius:8px;
+            border:1px solid var(--border);
+            cursor:pointer;
+            transition:all 0.2s ease;
+            font-family:'Space Grotesk',sans-serif;
+            font-size:13px;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+        }
+        .btn-secondary:hover {
+            background:var(--card-hover);
+            border-color:#333;
+        }
+        .btn-danger {
+            background:var(--danger-dim);
+            color:var(--danger);
+            font-weight:600;
+            padding:10px 20px;
+            border-radius:8px;
+            border:1px solid rgba(239,68,68,0.2);
+            cursor:pointer;
+            transition:all 0.2s ease;
+            font-family:'Space Grotesk',sans-serif;
+            font-size:13px;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+        }
+        .btn-danger:hover {
+            background:rgba(239,68,68,0.2);
+            border-color:rgba(239,68,68,0.4);
+        }
+
+        .input-field {
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:8px;
+            padding:10px 14px;
+            color:var(--text);
+            font-family:'Space Grotesk',sans-serif;
+            font-size:13px;
+            transition:all 0.2s ease;
+            width:100%;
+        }
+        .input-field:focus {
+            outline:none;
+            border-color:var(--accent);
+            box-shadow:0 0 0 3px var(--accent-dim);
+        }
+        .input-field::placeholder { color:var(--muted); }
+
+        .modal-overlay {
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.7);
+            backdrop-filter:blur(4px);
+            z-index:1000;
+            display:none;
+            align-items:center;
+            justify-content:center;
+        }
+        .modal-overlay.active { display:flex; }
+        .modal-content {
+            background:#111115;
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:32px;
+            max-width:440px;
+            width:90%;
+            position:relative;
+            animation:modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform:scale(0.95) translateY(10px); }
+            to { opacity:1; transform:scale(1) translateY(0); }
+        }
+
+        .toast-container {
+            position:fixed;
+            top:20px;
+            right:20px;
+            z-index:2000;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .toast {
+            padding:12px 20px;
+            border-radius:10px;
+            font-size:13px;
+            font-weight:500;
+            animation:toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            max-width:360px;
+            box-shadow:0 8px 30px rgba(0,0,0,0.4);
+        }
+        .toast.success { background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#4ade80; }
+        .toast.error { background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; }
+        .toast.info { background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3); color:#fde047; }
+        @keyframes toastIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes toastOut { from { opacity:1; } to { opacity:0; transform:translateY(-10px); } }
+
+        .config-panel {
+            background:#0a0a0e;
+            border:1px solid var(--border);
+            border-radius:12px;
+            overflow:hidden;
+            transition:max-height 0.3s ease;
+        }
+        .config-header {
+            padding:14px 20px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            transition:background 0.2s ease;
+        }
+        .config-header:hover { background:var(--card-hover); }
+        .config-body {
+            max-height:0;
+            overflow:hidden;
+            transition:max-height 0.35s ease;
+        }
+        .config-body.open {
+            max-height:400px;
+        }
+
+        @keyframes scanFlash {
+            0% { background:rgba(250,204,21,0.2); }
+            100% { background:transparent; }
+        }
+        .scan-flash {
+            animation:scanFlash 1.5s ease;
+        }
+
+        .barcode-input-wrapper {
+            position:relative;
+        }
+        .barcode-input-wrapper::after {
+            content:'';
+            position:absolute;
+            inset:-2px;
+            border-radius:10px;
+            background:linear-gradient(135deg, var(--accent), #22c55e, var(--accent));
+            background-size:200% 200%;
+            animation:borderGlow 3s ease infinite;
+            z-index:-1;
+            opacity:0.3;
+        }
+        @keyframes borderGlow {
+            0%,100% { background-position:0% 50%; }
+            50% { background-position:100% 50%; }
+        }
+
+        .table-wrapper {
+            overflow-x:auto;
+            overflow-y:auto;
+            max-height:55vh;
+            border:1px solid var(--border);
+            border-radius:12px;
+            background:var(--card);
+        }
+
+        .empty-state {
+            padding:60px 20px;
+            text-align:center;
+            color:var(--muted);
+        }
+
+        .row-num {
+            font-family:'JetBrains Mono',monospace;
+            font-size:11px;
+            color:var(--muted);
+            background:rgba(255,255,255,0.04);
+            padding:2px 8px;
+            border-radius:4px;
+        }
+
+        .badge-selisih {
+            display:inline-flex;
+            align-items:center;
+            padding:2px 8px;
+            border-radius:4px;
+            font-size:11px;
+            font-weight:600;
+            font-family:'JetBrains Mono',monospace;
+        }
+        .badge-selisih.zero {
+            background:var(--success-dim);
+            color:var(--success);
+        }
+        .badge-selisih.not-zero {
+            background:var(--danger-dim);
+            color:var(--danger);
+        }
+
+        .status-dot {
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            display:inline-block;
+        }
+        .status-dot.connected { background:var(--success); box-shadow:0 0 6px rgba(34,197,94,0.5); }
+        .status-dot.disconnected { background:var(--danger); box-shadow:0 0 6px rgba(239,68,68,0.5); }
+        .status-dot.loading { background:var(--accent); animation:pulse 1s ease infinite; }
+        @keyframes pulse {
+            0%,100% { opacity:1; }
+            50% { opacity:0.4; }
+        }
+
+        @media (max-width:768px) {
+            .stat-card { padding:14px; }
+            .data-table tbody td, .data-table thead th { padding:8px 6px; font-size:11px; }
+        }
     </style>
 </head>
-<body class="relative">
+<body>
+
     <div class="toast-container" id="toastContainer"></div>
 
-    <button class="fab-btn" id="fabScanner" onclick="toggleScannerPanel()"><i class="fas fa-barcode" id="fabIcon"></i></button>
-
-    <div class="scanner-panel" id="scannerPanel">
-        <div class="p-5">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2"><i class="fas fa-barcode text-sm" style="color: var(--accent);"></i><h3 class="font-semibold text-sm">Pemindai Barcode</h3><span class="badge badge-match text-xs">LIVE</span></div>
-                <button onclick="toggleScannerPanel()" style="color: var(--fg-muted); background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="rounded-xl overflow-hidden mb-4" style="background: #000; min-height: 220px; position: relative;" id="scannerWrapper">
-                <div id="barcodeReader" style="width: 100%;"></div>
-                <div class="scan-indicator" id="scanIndicator" style="display:none;"><div class="scan-line"></div></div>
-                <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center" style="color: var(--fg-muted);"><i class="fas fa-camera text-3xl mb-2 opacity-30"></i><p class="text-xs">Klik Mulai untuk kamera</p></div>
-            </div>
-            <div class="flex gap-2 mb-5">
-                <button class="btn-primary text-sm flex-1 flex items-center justify-center gap-2" onclick="startScanner()" id="btnStartScan"><i class="fas fa-play"></i> Mulai</button>
-                <button class="btn-outline text-sm flex-1 flex items-center justify-center gap-2" onclick="stopScanner()" id="btnStopScan" disabled><i class="fas fa-stop"></i> Berhenti</button>
-            </div>
-            <div class="flex flex-col gap-4">
-                <div><label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Input Manual (Otomatis +1 & Sync)</label><div class="flex gap-2"><input type="text" id="manualBarcode" class="input-field font-mono text-sm" placeholder="Ketik barcode..." onkeydown="if(event.key==='Enter') processBarcode(this.value)"><button class="btn-primary text-sm whitespace-nowrap" onclick="processBarcode(document.getElementById('manualBarcode').value)"><i class="fas fa-search"></i></button></div></div>
-                <div><label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Override Fisik (Opsional)</label><div class="flex gap-2 items-center"><button class="btn-outline text-base px-3 py-1" onclick="adjustQty(-1)">-</button><input type="number" id="qtyInput" class="input-field text-center font-mono text-base" value="1" min="0" style="width: 70px;"><button class="btn-outline text-base px-3 py-1" onclick="adjustQty(1)">+</button><button class="btn-outline text-xs ml-1 flex items-center gap-1 px-3" onclick="confirmActualQty()" id="btnConfirmQty" disabled><i class="fas fa-pen"></i> Set</button></div></div>
-                <div class="card p-3" style="border-color: var(--border-accent);"><div class="text-xs font-medium mb-2" style="color: var(--fg-muted);"><i class="fas fa-history mr-1"></i> Terakhir Di-scan</div><div id="lastScannedInfo" class="text-xs" style="color: var(--fg-muted);">Belum ada</div></div>
-                <div><div class="flex items-center justify-between mb-2"><span class="text-xs font-medium" style="color: var(--fg-muted);"><i class="fas fa-list mr-1"></i> Riwayat</span><button class="text-xs" style="color: var(--danger); background: none; border: none; cursor: pointer;" onclick="clearScanHistory()">Hapus</button></div><div id="scanHistory" class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto" style="color: var(--fg-muted);"><span class="text-xs italic">Kosong</span></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div class="flex items-center gap-4">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: var(--accent-glow); border: 1px solid rgba(0,230,118,0.2);"><i class="fas fa-warehouse" style="color: var(--accent); font-size: 18px;"></i></div>
-                <div><h1 class="text-2xl font-bold tracking-tight" style="color: var(--fg);">Stock Opname</h1><p class="text-xs mt-0.5" style="color: var(--fg-muted);">Realtime Spare Part Management</p></div>
+    <header class="border-b border-[#1e1e28] bg-[#0a0a0e]/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-[var(--accent)] flex items-center justify-center">
+                    <i class="fas fa-boxes-stacked text-black text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">Stock Opname</h1>
+                    <p class="text-[11px] text-[var(--muted)] tracking-wide uppercase">Spare Part Management System</p>
+                </div>
             </div>
             <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg" style="background: var(--bg-card); border: 1px solid var(--border);"><div class="pulse-dot" id="statusDot" style="background: var(--fg-muted); animation: none;"></div><span class="text-xs font-medium" id="connectionStatus" style="color: var(--fg-muted);">Tidak Terhubung</span></div>
-                <button class="btn-outline text-sm flex items-center gap-2" onclick="toggleConfig()"><i class="fas fa-cog"></i> Pengaturan</button>
-                <button class="btn-outline text-sm flex items-center gap-2" onclick="syncFromSheet()"><i class="fas fa-sync-alt"></i> Sync</button>
-            </div>
-        </header>
-
-        <div class="config-panel mb-6" id="configPanel">
-            <div class="card p-5">
-                <div class="flex items-center gap-2 mb-4"><i class="fas fa-link text-sm" style="color: var(--accent);"></i><h3 class="font-semibold text-sm">Konfigurasi Google Sheets API</h3></div>
-                <p class="text-xs mb-4" style="color: var(--fg-muted);">Paste URL Web App Google Apps Script Anda. <br><strong style="color: var(--fg);">Spreadsheet ID:</strong> <code class="text-xs px-1.5 py-0.5 rounded" style="background: var(--bg); color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code></p>
-                <div class="flex gap-3"><input type="text" id="apiUrlInput" class="input-field flex-1 font-mono text-xs" placeholder="https://script.google.com/macros/s/.../exec" spellcheck="false"><button class="btn-primary text-sm whitespace-nowrap" onclick="saveApiUrl()"><i class="fas fa-save mr-1"></i> Simpan</button></div>
-                <details class="mt-4"><summary class="text-xs cursor-pointer" style="color: var(--accent);">Cara Setup Apps Script (Baca & Tulis Realtime)</summary><div class="mt-3 p-4 rounded-lg text-xs leading-relaxed" style="background: var(--bg); color: var(--fg-muted);"><ol class="list-decimal list-inside space-y-2"><li>Buka Google Sheet → <strong>Extensions → Apps Script</strong></li><li>Paste kode berikut:<pre class="mt-2 p-3 rounded-lg overflow-x-auto" style="background: var(--bg-card); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;">function doGet() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = sheet.getDataRange().getValues();
-  return ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var body = JSON.parse(e.postData.contents);
-    var partNumber = body.partNumber;
-    var newFisik = body.fisik;
-    var data = sheet.getDataRange().getValues();
-    var fisikColIndex = 4; // Kolom Fisik (Index ke-4 / Kolom E)
-    var found = false;
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == partNumber) {
-        sheet.getRange(i + 1, fisikColIndex + 1).setValue(newFisik);
-        found = true; break;
-      }
-    }
-    if (!found) {
-      sheet.appendRow([partNumber, 'Barang Tambahan (Scan)', 0, 0, newFisik, 'Barang tambahan']);
-    }
-    return ContentService.createTextOutput(JSON.stringify({"status":"success"}))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({"status":"error"}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}</pre></li><li>Klik <strong>Deploy → New deployment</strong> → Web app → "Anyone" → Deploy</li><li>Copy URL, paste di atas</li></ol></div></details>
+                <span class="status-dot loading" id="statusDot"></span>
+                <span class="text-xs text-[var(--muted)]" id="statusText">Memuat...</span>
             </div>
         </div>
+    </header>
 
-        <div class="stat-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-            <div class="card stat-card p-4"><div class="flex items-center justify-between mb-3"><div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-database"></i></div></div><div class="text-2xl font-bold font-mono" id="statTotal">0</div><div class="text-xs mt-1" style="color: var(--fg-muted);">Total Item</div></div>
-            <div class="card stat-card p-4"><div class="flex items-center justify-between mb-3"><div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-check-circle"></i></div></div><div class="text-2xl font-bold font-mono" id="statMatch">0</div><div class="text-xs mt-1" style="color: var(--fg-muted);">Sesuai</div></div>
-            <div class="card stat-card p-4"><div class="flex items-center justify-between mb-3"><div class="stat-icon" style="background: rgba(255, 82, 82, 0.1); color: #ff5252;"><i class="fas fa-arrow-down"></i></div></div><div class="text-2xl font-bold font-mono" id="statDeficit">0</div><div class="text-xs mt-1" style="color: var(--fg-muted);">Kurang</div></div>
-            <div class="card stat-card p-4"><div class="flex items-center justify-between mb-3"><div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-arrow-up"></i></div></div><div class="text-2xl font-bold font-mono" id="statSurplus">0</div><div class="text-xs mt-1" style="color: var(--fg-muted);">Lebih</div></div>
-            <div class="card stat-card p-4"><div class="flex items-center justify-between mb-3"><div class="stat-icon" style="background: rgba(255, 171, 0, 0.1); color: #ffab00;"><i class="fas fa-search"></i></div></div><div class="text-2xl font-bold font-mono" id="statMissing">0</div><div class="text-xs mt-1" style="color: var(--fg-muted);">Hilang</div></div>
-            <div class="card stat-card p-4"><div class="flex items-center justify-between mb-3"><div class="stat-icon" style="background: rgba(64, 196, 255, 0.1); color: #40c4ff;"><i class="fas fa-plus-circle"></i></div></div><div class="text-2xl font-bold font-mono" id="statExtra">0</div><div class="text-xs mt-1" style="color: var(--fg-muted);">Tambahan</div></div>
-        </div>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-        <div class="card p-5 mb-6">
-            <div class="flex items-center gap-2 mb-4"><i class="fas fa-file-excel text-sm" style="color: var(--accent);"></i><h3 class="font-semibold text-sm">Unggah File Excel</h3></div>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="upload-zone flex-1 p-8 text-center" id="uploadZone" onclick="document.getElementById('fileInput').click()"><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileUpload(event)"><i class="fas fa-cloud-upload-alt text-3xl mb-3" style="color: var(--fg-muted);"></i><p class="text-sm font-medium" style="color: var(--fg);">Seret & lepaskan file atau klik</p><p class="text-xs mt-2" style="color: var(--fg-muted);">Format: .xlsx, .xls, .csv</p></div>
-                <div class="flex flex-col gap-2 sm:w-52">
-                    <button class="btn-primary text-sm flex items-center justify-center gap-2" onclick="fetchFromSheet()" id="btnFetch"><i class="fas fa-sync-alt"></i> Ambil dari Sheet</button>
-                    <button class="btn-outline text-sm flex items-center justify-center gap-2" onclick="compareData()" id="btnCompare" disabled><i class="fas fa-exchange-alt"></i> Bandingkan</button>
-                    <button class="btn-outline text-sm flex items-center justify-center gap-2" onclick="exportResult()" id="btnExport" disabled><i class="fas fa-download"></i> Ekspor Hasil</button>
-                    <button class="btn-outline text-sm flex items-center justify-center gap-2" onclick="clearAll()" style="border-color: rgba(255,82,82,0.3); color: #ff5252;"><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+        <div class="config-panel" id="configPanel">
+            <div class="config-header" onclick="toggleConfig()">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-gear text-[var(--accent)] text-sm"></i>
+                    <span class="text-sm font-semibold">Konfigurasi Google Sheet API</span>
+                </div>
+                <i class="fas fa-chevron-down text-[var(--muted)] text-xs transition-transform" id="configArrow"></i>
+            </div>
+            <div class="config-body" id="configBody">
+                <div class="px-5 pb-5 space-y-3">
+                    <p class="text-xs text-[var(--muted)] leading-relaxed">
+                        Paste URL Google Sheet API di bawah ini untuk menghubungkan data stock. 
+                        Format: <code class="text-[var(--accent)] bg-[var(--accent-dim)] px-1.5 py-0.5 rounded text-[10px]">https://sheets.googleapis.com/v4/spreadsheets/{ID}/values/{Range}?key={API_KEY}</code>
+                    </p>
+                    <div class="flex gap-2">
+                        <input type="text" class="input-field flex-1 text-xs" id="apiUrlInput" 
+                               placeholder="Paste Google Sheets API URL di sini...">
+                        <button class="btn-primary text-xs" onclick="saveApiUrl()">
+                            <i class="fas fa-plug"></i> Hubungkan
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 text-[11px] text-[var(--muted)]">
+                        <i class="fas fa-info-circle text-[var(--accent)]"></i>
+                        <span>Sheet ID dari link Anda: <code class="text-[var(--text)]">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code></span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card p-4 mb-4">
-            <div class="action-bar flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div class="relative flex-1"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color: var(--fg-muted);"></i><input type="text" id="searchInput" class="input-field pl-9" placeholder="Cari part number, nama..." oninput="filterTable()"></div>
-                <select id="statusFilter" class="input-field sm:w-48" onchange="filterTable()"><option value="all">Semua Selisih</option><option value="pending">Belum Dipindai</option><option value="match">Sesuai</option><option value="deficit">Kurang</option><option value="surplus">Lebih</option><option value="missing">Hilang</option><option value="extra">Tambahan</option><option value="scanned">Sudah Di-scan</option></select>
-                <div class="flex items-center gap-2 text-xs" style="color: var(--fg-muted);"><span>Menampilkan <strong id="visibleCount" style="color: var(--fg);">0</strong> dari <strong id="totalCount" style="color: var(--fg);">0</strong></span></div>
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="stat-card">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-md bg-[var(--accent-dim)] flex items-center justify-center">
+                        <i class="fas fa-cubes text-[var(--accent)] text-xs"></i>
+                    </div>
+                    <span class="text-[11px] text-[var(--muted)] uppercase tracking-wider font-medium">Total Items</span>
+                </div>
+                <p class="text-3xl font-bold font-mono" id="statTotal">0</p>
             </div>
-        </div>
+            <div class="stat-card sudah">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-md bg-[var(--success-dim)] flex items-center justify-center">
+                        <i class="fas fa-check-circle text-[var(--success)] text-xs"></i>
+                    </div>
+                    <span class="text-[11px] text-[var(--muted)] uppercase tracking-wider font-medium">Sudah Dihitung</span>
+                </div>
+                <p class="text-3xl font-bold font-mono text-[var(--success)]" id="statCounted">0</p>
+            </div>
+            <div class="stat-card belum">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-md bg-[var(--danger-dim)] flex items-center justify-center">
+                        <i class="fas fa-clock text-[var(--danger)] text-xs"></i>
+                    </div>
+                    <span class="text-[11px] text-[var(--muted)] uppercase tracking-wider font-medium">Belum Dihitung</span>
+                </div>
+                <p class="text-3xl font-bold font-mono text-[var(--danger)]" id="statUncounted">0</p>
+            </div>
+            <div class="stat-card selisih">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-md bg-[var(--warning-dim)] flex items-center justify-center">
+                        <i class="fas fa-triangle-exclamation text-[var(--warning)] text-xs"></i>
+                    </div>
+                    <span class="text-[11px] text-[var(--muted)] uppercase tracking-wider font-medium">Ada Selisih</span>
+                </div>
+                <p class="text-3xl font-bold font-mono text-[var(--warning)]" id="statSelisih">0</p>
+            </div>
+        </section>
 
-        <div class="card overflow-hidden mb-6">
-            <div class="overflow-x-auto" style="max-height: 520px; overflow-y: auto;">
-                <table class="data-table" id="dataTable"><thead><tr><th class="text-center" style="width: 50px;">NO</th><th>PART NUMBER</th><th>DESKRIPSI</th><th class="text-center">QTY SISTEM</th><th class="text-center">QTY AKTUAL</th><th class="text-center">AVAILABLE</th><th class="text-center">FISIK</th><th class="text-center">SELIH</th><th class="text-center">STATUS</th></tr></thead><tbody id="tableBody"></tbody></table>
+        <section class="flex flex-col lg:flex-row gap-4">
+            <div class="flex-1">
+                <div class="barcode-input-wrapper">
+                    <div class="flex gap-2">
+                        <input type="text" class="input-field font-mono" id="barcodeInput" 
+                               placeholder="Scan atau ketik barcode / part number..."
+                               onkeydown="if(event.key==='Enter')handleScan()">
+                        <button class="btn-primary whitespace-nowrap" onclick="handleScan()">
+                            <i class="fas fa-barcode"></i> Scan Barcode
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="empty-state" id="emptyState"><i class="fas fa-inbox block"></i><p class="text-sm font-medium mb-1">Tidak ada data</p><p class="text-xs" style="color: var(--fg-muted);">Unggah file Excel atau ambil dari Google Sheet</p></div>
+
+            <div class="upload-zone flex items-center gap-4 lg:w-auto cursor-pointer" id="uploadZone" 
+                 onclick="document.getElementById('excelInput').click()">
+                <input type="file" id="excelInput" accept=".xlsx,.xls" class="hidden" onchange="handleExcelUpload(event)">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-[var(--accent-dim)] flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-file-excel text-[var(--accent)]"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-sm font-medium">Drop Excel file atau klik untuk upload</p>
+                        <p class="text-[11px] text-[var(--muted)]">Format: .xlsx, .xls</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 flex-shrink-0 flex-wrap">
+                <button class="btn-secondary" onclick="exportExcel()">
+                    <i class="fas fa-file-export"></i> Export Excel
+                </button>
+                <button class="btn-secondary" onclick="exportPDF()">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button class="btn-danger" onclick="clearData()">
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+            </div>
+        </section>
+
+        <section>
+            <div class="relative">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-[var(--muted)] text-sm"></i>
+                <input type="text" class="input-field pl-10" id="searchInput" 
+                       placeholder="Cari berdasarkan No, Part, atau Deskripsi..."
+                       oninput="renderTable()">
+            </div>
+        </section>
+
+        <section>
+            <div class="table-wrapper" id="tableWrapper">
+                <table class="data-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th class="text-center">NO</th>
+                            <th>PART NUMBER</th>
+                            <th>DESKRIPSI</th>
+                            <th class="text-center">QTY SYSTEM</th>
+                            <th class="text-center">FISIK</th>
+                            <th class="text-center">SELISIH</th>
+                            <th class="text-center">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-inbox text-4xl text-[var(--border)] mb-3"></i>
+                    <p class="text-sm">Belum ada data</p>
+                    <p class="text-[11px] mt-1">Upload Excel atau hubungkan Google Sheet untuk memulai</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="modal-overlay" id="scanModal">
+        <div class="modal-content">
+            <button class="absolute top-4 right-4 text-[var(--muted)] hover:text-[var(--text)] transition-colors" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 rounded-xl bg-[var(--accent-dim)] flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-barcode text-[var(--accent)] text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold" id="modalPartNumber">-</h3>
+                <p class="text-sm text-[var(--muted)] mt-1" id="modalDesc">-</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Qty System</label>
+                    <p class="text-2xl font-bold font-mono mt-1" id="modalQtySystem">0</p>
+                </div>
+                <div>
+                    <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Fisik (Qty Actual)</label>
+                    <input type="number" class="input-field text-center text-xl font-mono mt-1" id="modalQtyActual" 
+                           min="0" placeholder="0" onkeydown="if(event.key==='Enter')confirmScan()">
+                </div>
+                <button class="btn-primary w-full justify-center py-3 mt-2" onclick="confirmScan()">
+                    <i class="fas fa-check"></i> Simpan
+                </button>
+            </div>
         </div>
-        <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);"><p>Stock Opname System v5.0 Realtime</p></footer>
     </div>
 
+    <footer class="border-t border-[#1e1e28] mt-8 py-6 text-center text-[11px] text-[var(--muted)]">
+        <p>Stock Opname System &mdash; Spare Part Management &mdash; Google Sheet + GitHub Pages</p>
+    </footer>
+
     <script>
-        let sheetData = [], excelData = [], mergedData = [];
-        let apiUrl = localStorage.getItem('stockOpnameApiUrl') || '';
-        let html5QrCode = null, scannerActive = false, lastScannedPartNumber = '', scanHistoryList = [];
-        let isPanelOpen = false;
+        let stockData = [];
+        let currentScanIndex = -1;
+        const STORAGE_KEY = 'stockOpnameData';
+        const API_URL_KEY = 'stockOpnameApiUrl';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (apiUrl) document.getElementById('apiUrlInput').value = apiUrl;
-            const zone = document.getElementById('uploadZone');
-            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
-            zone.addEventListener('dragleave', () => { zone.classList.remove('dragover'); });
-            zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]); });
-        });
-
-        function showToast(message, type = 'info') { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = `toast toast-${type}`; const i = { success:'fas fa-check-circle', error:'fas fa-times-circle', info:'fas fa-info-circle', warning:'fas fa-exclamation-circle' }; t.innerHTML = `<i class="${i[type]||i.info}"></i><span>${message}</span>`; c.appendChild(t); setTimeout(() => { t.style.transition = 'opacity 0.3s, transform 0.3s'; t.style.opacity = '0'; t.style.transform = 'translateX(40px)'; setTimeout(() => t.remove(), 300); }, 3500); }
-        function toggleConfig() { document.getElementById('configPanel').classList.toggle('open'); }
-        function saveApiUrl() { const url = document.getElementById('apiUrlInput').value.trim(); if (!url) { showToast('API URL tidak boleh kosong', 'warning'); return; } apiUrl = url; localStorage.setItem('stockOpnameApiUrl', url); showToast('API URL disimpan', 'success'); updateConnectionStatus(true); }
-        function updateConnectionStatus(connected) { const dot = document.getElementById('statusDot'); const status = document.getElementById('connectionStatus'); if (connected) { dot.style.background = '#00e676'; dot.style.animation = 'pulse 2s infinite'; status.textContent = 'Terhubung'; status.style.color = '#00e676'; } else { dot.style.background = 'var(--fg-muted)'; dot.style.animation = 'none'; status.textContent = 'Tidak Terhubung'; status.style.color = 'var(--fg-muted)'; } }
-
-        function toggleScannerPanel() { isPanelOpen = !isPanelOpen; const panel = document.getElementById('scannerPanel'); const fab = document.getElementById('fabScanner'); const fabIcon = document.getElementById('fabIcon'); if (isPanelOpen) { panel.classList.add('open'); fab.classList.add('active'); fabIcon.className = 'fas fa-times'; } else { panel.classList.remove('open'); fab.classList.remove('active'); fabIcon.className = 'fas fa-barcode'; stopScanner(); } }
-
-        async function startScanner() { try { if (!html5QrCode) html5QrCode = new Html5Qrcode("barcodeReader"); document.getElementById('cameraPlaceholder').style.display = 'none'; document.getElementById('scanIndicator').style.display = 'block'; const config = { fps: 10, qrbox: { width: 220, height: 130 }, aspectRatio: 1.5, formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.CODE_93, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.ITF, Html5QrcodeSupportedFormats.CODABAR ] }; await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}); scannerActive = true; document.getElementById('btnStartScan').disabled = true; document.getElementById('btnStopScan').disabled = false; showToast('Pemindai kamera aktif', 'success'); } catch (err) { console.error(err); document.getElementById('cameraPlaceholder').style.display = 'flex'; document.getElementById('scanIndicator').style.display = 'none'; showToast('Gagal mengakses kamera', 'error'); } }
-        async function stopScanner() { if (html5QrCode && scannerActive) { try { await html5QrCode.stop(); } catch(e) {} scannerActive = false; document.getElementById('btnStartScan').disabled = false; document.getElementById('btnStopScan').disabled = true; document.getElementById('cameraPlaceholder').style.display = 'flex'; document.getElementById('scanIndicator').style.display = 'none'; } }
-
-        let lastScanTime = 0;
-        function onScanSuccess(decodedText) { const now = Date.now(); if (now - lastScanTime < 1500) return; lastScanTime = now; try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.frequency.value = 1200; osc.type = 'sine'; gain.gain.value = 0.15; osc.start(); osc.stop(ctx.currentTime + 0.12); } catch(e) {} document.getElementById('scannerWrapper').classList.add('scan-success-flash'); setTimeout(() => document.getElementById('scannerWrapper').classList.remove('scan-success-flash'), 500); processBarcode(decodedText); }
-
-        // === FUNGSI REALTIME KE GOOGLE SHEET ===
-        async function updateSheetRealtime(partNumber, fisikValue) {
-            if (!apiUrl) return;
-            try {
-                await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ partNumber: partNumber, fisik: fisikValue }), mode: 'no-cors' });
-            } catch (error) { console.error('Sync gagal:', error); }
-        }
-
-        function processBarcode(code) {
-            if (!code || !code.trim()) { return; }
-            code = code.trim(); addScanHistory(code);
-            const searchInput = document.getElementById('searchInput'); searchInput.value = code; searchInput.classList.add('search-highlight'); setTimeout(() => searchInput.classList.remove('search-highlight'), 1500); filterTable();
-            document.getElementById('manualBarcode').value = code;
-            const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase() || item.partNumber.toLowerCase().includes(code.toLowerCase()));
-            
-            if (found) {
-                const currentFisik = found.fisik === '-' ? 0 : parseInt(found.fisik) || 0;
-                const newFisikVal = currentFisik + 1;
-                updateItemFisik(found, newFisikVal);
-                updateSheetRealtime(found.partNumber, newFisikVal);
-                
-                lastScannedPartNumber = found.partNumber; document.getElementById('btnConfirmQty').disabled = false;
-                document.getElementById('qtyInput').value = found.fisik;
-                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1"><div class="flex items-center gap-2"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> +1 Synced</span></div><div><strong style="color: var(--fg);">${found.partNumber}</strong></div><div class="flex gap-3 mt-1"><span class="text-xs">Fisik: <strong style="color: var(--info);">${found.fisik}</strong></span></div></div>`;
-                highlightRow(found.partNumber);
-                showToast(`Ditemukan: ${found.partNumber} → Fisik = ${found.fisik}`, 'success');
-            } else {
-                lastScannedPartNumber = code; document.getElementById('btnConfirmQty').disabled = false;
-                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1"><div class="flex items-center gap-2"><span class="badge badge-extra"><i class="fas fa-question-circle"></i> Baru</span></div><div><strong style="color: var(--warning);">${code}</strong></div><div style="color: var(--fg-muted); font-size: 0.7rem;">Tekan "Set Manual" utk tambah & sync</div></div>`;
-                document.getElementById('qtyInput').value = 1;
-                showToast(`Barcode "${code}" tidak ditemukan`, 'warning');
+        function loadLocalData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try { stockData = JSON.parse(saved); } catch(e) { stockData = []; }
             }
         }
 
-        function updateItemFisik(item, newFisikVal) { 
-            item.fisik = newFisikVal; 
-            const isSet = item.fisik !== '-'; 
-            const selisih = isSet ? newFisikVal : 0; // Perhitungan selisih kini FISIK itu sendiri. Jika Fisik > 0 berarti ada selisih, jika 0 berarti belum dihitung.
-            if (!isSet || newFisikVal === 0) { item.status = 'pending'; item.remarks = 'Menunggu input fisik'; } 
-            else { item.status = 'match'; item.remarks = `Fisik Terhitung: ${newFisikVal}`; item.scanned = true; } 
+        function saveLocalData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stockData));
         }
-        function adjustQty(delta) { const input = document.getElementById('qtyInput'); let val = parseInt(input.value) || 0; input.value = Math.max(0, val + delta); }
 
-        function confirmActualQty() { const qty = parseInt(document.getElementById('qtyInput').value) || 0; const code = lastScannedPartNumber; if (!code) { showToast('Tidak ada barcode', 'warning'); return; } const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase()); if (found) { updateItemFisik(found, qty); updateSheetRealtime(found.partNumber, qty); showToast(`Diperbarui: ${found.partNumber} → Fisik = ${qty}`, 'success'); } else { const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang Tambahan', systemQty: 0, actualQty: 0, available: 0, fisik: qty, status: 'match', remarks: `Fisik Terhitung: ${qty}`, scanned: true }; updateItemFisik(newItem, qty); mergedData.push(newItem); updateSheetRealtime(code, qty); showToast(`Ditambahkan: ${code}, Fisik = ${qty}`, 'info'); } renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false; document.getElementById('manualBarcode').value = ''; lastScannedPartNumber = ''; document.getElementById('btnConfirmQty').disabled = true; filterTable(); }
-
-        function highlightRow(partNumber) { document.querySelectorAll('.highlight-row').forEach(el => el.classList.remove('highlight-row')); const rows = document.querySelectorAll('#tableBody tr'); rows.forEach(row => { const pnCell = row.cells[1]; if (pnCell && pnCell.textContent.trim().toLowerCase() === partNumber.toLowerCase()) { row.classList.add('highlight-row'); row.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }); }
-        function addScanHistory(code) { if (scanHistoryList.length > 0 && scanHistoryList[0] === code) return; scanHistoryList.unshift(code); if (scanHistoryList.length > 20) scanHistoryList.pop(); document.getElementById('scanHistory').innerHTML = scanHistoryList.map(c => `<span class="text-xs px-2 py-0.5 rounded cursor-pointer" style="background: var(--bg); border: 1px solid var(--border-accent); color: var(--fg);" onclick="processBarcode('${c}')">${c}</span>`).join(''); }
-        function clearScanHistory() { scanHistoryList = []; document.getElementById('scanHistory').innerHTML = '<span class="text-xs italic">Kosong</span>'; }
-
-        // === FETCH DATA DARI SHEET (DIOSONGKAN SISTEM, AKTUAL, AVAILABLenya dikosongkan) ===
-        async function fetchFromSheet() { 
-            if (!apiUrl) { showToast('Atur API URL di Pengaturan', 'warning'); toggleConfig(); return; } 
-            const btn = document.getElementById('btnFetch'); const origHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Mengambil...'; 
-            try { 
-                const response = await fetch(apiUrl); if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json(); 
-                if (Array.isArray(data) && data.length > 1) { 
-                    sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => { 
-                        // KOLOM DIOSONGKAN SESUAI PERMINTAAN: System, Aktual, Available = 0
-                        const sysQty = 0; 
-                        const actQty = 0; 
-                        const availQty = 0; 
-                        const fisVal = row[4]; 
-                        const fisik = (fisVal === '' || fisVal === null || fisVal === undefined) ? '-' : fisVal;
-                        const isSet = fisik !== '-';
-                        return { 
-                            no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), 
-                            systemQty: sysQty, actualQty: actQty, available: availQty, fisik: fisik, 
-                            status: !isSet ? 'pending' : 'match', 
-                            remarks: !isSet ? 'Menunggu input fisik' : `Fisik Terhitung: ${fisik}`, 
-                            source: 'sheet', scanned: isSet && fisVal > 0 
-                        }; 
-                    }); 
-                    updateConnectionStatus(true); showToast(`Berhasil memuat ${sheetData.length} data`, 'success'); 
-                    if (mergedData.length === 0) mergedData = [...sheetData]; else syncMergedData(); 
-                    renderTable(mergedData); updateStats(); checkCompareReady(); 
-                } else { throw new Error('Format data tidak valid'); } 
-            } catch (error) { console.error(error); updateConnectionStatus(false); showToast(`Gagal mengambil data`, 'error'); } 
-            finally { btn.disabled = false; btn.innerHTML = origHTML; } 
+        function loadApiUrl() {
+            const url = localStorage.getItem(API_URL_KEY);
+            if (url) document.getElementById('apiUrlInput').value = url;
         }
-        
-        function syncMergedData() { sheetData.forEach(serverItem => { const localItem = mergedData.find(m => m.partNumber === serverItem.partNumber); if (localItem) { localItem.description = serverItem.description; if (serverItem.fisik !== '-') { localItem.fisik = serverItem.fisik; updateItemFisik(localItem, localItem.fisik); } } else { mergedData.push(serverItem); } }); }
-        function syncFromSheet() { fetchFromSheet(); }
 
-        function handleFileUpload(event) { const file = event.target.files[0]; if (file) processFile(file); }
-        function processFile(file) { const ext = file.name.split('.').pop().toLowerCase(); if (!['xlsx', 'xls', 'csv'].includes(ext)) { showToast('Format file tidak didukung', 'error'); return; } const reader = new FileReader(); reader.onload = (e) => { try { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const firstSheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }); if (jsonData.length < 2) { showToast('File kosong', 'warning'); return; } let headerIdx = 0; for (let i = 0; i < Math.min(jsonData.length, 5); i++) { const row = jsonData[i].map(c => String(c || '').toLowerCase()); if (row.some(c => c.includes('part'))) { headerIdx = i; break; } } excelData = jsonData.slice(headerIdx + 1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => { return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: 0, actualQty: 0, available: 0, fisik: '-', status: 'pending', remarks: 'Menunggu input fisik', source: 'excel', scanned: false }; }); showToast(`Berhasil memuat ${excelData.length} data`, 'success'); if (mergedData.length === 0) mergedData = [...excelData]; renderTable(mergedData); updateStats(); checkCompareReady(); } catch (err) { showToast('Gagal membaca file', 'error'); } }; reader.readAsArrayBuffer(file); }
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success:'fa-check-circle', error:'fa-exclamation-circle', info:'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.info} mr-2"></i>${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
-        function compareData() { if (sheetData.length === 0 || excelData.length === 0) { showToast('Diperlukan data dari Sheet DAN Excel', 'warning'); return; } mergedData = []; const sheetMap = {}, excelMap = {}; sheetData.forEach(item => { sheetMap[item.partNumber] = item; }); excelData.forEach(item => { excelMap[item.partNumber] = item; }); const allPartNumbers = new Set([...Object.keys(sheetMap), ...Object.keys(excelMap)]); let no = 1; allPartNumbers.forEach(partNumber => { const inSheet = sheetMap[partNumber]; const inExcel = excelMap[partNumber]; let description, fisik, status, remarks; if (inSheet && inExcel) { description = inExcel.description || inSheet.description; fisik = '-'; status = 'pending'; remarks = 'Menunggu input fisik'; } else if (inSheet) { description = inSheet.description; fisik = '-'; status = 'missing'; remarks = 'Hilang'; } else { description = inExcel.description; fisik = '-'; status = 'extra'; remarks = 'Barang tambahan'; } mergedData.push({ no: no++, partNumber, description, systemQty: 0, actualQty: 0, available: 0, fisik, status, remarks, scanned: false }); }); const order = { missing: 0, extra: 1, match: 2, pending: 3 }; mergedData.sort((a, b) => (order[a.status]||0) - (order[b.status]||0)); mergedData.forEach((item, i) => item.no = i + 1); renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false; showToast(`Perbandingan selesai`, 'success'); }
-        function checkCompareReady() { document.getElementById('btnCompare').disabled = !(sheetData.length > 0 && excelData.length > 0); }
+        function toggleConfig() {
+            const body = document.getElementById('configBody');
+            const arrow = document.getElementById('configArrow');
+            body.classList.toggle('open');
+            arrow.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+        }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('tableBody'); const empty = document.getElementById('emptyState');
-            if (!data || data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; document.getElementById('visibleCount').textContent = '0'; document.getElementById('totalCount').textContent = '0'; return; }
-            empty.style.display = 'none';
-            const searchVal = document.getElementById('searchInput').value.toLowerCase(); const statusVal = document.getElementById('statusFilter').value;
-            const filtered = data.filter(item => { const matchSearch = !searchVal || item.partNumber.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal); const matchStatus = statusVal === 'all' || (statusVal === 'scanned' ? item.scanned : item.status === statusVal); return matchSearch && matchStatus; });
-            document.getElementById('visibleCount').textContent = filtered.length; document.getElementById('totalCount').textContent = data.length;
-            const statusLabel = { pending: '<i class="fas fa-clock"></i> Menunggu', match: '<i class="fas fa-check-circle"></i> Terhitung', missing: '<i class="fas fa-minus-circle"></i> Hilang', extra: '<i class="fas fa-plus-circle"></i> Tambahan' };
-            tbody.innerHTML = filtered.map(item => {
-                const isFisikSet = item.fisik !== '-';
-                const selisihValue = isFisikSet ? item.fisik : '-';
-                const selisihClass = isFisikSet ? 'color: var(--info)' : 'color: var(--fg-muted)';
-                const badgeClass = `badge badge-${item.status || 'pending'}`; const scanBadge = item.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : '';
-                const fisikDisplay = !isFisikSet ? '<span style="color: var(--fg-muted); opacity: 0.4;">-</span>' : `<span style="color: var(--info); font-weight: 600;">${item.fisik}</span>`;
-                return `<tr data-pn="${item.partNumber.toLowerCase()}"><td class="text-center" style="color: var(--fg-muted);">${item.no}</td><td style="color: var(--fg); font-weight: 500;">${item.partNumber}${scanBadge}</td><td style="color: var(--fg-muted); font-family: 'Space Grotesk'; font-size: 0.82rem;">${item.description}</td><td class="text-center" style="color: var(--fg-muted); opacity: 0.3;">0</td><td class="text-center" style="color: var(--fg-muted); opacity: 0.3;">0</td><td class="text-center" style="color: var(--fg-muted); opacity: 0.3;">0</td><td class="text-center">${fisikDisplay}</td><td class="text-center" style="${selisihClass}; font-weight: 600;">${selisihValue}</td><td class="text-center"><span class="${badgeClass}">${statusLabel[item.status] || item.status}</span></td></tr>`;
+        function saveApiUrl() {
+            const url = document.getElementById('apiUrlInput').value.trim();
+            if (!url) { showToast('URL API tidak boleh kosong!', 'error'); return; }
+            localStorage.setItem(API_URL_KEY, url);
+            showToast('URL API disimpan. Mengambil data...', 'info');
+            fetchGoogleSheet();
+        }
+
+        async function fetchGoogleSheet() {
+            const url = localStorage.getItem(API_URL_KEY);
+            if (!url) { updateStatus('disconnected', 'Belum terhubung'); return; }
+            updateStatus('loading', 'Mengambil data...');
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                const values = data.values || data;
+                if (values.length > 1) {
+                    const headers = values[0];
+                    const rows = values.slice(1);
+                    stockData = rows.map((row, i) => {
+                        const noIdx = findColIndex(headers, ['no','nomor','number']);
+                        const partIdx = findColIndex(headers, ['part number','part_number','partnumber','part no','kode']);
+                        const descIdx = findColIndex(headers, ['deskripsi','description','nama','desc','name']);
+                        const qtySysIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem']);
+                        const qtyActIdx = findColIndex(headers, ['qty actual','qty_actual','fisik','stock actual','actual','qty act','stok aktual','hasil']);
+                        const selisihIdx = findColIndex(headers, ['selisih','difference','diff','variance']);
+
+                        const val = (idx) => (idx >= 0 && row[idx]) ? row[idx].trim() : '';
+                        const numVal = (idx) => { const v = val(idx); const n = parseInt(v); return isNaN(n) ? 0 : n; };
+
+                        return {
+                            no: noIdx >= 0 ? val(noIdx) : String(i + 1),
+                            partNumber: partIdx >= 0 ? val(partIdx) : val(0),
+                            description: descIdx >= 0 ? val(descIdx) : val(1),
+                            qtySystem: qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(2),
+                            qtyActual: qtyActIdx >= 0 ? numVal(qtyActIdx) : null,
+                            selisih: selisihIdx >= 0 ? numVal(selisihIdx) : null
+                        };
+                    });
+                    stockData.forEach((item, i) => { if (!item.no) item.no = String(i + 1); });
+                    saveLocalData(); renderTable(); updateStats();
+                    updateStatus('connected', `Terhubung — ${stockData.length} item`);
+                    showToast(`Berhasil memuat ${stockData.length} item dari Google Sheet`, 'success');
+                } else { throw new Error('Format data tidak valid atau kosong'); }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                updateStatus('disconnected', 'Gagal terhubung');
+                showToast(`Gagal mengambil data: ${error.message}`, 'error');
+            }
+        }
+
+        function findColIndex(headers, keywords) {
+            for (let i = 0; i < headers.length; i++) {
+                const h = headers[i].toLowerCase().trim();
+                for (const kw of keywords) { if (h.includes(kw)) return i; }
+            }
+            return -1;
+        }
+
+        function updateStatus(status, text) {
+            document.getElementById('statusDot').className = `status-dot ${status}`;
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function handleExcelUpload(event) {
+            const file = event.target.files[0]; if (!file) return; processExcelFile(file);
+        }
+
+        function processExcelFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    if (json.length < 2) { showToast('File Excel kosong atau tidak memiliki data', 'error'); return; }
+                    const headers = json[0].map(h => String(h || '').toLowerCase().trim());
+                    const rows = json.slice(1).filter(r => r.some(c => c !== undefined && c !== ''));
+                    stockData = rows.map((row, i) => {
+                        const noIdx = findColIndex(headers, ['no','nomor','number']);
+                        const partIdx = findColIndex(headers, ['part number','part_number','partnumber','part no','kode']);
+                        const descIdx = findColIndex(headers, ['deskripsi','description','nama','desc','name']);
+                        const qtySysIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem']);
+                        const qtyActIdx = findColIndex(headers, ['qty actual','qty_actual','fisik','stock actual','actual','qty act','stok aktual','hasil']);
+
+                        const val = (idx, def = '') => (idx >= 0 && row[idx] !== undefined) ? String(row[idx]).trim() : def;
+                        const numVal = (idx, def = 0) => { const v = val(idx, ''); const n = parseInt(v); return isNaN(n) ? def : n; };
+
+                        return {
+                            no: noIdx >= 0 ? val(noIdx) : String(i + 1),
+                            partNumber: partIdx >= 0 ? val(partIdx) : val(0),
+                            description: descIdx >= 0 ? val(descIdx) : val(1),
+                            qtySystem: qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(2),
+                            qtyActual: qtyActIdx >= 0 ? numVal(qtyActIdx) : null,
+                            selisih: null
+                        };
+                    });
+                    stockData.forEach((item, i) => { if (!item.no) item.no = String(i + 1); });
+                    saveLocalData(); renderTable(); updateStats();
+                    updateStatus('connected', `Excel — ${stockData.length} item`);
+                    showToast(`Berhasil memuat ${stockData.length} item dari Excel`, 'success');
+                } catch (err) {
+                    console.error(err);
+                    showToast('Gagal membaca file Excel: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        const uploadZone = document.getElementById('uploadZone');
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => { uploadZone.classList.remove('dragover'); });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault(); uploadZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) processExcelFile(file);
+            else showToast('Hanya file .xlsx atau .xls yang didukung', 'error');
+        });
+
+        function handleScan() {
+            const input = document.getElementById('barcodeInput');
+            const barcode = input.value.trim();
+            if (!barcode) { showToast('Masukkan barcode atau part number terlebih dahulu', 'error'); return; }
+            const idx = stockData.findIndex(item => 
+                item.partNumber.toLowerCase() === barcode.toLowerCase() || item.no === barcode || item.partNumber.toLowerCase().includes(barcode.toLowerCase())
+            );
+            if (idx === -1) { showToast(`Part "${barcode}" tidak ditemukan dalam data`, 'error'); input.value = ''; input.focus(); return; }
+            currentScanIndex = idx; openScanModal(idx); input.value = '';
+        }
+
+        function openScanModal(idx) {
+            const item = stockData[idx];
+            document.getElementById('modalPartNumber').textContent = item.partNumber;
+            document.getElementById('modalDesc').textContent = item.description || '-';
+            document.getElementById('modalQtySystem').textContent = item.qtySystem;
+            document.getElementById('modalQtyActual').value = item.qtyActual !== null ? item.qtyActual : '';
+            document.getElementById('scanModal').classList.add('active');
+            setTimeout(() => { document.getElementById('modalQtyActual').focus(); document.getElementById('modalQtyActual').select(); }, 100);
+        }
+
+        function closeModal() { document.getElementById('scanModal').classList.remove('active'); currentScanIndex = -1; }
+
+        function confirmScan() {
+            if (currentScanIndex < 0) return;
+            const qtyActualStr = document.getElementById('modalQtyActual').value;
+            const qtyActual = qtyActualStr !== '' ? parseInt(qtyActualStr) : null;
+            if (qtyActual !== null && isNaN(qtyActual)) { showToast('Fisik harus berupa angka', 'error'); return; }
+
+            stockData[currentScanIndex].qtyActual = qtyActual;
+            stockData[currentScanIndex].selisih = qtyActual !== null ? qtyActual - stockData[currentScanIndex].qtySystem : null;
+
+            saveLocalData(); renderTable(); updateStats(); closeModal();
+
+            const item = stockData[currentScanIndex];
+            const selisihText = item.selisih !== null ? (item.selisih === 0 ? 'SESUAI' : `SELISIH: ${item.selisih > 0 ? '+' : ''}${item.selisih}`) : '';
+            showToast(`${item.partNumber} — Fisik: ${qtyActual} ${selisihText}`, qtyActual !== null && item.selisih === 0 ? 'success' : 'info');
+
+            setTimeout(() => {
+                const row = document.querySelector(`[data-index="${currentScanIndex}"]`);
+                if (row) { row.classList.add('scan-flash'); setTimeout(() => row.classList.remove('scan-flash'), 1500); }
+            }, 50);
+
+            document.getElementById('barcodeInput').focus();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            let filtered = stockData;
+            if (search) {
+                filtered = stockData.filter(item =>
+                    item.no.toLowerCase().includes(search) || item.partNumber.toLowerCase().includes(search) || item.description.toLowerCase().includes(search)
+                );
+            }
+            if (filtered.length === 0) { tbody.innerHTML = ''; emptyState.style.display = 'block'; return; }
+            emptyState.style.display = 'none';
+
+            tbody.innerHTML = filtered.map((item, i) => {
+                const origIdx = stockData.indexOf(item);
+                const isCounted = item.qtyActual !== null;
+                const hasSelisih = item.selisih !== null && item.selisih !== 0;
+                const isOk = item.selisih !== null && item.selisih === 0;
+                let rowClass = '';
+                if (isOk) rowClass = 'counted-ok';
+                else if (hasSelisih) rowClass = 'has-selisih';
+
+                const selisihBadge = item.selisih !== null
+                    ? `<span class="badge-selisih ${item.selisih === 0 ? 'zero' : 'not-zero'}">${item.selisih > 0 ? '+' : ''}${item.selisih}</span>`
+                    : '<span class="text-[var(--muted)]">-</span>';
+
+                const statusBadge = isCounted
+                    ? (isOk ? '<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--success)]"><i class="fas fa-check-circle"></i> Sesuai</span>'
+                        : hasSelisih ? '<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--warning)]"><i class="fas fa-exclamation-triangle"></i> Selisih</span>'
+                        : '<span class="inline-flex items-center gap-1 text-[11px] text-[var(--success)]"><i class="fas fa-check"></i> Dihitung</span>')
+                    : '<span class="inline-flex items-center gap-1 text-[11px] text-[var(--muted)]"><i class="fas fa-hourglass-half"></i> Belum</span>';
+
+                return `<tr class="${rowClass}" data-index="${origIdx}">
+                    <td class="text-center"><span class="row-num">${item.no}</span></td>
+                    <td class="font-mono font-semibold text-[var(--accent)]">${item.partNumber}</td>
+                    <td class="max-w-[200px] truncate" title="${item.description}">${item.description || '-'}</td>
+                    <td class="text-center font-mono">${item.qtySystem}</td>
+                    <td class="text-center font-mono">${item.qtyActual !== null ? item.qtyActual : '-'}</td>
+                    <td class="text-center">${selisihBadge}</td>
+                    <td class="text-center">${statusBadge}</td>
+                </tr>`;
             }).join('');
         }
 
-        function filterTable() { renderTable(mergedData); }
-        function updateStats() { const total = mergedData.length; const match = mergedData.filter(d => d.status === 'match').length; const missing = mergedData.filter(d => d.status === 'missing').length; const extra = mergedData.filter(d => d.status === 'extra').length; const pending = mergedData.filter(d => d.status === 'pending').length; animateNumber('statTotal', total); animateNumber('statMatch', match); animateNumber('statDeficit', pending); animateNumber('statSurplus', 0); animateNumber('statMissing', missing); animateNumber('statExtra', extra); }
-        function animateNumber(elementId, target) { const el = document.getElementById(elementId); const current = parseInt(el.textContent) || 0; const diff = target - current; if (diff === 0) return; const steps = 20; const increment = diff / steps; let step = 0; const timer = setInterval(() => { step++; if (step >= steps) { el.textContent = target; clearInterval(timer); } else { el.textContent = Math.round(current + increment * step); } }, 20); }
-        function exportResult() { if (mergedData.length === 0) { showToast('Tidak ada data', 'warning'); return; } const statusMap = { pending: 'Menunggu', match: 'Terhitung', missing: 'Hilang', extra: 'Tambahan' }; const exportData = mergedData.map(item => { const isFisikSet = item.fisik !== '-'; return { 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': '', 'QTY AKTUAL': '', 'AVAILABLE': '', 'FISIK': isFisikSet ? item.fisik : '', 'SELIH': isFisikSet ? item.fisik : '', 'STATUS': statusMap[item.status] || item.status }; }); const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 } ]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Hasil Stock Opname'); XLSX.writeFile(wb, `Hasil_Stock_Opname.xlsx`); showToast('File berhasil diekspor', 'success'); }
-        function clearAll() { sheetData = []; excelData = []; mergedData = []; document.getElementById('searchInput').value = ''; document.getElementById('statusFilter').value = 'all'; document.getElementById('fileInput').value = ''; document.getElementById('manualBarcode').value = ''; document.getElementById('qtyInput').value = 1; document.getElementById('btnCompare').disabled = true; document.getElementById('btnExport').disabled = true; document.getElementById('btnConfirmQty').disabled = true; document.getElementById('lastScannedInfo').innerHTML = '<span style="color: var(--fg-muted);">Belum ada</span>'; lastScannedPartNumber = ''; clearScanHistory(); if(isPanelOpen) toggleScannerPanel(); renderTable([]); updateStats(); showToast('Semua data dihapus', 'info'); }
-        document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'f') { const searchInput = document.getElementById('searchInput'); if (document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); } } });
+        function updateStats() {
+            const total = stockData.length;
+            const counted = stockData.filter(i => i.qtyActual !== null).length;
+            const uncounted = total - counted;
+            const selisih = stockData.filter(i => i.selisih !== null && i.selisih !== 0).length;
+            animateCounter('statTotal', total);
+            animateCounter('statCounted', counted);
+            animateCounter('statUncounted', uncounted);
+            animateCounter('statSelisih', selisih);
+        }
+
+        function animateCounter(id, target) {
+            const el = document.getElementById(id);
+            const current = parseInt(el.textContent) || 0;
+            if (current === target) return;
+            const diff = target - current;
+            const steps = Math.min(Math.abs(diff), 20);
+            const stepSize = diff / steps;
+            let step = 0;
+            const interval = setInterval(() => {
+                step++;
+                if (step >= steps) { el.textContent = target; clearInterval(interval); }
+                else { el.textContent = Math.round(current + stepSize * step); }
+            }, 30);
+        }
+
+        function exportExcel() {
+            if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
+            const wsData = [['NO', 'PART NUMBER', 'DESKRIPSI', 'QTY SYSTEM', 'FISIK', 'SELISIH', 'STATUS']];
+            stockData.forEach(item => {
+                const status = item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum Dihitung';
+                wsData.push([item.no, item.partNumber, item.description, item.qtySystem, item.qtyActual !== null ? item.qtyActual : '', item.selisih !== null ? item.selisih : '', status]);
+            });
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!cols'] = [{ wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname');
+            XLSX.writeFile(wb, `Stock_Opname_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            showToast('File Excel berhasil di-export', 'success');
+        }
+
+        function exportPDF() {
+            if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.text('Stock Opname Report', 14, 15);
+            doc.setFontSize(10); doc.setFont(undefined, 'normal');
+            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
+            doc.text(`Total: ${stockData.length} | Dihitung: ${stockData.filter(i => i.qtyActual !== null).length} | Selisih: ${stockData.filter(i => i.selisih !== null && i.selisih !== 0).length}`, 14, 28);
+            const tableData = stockData.map(item => [
+                item.no, item.partNumber, item.description.substring(0, 35), item.qtySystem,
+                item.qtyActual !== null ? item.qtyActual : '-',
+                item.selisih !== null ? (item.selisih > 0 ? '+' : '') + item.selisih : '-',
+                item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum'
+            ]);
+            doc.autoTable({
+                head: [['No', 'Part Number', 'Deskripsi', 'Qty Sys', 'Fisik', 'Selisih', 'Status']],
+                body: tableData, startY: 33,
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [15, 15, 19], textColor: [250, 204, 21], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [20, 20, 28] },
+                columnStyles: { 0: { cellWidth: 10 }, 4: { halign: 'center' }, 5: { halign: 'center' } }
+            });
+            doc.save(`Stock_Opname_${new Date().toISOString().slice(0, 10)}.pdf`);
+            showToast('File PDF berhasil di-export', 'success');
+        }
+
+        function clearData() {
+            if (stockData.length === 0) { showToast('Data sudah kosong', 'info'); return; }
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.innerHTML = `
+                <div class="modal-content" style="max-width:380px;">
+                    <div class="text-center mb-5">
+                        <div class="w-14 h-14 rounded-xl bg-[var(--danger-dim)] flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-trash-alt text-[var(--danger)] text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold">Hapus Semua Data?</h3>
+                        <p class="text-sm text-[var(--muted)] mt-2">Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="btn-secondary flex-1 justify-center" id="cancelClear">Batal</button>
+                        <button class="btn-danger flex-1 justify-center" id="confirmClear">Hapus</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#cancelClear').onclick = () => overlay.remove();
+            overlay.querySelector('#confirmClear').onclick = () => {
+                stockData = []; localStorage.removeItem(STORAGE_KEY); renderTable(); updateStats();
+                updateStatus('disconnected', 'Data kosong'); overlay.remove();
+                showToast('Semua data berhasil dihapus', 'success');
+            };
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'S') { e.preventDefault(); document.getElementById('barcodeInput').focus(); }
+            if (e.key === 'Escape') { closeModal(); const co = document.querySelector('.modal-overlay.active:not(#scanModal)'); if (co) co.remove(); }
+        });
+
+        function init() {
+            loadApiUrl(); loadLocalData();
+            if (stockData.length > 0) { renderTable(); updateStats(); updateStatus('connected', `Local — ${stockData.length} item`); }
+            else {
+                const url = localStorage.getItem(API_URL_KEY);
+                if (url) fetchGoogleSheet();
+                else { updateStatus('disconnected', 'Belum terhubung'); toggleConfig(); }
+            }
+            document.getElementById('barcodeInput').focus();
+        }
+
+        init();
     </script>
 </body>
 </html>
