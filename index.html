@@ -332,6 +332,7 @@
                             <th>DESKRIPSI</th>
                             <th class="text-center">QTY SISTEM</th>
                             <th class="text-center">QTY AKTUAL</th>
+                            <th class="text-center">AVAILABLE</th>
                             <th>FISIK</th>
                             <th class="text-center">SELIH</th>
                             <th>CATATAN</th>
@@ -348,7 +349,7 @@
         </div>
 
         <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);">
-            <p>Stock Opname System v2.3 &mdash; Data tersimpan lokal di browser Anda</p>
+            <p>Stock Opname System v2.4 &mdash; Data tersimpan lokal di browser Anda</p>
             <p class="mt-1">Google Sheet ID: <code style="color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code></p>
         </footer>
     </div>
@@ -419,7 +420,6 @@
             if (!code || !code.trim()) { showToast('Barcode tidak boleh kosong', 'warning'); return; }
             code = code.trim(); addScanHistory(code);
             
-            // Otomatis mengisi kolom pencarian dan memfilter tabel
             const searchInput = document.getElementById('searchInput');
             searchInput.value = code;
             searchInput.classList.add('search-highlight');
@@ -438,6 +438,7 @@
                         <div class="flex gap-4 mt-1">
                             <span class="text-xs">Sistem: <strong style="color: var(--fg);">${found.systemQty}</strong></span>
                             <span class="text-xs">Aktual: <strong style="color: var(--info);">${found.actualQty}</strong></span>
+                            <span class="text-xs">Tersedia: <strong style="color: var(--accent);">${found.available}</strong></span>
                             <span class="text-xs">Fisik: <strong style="color: var(--fg);">${found.fisik}</strong></span>
                         </div>
                     </div>`;
@@ -460,9 +461,9 @@
         function adjustQty(delta) { const input = document.getElementById('qtyInput'); let val = parseInt(input.value) || 0; input.value = Math.max(0, val + delta); }
 
         function getStatusFromAvailable(available) {
-            if (available > 0) return 'surplus';  // Lebih
-            if (available < 0) return 'deficit';  // Kurang
-            return 'match';                       // Sesuai
+            if (available > 0) return 'surplus';
+            if (available < 0) return 'deficit';
+            return 'match';
         }
 
         function confirmActualQty() {
@@ -474,7 +475,7 @@
                 found.status = getStatusFromAvailable(found.available);
                 found.remarks = found.available === 0 ? 'Sesuai' : found.available > 0 ? `Lebih +${found.available}` : `Kurang ${found.available}`;
                 found.scanned = true;
-                showToast(`Diperbarui: ${found.partNumber} → QTY Aktual = ${qty}`, 'success');
+                showToast(`Diperbarui: ${found.partNumber} → QTY Aktual = ${qty}, Available = ${found.available}`, 'success');
             } else {
                 const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai barcode', systemQty: 0, actualQty: qty, available: -qty, fisik: '-', status: 'extra', remarks: 'Barang tambahan (pindai barcode)', scanned: true };
                 mergedData.push(newItem); showToast(`Ditambahkan: ${code} sebagai barang tambahan, QTY = ${qty}`, 'info');
@@ -573,8 +574,10 @@
             document.getElementById('visibleCount').textContent = filtered.length; document.getElementById('totalCount').textContent = data.length;
             const statusLabel = { match: '<i class="fas fa-check-circle"></i> Sesuai', deficit: '<i class="fas fa-arrow-down"></i> Kurang', surplus: '<i class="fas fa-arrow-up"></i> Lebih', missing: '<i class="fas fa-minus-circle"></i> Hilang', extra: '<i class="fas fa-plus-circle"></i> Tambahan' };
             
-            // Render tabel tanpa kolom TERSEDIA
+            // Render tabel dengan kolom AVAILABLE di sebelah kiri FISIK
             tbody.innerHTML = filtered.map(item => {
+                const availClass = item.available > 0 ? 'color: #00e676' : item.available < 0 ? 'color: #ff5252' : 'color: var(--fg-muted)';
+                const availPrefix = item.available > 0 ? '+' : '';
                 const badgeClass = `badge badge-${item.status || 'match'}`;
                 const scanBadge = item.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : '';
                 return `
@@ -584,6 +587,7 @@
                         <td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem;">${item.description}</td>
                         <td class="text-center">${item.systemQty}</td>
                         <td class="text-center" style="color: var(--fg);">${item.actualQty}</td>
+                        <td class="text-center" style="${availClass}; font-weight: 600;">${availPrefix}${item.available}</td>
                         <td style="color: var(--fg-muted);">${item.fisik}</td>
                         <td class="text-center"><span class="${badgeClass}">${statusLabel[item.status] || item.status}</span></td>
                         <td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem;">${item.remarks}</td>
@@ -610,9 +614,8 @@
         function exportResult() {
             if (mergedData.length === 0) { showToast('Tidak ada data untuk diekspor', 'warning'); return; }
             const statusMap = { match: 'Sesuai', deficit: 'Kurang', surplus: 'Lebih', missing: 'Hilang', extra: 'Tambahan' };
-            // Ekspor tanpa kolom TERSEDIA
-            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'FISIK': item.fisik, 'SELIH': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK', 'CATATAN': item.remarks }));
-            const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 20 } ];
+            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'AVAILABLE': item.available, 'FISIK': item.fisik, 'SELIH': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK', 'CATATAN': item.remarks }));
+            const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 20 } ];
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Hasil Stock Opname');
             const date = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Hasil_Stock_Opname_${date}.xlsx`); showToast('File berhasil diekspor', 'success');
         }
