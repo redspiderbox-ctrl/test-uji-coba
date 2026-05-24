@@ -6,6 +6,7 @@
     <title>Stock Opname - Spare Part Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
@@ -46,293 +47,165 @@
             min-height: 100vh;
         }
 
-        /* Ambient background */
         body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
             background: radial-gradient(ellipse at 20% 20%, rgba(0, 230, 118, 0.03) 0%, transparent 50%),
                         radial-gradient(ellipse at 80% 80%, rgba(64, 196, 255, 0.02) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+            pointer-events: none; z-index: 0;
         }
 
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--fg-muted); }
 
-        /* Card base */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
             transition: all 0.3s ease;
         }
-        .card:hover {
-            border-color: var(--border-accent);
-            background: var(--bg-card-hover);
-        }
+        .card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
 
-        /* Stat card */
-        .stat-card {
-            position: relative;
-            overflow: hidden;
-        }
+        .stat-card { position: relative; overflow: hidden; }
         .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: var(--accent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 2px; background: var(--accent); opacity: 0; transition: opacity 0.3s ease;
         }
         .stat-card:hover::before { opacity: 1; }
         .stat-card .stat-icon {
-            width: 44px; height: 44px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 10px;
-            font-size: 18px;
-            transition: all 0.3s ease;
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; font-size: 18px; transition: all 0.3s ease;
         }
         .stat-card:hover .stat-icon { transform: scale(1.1); }
 
-        /* Upload zone */
         .upload-zone {
-            border: 2px dashed var(--border-accent);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            position: relative;
-            cursor: pointer;
+            border: 2px dashed var(--border-accent); border-radius: 12px;
+            transition: all 0.3s ease; position: relative; cursor: pointer;
         }
-        .upload-zone:hover,
-        .upload-zone.dragover {
-            border-color: var(--accent);
-            background: var(--accent-glow);
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent); background: var(--accent-glow);
         }
         .upload-zone.dragover::after {
-            content: 'Lepaskan file di sini';
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 230, 118, 0.08);
-            border-radius: 10px;
-            font-weight: 600;
-            color: var(--accent);
-            font-size: 1.1rem;
+            content: 'Lepaskan file di sini'; position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0, 230, 118, 0.08); border-radius: 10px;
+            font-weight: 600; color: var(--accent); font-size: 1.1rem;
         }
 
-        /* Table */
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
         .data-table thead th {
-            background: rgba(18, 18, 26, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 12px 16px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--fg-muted);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            white-space: nowrap;
+            background: rgba(18, 18, 26, 0.95); backdrop-filter: blur(8px);
+            padding: 12px 16px; font-weight: 600; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted);
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; white-space: nowrap;
         }
-        .data-table tbody tr {
-            transition: background 0.2s ease;
-        }
-        .data-table tbody tr:hover {
-            background: rgba(0, 230, 118, 0.04);
-        }
+        .data-table tbody tr { transition: background 0.2s ease; }
+        .data-table tbody tr:hover { background: rgba(0, 230, 118, 0.04); }
+        .data-table tbody tr.highlight-row { background: rgba(0, 230, 118, 0.1); }
         .data-table tbody td {
-            padding: 11px 16px;
-            font-size: 0.85rem;
-            border-bottom: 1px solid var(--border);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            padding: 11px 16px; font-size: 0.85rem;
+            border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
         }
-        .data-table tbody tr:last-child td {
-            border-bottom: none;
-        }
+        .data-table tbody tr:last-child td { border-bottom: none; }
 
-        /* Status badge */
         .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.03em;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.03em;
         }
         .badge-match { background: rgba(0, 230, 118, 0.12); color: #00e676; }
         .badge-mismatch { background: rgba(255, 82, 82, 0.12); color: #ff5252; }
         .badge-missing { background: rgba(255, 171, 0, 0.12); color: #ffab00; }
         .badge-extra { background: rgba(64, 196, 255, 0.12); color: #40c4ff; }
+        .badge-scanned { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0,230,118,0.3); }
 
-        /* Buttons */
         .btn-primary {
-            background: var(--accent);
-            color: #0a0a0f;
-            font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'Space Grotesk', sans-serif;
+            background: var(--accent); color: #0a0a0f; font-weight: 600;
+            padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;
+            transition: all 0.2s ease; font-family: 'Space Grotesk', sans-serif;
         }
         .btn-primary:hover {
-            background: var(--accent-dim);
-            box-shadow: 0 0 20px rgba(0, 230, 118, 0.25);
-            transform: translateY(-1px);
+            background: var(--accent-dim); box-shadow: 0 0 20px rgba(0, 230, 118, 0.25); transform: translateY(-1px);
         }
         .btn-primary:active { transform: translateY(0); }
-        .btn-primary:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .btn-outline {
-            background: transparent;
-            color: var(--fg);
-            font-weight: 500;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border-accent);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'Space Grotesk', sans-serif;
+            background: transparent; color: var(--fg); font-weight: 500;
+            padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-accent);
+            cursor: pointer; transition: all 0.2s ease; font-family: 'Space Grotesk', sans-serif;
         }
-        .btn-outline:hover {
-            border-color: var(--fg-muted);
-            background: rgba(255,255,255,0.03);
-        }
+        .btn-outline:hover { border-color: var(--fg-muted); background: rgba(255,255,255,0.03); }
+        .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Input */
         .input-field {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: var(--fg);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.9rem;
-            transition: border-color 0.2s ease;
-            width: 100%;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+            padding: 10px 14px; color: var(--fg); font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem; transition: border-color 0.2s ease; width: 100%;
         }
-        .input-field:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1);
-        }
+        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1); }
         .input-field::placeholder { color: var(--fg-muted); }
 
-        /* Toast */
         .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 8px;
         }
         .toast {
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: toastIn 0.35s ease;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 500;
+            display: flex; align-items: center; gap: 10px; animation: toastIn 0.35s ease;
+            backdrop-filter: blur(12px); box-shadow: 0 8px 30px rgba(0,0,0,0.4);
         }
         .toast-success { background: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.3); color: #00e676; }
         .toast-error { background: rgba(255, 82, 82, 0.15); border: 1px solid rgba(255, 82, 82, 0.3); color: #ff5252; }
         .toast-info { background: rgba(64, 196, 255, 0.15); border: 1px solid rgba(64, 196, 255, 0.3); color: #40c4ff; }
         .toast-warning { background: rgba(255, 171, 0, 0.15); border: 1px solid rgba(255, 171, 0, 0.3); color: #ffab00; }
 
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(40px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* Pulse dot */
         .pulse-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--accent);
-            animation: pulse 2s infinite;
+            width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite;
         }
         @keyframes pulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
             50% { box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
         }
 
-        /* Spinner */
         .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            width: 20px; height: 20px; border: 2px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Empty state */
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-            color: var(--fg-muted);
-        }
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
+        .empty-state { padding: 60px 20px; text-align: center; color: var(--fg-muted); }
+        .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; }
 
-        /* Config panel animation */
         .config-panel {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
-            opacity: 0;
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0;
         }
-        .config-panel.open {
-            max-height: 300px;
-            opacity: 1;
-        }
+        .config-panel.open { max-height: 400px; opacity: 1; }
 
-        /* Shimmer on load */
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+        #barcodeReader video { border-radius: 8px !important; }
+        #barcodeReader { border-radius: 8px; overflow: hidden; }
+        #barcodeReader img[alt="Info icon"] { display: none; }
+        
+        .scan-indicator {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70%; height: 50%; border: 2px solid var(--accent); border-radius: 8px;
+            pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,0.4);
         }
-        .shimmer {
-            background: linear-gradient(90deg, transparent 25%, rgba(0,230,118,0.05) 50%, transparent 75%);
-            background-size: 200% 100%;
-            animation: shimmer 2s infinite;
+        .scan-line {
+            position: absolute; top: 0; left: 5%; width: 90%; height: 2px;
+            background: var(--accent); box-shadow: 0 0 8px var(--accent);
+            animation: scanMove 2s linear infinite;
         }
+        @keyframes scanMove { 0%,100%{ top:5%; } 50%{ top:90%; } }
 
-        /* Responsive */
+        .scan-success-flash { animation: flashGreen 0.5s ease; }
+        @keyframes flashGreen { 0% { background: rgba(0, 230, 118, 0.2); } 100% { background: transparent; } }
+
         @media (max-width: 768px) {
             .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
             .action-bar { flex-direction: column; }
@@ -344,13 +217,10 @@
 </head>
 <body class="relative">
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Main Wrapper -->
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-        <!-- Header -->
         <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: var(--accent-glow); border: 1px solid rgba(0,230,118,0.2);">
@@ -363,7 +233,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg" style="background: var(--bg-card); border: 1px solid var(--border);">
-                    <div class="pulse-dot" id="statusDot"></div>
+                    <div class="pulse-dot" id="statusDot" style="background: var(--fg-muted); animation: none;"></div>
                     <span class="text-xs font-medium" id="connectionStatus" style="color: var(--fg-muted);">Disconnected</span>
                 </div>
                 <button class="btn-outline text-sm flex items-center gap-2" onclick="toggleConfig()">
@@ -372,7 +242,6 @@
             </div>
         </header>
 
-        <!-- Config Panel (API URL) -->
         <div class="config-panel mb-6" id="configPanel">
             <div class="card p-5">
                 <div class="flex items-center gap-2 mb-4">
@@ -380,17 +249,13 @@
                     <h3 class="font-semibold text-sm">Google Sheets API Configuration</h3>
                 </div>
                 <p class="text-xs mb-4" style="color: var(--fg-muted);">
-                    Paste your Google Sheets API URL below. 
-                    Deploy Google Apps Script from your spreadsheet first, then paste the deployment URL here.<br>
+                    Paste your Google Sheets API URL below. Deploy Google Apps Script first, then paste the URL.<br>
                     <strong style="color: var(--fg);">Spreadsheet ID:</strong> 
                     <code class="text-xs px-1.5 py-0.5 rounded" style="background: var(--bg); color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code>
                 </p>
                 <div class="flex gap-3">
-                    <input type="text" 
-                           id="apiUrlInput" 
-                           class="input-field flex-1 font-mono text-xs" 
-                           placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
-                           spellcheck="false">
+                    <input type="text" id="apiUrlInput" class="input-field flex-1 font-mono text-xs"
+                           placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec" spellcheck="false">
                     <button class="btn-primary text-sm whitespace-nowrap" onclick="saveApiUrl()">
                         <i class="fas fa-save mr-1"></i> Save
                     </button>
@@ -418,65 +283,122 @@
             </div>
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="stat-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6" id="statsGrid">
+        <div class="stat-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;">
-                        <i class="fas fa-database"></i>
-                    </div>
+                    <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-database"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statTotal">0</div>
                 <div class="text-xs mt-1" style="color: var(--fg-muted);">Total Items</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
+                    <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-check-circle"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statMatch">0</div>
                 <div class="text-xs mt-1" style="color: var(--fg-muted);">Match</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="stat-icon" style="background: rgba(255, 82, 82, 0.1); color: #ff5252;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
+                    <div class="stat-icon" style="background: rgba(255, 82, 82, 0.1); color: #ff5252;"><i class="fas fa-exclamation-triangle"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statMismatch">0</div>
                 <div class="text-xs mt-1" style="color: var(--fg-muted);">Mismatch</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="stat-icon" style="background: rgba(255, 171, 0, 0.1); color: #ffab00;">
-                        <i class="fas fa-search"></i>
-                    </div>
+                    <div class="stat-icon" style="background: rgba(255, 171, 0, 0.1); color: #ffab00;"><i class="fas fa-search"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statMissing">0</div>
                 <div class="text-xs mt-1" style="color: var(--fg-muted);">Missing</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="stat-icon" style="background: rgba(64, 196, 255, 0.1); color: #40c4ff;">
-                        <i class="fas fa-plus-circle"></i>
-                    </div>
+                    <div class="stat-icon" style="background: rgba(64, 196, 255, 0.1); color: #40c4ff;"><i class="fas fa-plus-circle"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statExtra">0</div>
                 <div class="text-xs mt-1" style="color: var(--fg-muted);">Extra</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;">
-                        <i class="fas fa-percentage"></i>
-                    </div>
+                    <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-barcode"></i></div>
                 </div>
-                <div class="text-2xl font-bold font-mono" id="statAccuracy">0%</div>
-                <div class="text-xs mt-1" style="color: var(--fg-muted);">Accuracy</div>
+                <div class="text-2xl font-bold font-mono" id="statScanned">0</div>
+                <div class="text-xs mt-1" style="color: var(--fg-muted);">Scanned</div>
             </div>
         </div>
 
-        <!-- Upload Section -->
+        <div class="card p-5 mb-6">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="fas fa-barcode text-sm" style="color: var(--accent);"></i>
+                <h3 class="font-semibold text-sm">Barcode Scanner</h3>
+                <span class="badge badge-match text-xs ml-2">LIVE</span>
+            </div>
+            <div class="flex flex-col lg:flex-row gap-5">
+                <div class="lg:w-96 flex-shrink-0">
+                    <div class="relative rounded-xl overflow-hidden" style="background: #000; min-height: 260px;" id="scannerWrapper">
+                        <div id="barcodeReader" style="width: 100%;"></div>
+                        <div class="scan-indicator" id="scanIndicator" style="display:none;">
+                            <div class="scan-line"></div>
+                        </div>
+                        <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center" style="color: var(--fg-muted);">
+                            <i class="fas fa-camera text-4xl mb-3 opacity-30"></i>
+                            <p class="text-sm">Klik Start untuk membuka kamera</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button class="btn-primary text-sm flex-1 flex items-center justify-center gap-2" onclick="startScanner()" id="btnStartScan">
+                            <i class="fas fa-play"></i> Start Scanner
+                        </button>
+                        <button class="btn-outline text-sm flex-1 flex items-center justify-center gap-2" onclick="stopScanner()" id="btnStopScan" disabled>
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col gap-4">
+                    <div>
+                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Manual Barcode Input</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="manualBarcode" class="input-field font-mono" 
+                                   placeholder="Scan atau ketik barcode/part number..."
+                                   onkeydown="if(event.key==='Enter') processBarcode(this.value)">
+                            <button class="btn-primary text-sm whitespace-nowrap" onclick="processBarcode(document.getElementById('manualBarcode').value)">
+                                <i class="fas fa-search mr-1"></i> Cari
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Qty Input (untuk aktual)</label>
+                        <div class="flex gap-2 items-center">
+                            <button class="btn-outline text-lg px-4 py-2" onclick="adjustQty(-1)">-</button>
+                            <input type="number" id="qtyInput" class="input-field text-center font-mono text-lg" value="1" min="0" style="width: 100px;">
+                            <button class="btn-outline text-lg px-4 py-2" onclick="adjustQty(1)">+</button>
+                            <button class="btn-primary text-sm ml-2 flex items-center gap-2" onclick="confirmActualQty()" id="btnConfirmQty" disabled>
+                                <i class="fas fa-check"></i> Update QTY
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card p-4 flex-1" id="lastScannedCard" style="border-color: var(--border-accent);">
+                        <div class="text-xs font-medium mb-3" style="color: var(--fg-muted);">
+                            <i class="fas fa-history mr-1"></i> Last Scanned
+                        </div>
+                        <div id="lastScannedInfo" class="text-sm" style="color: var(--fg-muted);">
+                            Belum ada barcode di-scan
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-medium" style="color: var(--fg-muted);"><i class="fas fa-list mr-1"></i> Riwayat Scan</span>
+                            <button class="text-xs" style="color: var(--danger);" onclick="clearScanHistory()">Hapus</button>
+                        </div>
+                        <div id="scanHistory" class="flex flex-wrap gap-2 max-h-20 overflow-y-auto" style="color: var(--fg-muted);">
+                            <span class="text-xs italic">Kosong</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card p-5 mb-6">
             <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-file-excel text-sm" style="color: var(--accent);"></i>
@@ -506,23 +428,19 @@
             </div>
         </div>
 
-        <!-- Search & Filter -->
         <div class="card p-4 mb-4">
             <div class="action-bar flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color: var(--fg-muted);"></i>
-                    <input type="text" 
-                           id="searchInput" 
-                           class="input-field pl-9" 
-                           placeholder="Cari part number, nama, lokasi..."
-                           oninput="filterTable()">
+                    <input type="text" id="searchInput" class="input-field pl-9" placeholder="Cari part number, nama, fisik..." oninput="filterTable()">
                 </div>
                 <select id="statusFilter" class="input-field sm:w-44" onchange="filterTable()">
-                    <option value="all">All Status</option>
+                    <option value="all">Semua Selisih</option>
                     <option value="match">Match</option>
                     <option value="mismatch">Mismatch</option>
                     <option value="missing">Missing</option>
                     <option value="extra">Extra</option>
+                    <option value="scanned">Scanned</option>
                 </select>
                 <div class="flex items-center gap-2 text-xs" style="color: var(--fg-muted);">
                     <span>Showing <strong id="visibleCount" style="color: var(--fg);">0</strong> of <strong id="totalCount" style="color: var(--fg);">0</strong></span>
@@ -530,7 +448,6 @@
             </div>
         </div>
 
-        <!-- Data Table -->
         <div class="card overflow-hidden mb-6">
             <div class="overflow-x-auto" style="max-height: 520px; overflow-y: auto;">
                 <table class="data-table" id="dataTable">
@@ -541,537 +458,359 @@
                             <th>DESCRIPTION</th>
                             <th class="text-center">SYSTEM QTY</th>
                             <th class="text-center">ACTUAL QTY</th>
-                            <th class="text-center">DIFF</th>
-                            <th>LOCATION</th>
-                            <th class="text-center">STATUS</th>
+                            <th class="text-center">AVAILABLE</th>
+                            <th>FISIK</th>
+                            <th class="text-center">SELIH</th>
                             <th>REMARKS</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                    </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
-            <!-- Empty State -->
             <div class="empty-state" id="emptyState">
                 <i class="fas fa-inbox block"></i>
                 <p class="text-sm font-medium mb-1">Tidak ada data</p>
-                <p class="text-xs" style="color: var(--fg-muted);">Upload file Excel atau fetch data dari Google Sheet untuk memulai</p>
+                <p class="text-xs" style="color: var(--fg-muted);">Upload file Excel, fetch dari Google Sheet, atau scan barcode untuk memulai</p>
             </div>
         </div>
 
-        <!-- Footer -->
         <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);">
-            <p>Stock Opname System v2.0 &mdash; Data tersimpan lokal di browser Anda</p>
+            <p>Stock Opname System v2.1 &mdash; Data tersimpan lokal di browser Anda</p>
             <p class="mt-1">Google Sheet ID: <code style="color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code></p>
         </footer>
     </div>
 
     <script>
-        // ============================================
-        // STATE MANAGEMENT
-        // ============================================
-        let sheetData = [];    // Data dari Google Sheet
-        let excelData = [];    // Data dari upload Excel
-        let mergedData = [];   // Data gabungan setelah compare
+        let sheetData = [];
+        let excelData = [];
+        let mergedData = [];
         let apiUrl = localStorage.getItem('stockOpnameApiUrl') || '';
+        let html5QrCode = null;
+        let scannerActive = false;
+        let lastScannedPartNumber = '';
+        let scanHistoryList = [];
 
-        // Inisialisasi
         document.addEventListener('DOMContentLoaded', () => {
-            // Muat API URL dari localStorage
-            if (apiUrl) {
-                document.getElementById('apiUrlInput').value = apiUrl;
-            }
+            if (apiUrl) document.getElementById('apiUrlInput').value = apiUrl;
 
-            // Setup drag & drop
             const zone = document.getElementById('uploadZone');
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('dragover');
-            });
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('dragover');
-            });
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => { zone.classList.remove('dragover'); });
             zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) processFile(files[0]);
+                e.preventDefault(); zone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
             });
         });
 
-        // ============================================
-        // TOAST NOTIFICATION
-        // ============================================
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            const icons = {
-                success: 'fas fa-check-circle',
-                error: 'fas fa-times-circle',
-                info: 'fas fa-info-circle',
-                warning: 'fas fa-exclamation-circle'
-            };
-            toast.innerHTML = `<i class="${icons[type] || icons.info}"></i><span>${message}</span>`;
+            const icons = { success:'fas fa-check-circle', error:'fas fa-times-circle', info:'fas fa-info-circle', warning:'fas fa-exclamation-circle' };
+            toast.innerHTML = `<i class="${icons[type]||icons.info}"></i><span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.transition = 'opacity 0.3s, transform 0.3s';
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(40px)';
+                toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)';
                 setTimeout(() => toast.remove(), 300);
             }, 3500);
         }
 
-        // ============================================
-        // CONFIG PANEL
-        // ============================================
-        function toggleConfig() {
-            const panel = document.getElementById('configPanel');
-            panel.classList.toggle('open');
-        }
+        function toggleConfig() { document.getElementById('configPanel').classList.toggle('open'); }
 
         function saveApiUrl() {
             const url = document.getElementById('apiUrlInput').value.trim();
-            if (!url) {
-                showToast('API URL tidak boleh kosong', 'warning');
-                return;
-            }
-            apiUrl = url;
-            localStorage.setItem('stockOpnameApiUrl', url);
-            showToast('API URL berhasil disimpan', 'success');
-            updateConnectionStatus(true);
+            if (!url) { showToast('API URL tidak boleh kosong', 'warning'); return; }
+            apiUrl = url; localStorage.setItem('stockOpnameApiUrl', url);
+            showToast('API URL berhasil disimpan', 'success'); updateConnectionStatus(true);
         }
 
         function updateConnectionStatus(connected) {
             const dot = document.getElementById('statusDot');
             const status = document.getElementById('connectionStatus');
-            if (connected) {
-                dot.style.background = '#00e676';
-                status.textContent = 'Connected';
-                status.style.color = '#00e676';
-            } else {
-                dot.style.background = '#ff5252';
-                status.textContent = 'Disconnected';
-                status.style.color = 'var(--fg-muted)';
-            }
+            if (connected) { dot.style.background = '#00e676'; dot.style.animation = 'pulse 2s infinite'; status.textContent = 'Connected'; status.style.color = '#00e676'; }
+            else { dot.style.background = 'var(--fg-muted)'; dot.style.animation = 'none'; status.textContent = 'Disconnected'; status.style.color = 'var(--fg-muted)'; }
         }
 
-        // ============================================
-        // FETCH DATA DARI GOOGLE SHEET
-        // ============================================
-        async function fetchFromSheet() {
-            if (!apiUrl) {
-                showToast('Silakan设置 API URL terlebih dahulu di Settings', 'warning');
-                toggleConfig();
-                return;
-            }
-
-            const btn = document.getElementById('btnFetch');
-            const originalHTML = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<div class="spinner"></div> Fetching...';
-
+        async function startScanner() {
             try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const data = await response.json();
-                
-                // Data dari Google Apps Script berupa array 2D
-                // Baris pertama = header, sisanya data
-                if (Array.isArray(data) && data.length > 1) {
-                    const headers = data[0];
-                    sheetData = data.slice(1).filter(row => {
-                        // Filter baris kosong
-                        return row.some(cell => cell !== '' && cell !== null && cell !== undefined);
-                    }).map((row, idx) => {
-                        return {
-                            no: idx + 1,
-                            partNumber: String(row[0] || '').trim(),
-                            description: String(row[1] || '').trim(),
-                            systemQty: parseFloat(row[2]) || 0,
-                            actualQty: parseFloat(row[3]) || 0,
-                            location: String(row[4] || '').trim(),
-                            remarks: String(row[5] || '').trim(),
-                            source: 'sheet'
-                        };
-                    });
-
-                    updateConnectionStatus(true);
-                    showToast(`Berhasil memuat ${sheetData.length} data dari Google Sheet`, 'success');
-                    
-                    // Jika belum ada data merged, tampilkan sheet data
-                    if (mergedData.length === 0) {
-                        mergedData = [...sheetData];
-                    }
-                    
-                    renderTable(mergedData);
-                    updateStats();
-                    checkCompareReady();
-                } else {
-                    throw new Error('Format data tidak valid');
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                updateConnectionStatus(false);
-                showToast(`Gagal mengambil data: ${error.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
+                if (!html5QrCode) html5QrCode = new Html5Qrcode("barcodeReader");
+                document.getElementById('cameraPlaceholder').style.display = 'none';
+                document.getElementById('scanIndicator').style.display = 'block';
+                const config = { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.5, formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.CODE_93, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.ITF, Html5QrcodeSupportedFormats.CODABAR ] };
+                await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {});
+                scannerActive = true;
+                document.getElementById('btnStartScan').disabled = true;
+                document.getElementById('btnStopScan').disabled = false;
+                showToast('Scanner kamera aktif', 'success');
+            } catch (err) {
+                console.error('Scanner error:', err);
+                document.getElementById('cameraPlaceholder').style.display = 'flex';
+                document.getElementById('scanIndicator').style.display = 'none';
+                showToast('Gagal mengakses kamera: ' + err, 'error');
             }
         }
 
-        // ============================================
-        // UPLOAD EXCEL
-        // ============================================
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (file) processFile(file);
+        async function stopScanner() {
+            if (html5QrCode && scannerActive) {
+                try { await html5QrCode.stop(); } catch(e) {}
+                scannerActive = false;
+                document.getElementById('btnStartScan').disabled = false;
+                document.getElementById('btnStopScan').disabled = true;
+                document.getElementById('cameraPlaceholder').style.display = 'flex';
+                document.getElementById('scanIndicator').style.display = 'none';
+                showToast('Scanner dihentikan', 'info');
+            }
         }
+
+        let lastScanTime = 0;
+        function onScanSuccess(decodedText, decodedResult) {
+            const now = Date.now();
+            if (now - lastScanTime < 1500) return;
+            lastScanTime = now;
+            try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.frequency.value = 1200; osc.type = 'sine'; gain.gain.value = 0.15; osc.start(); osc.stop(ctx.currentTime + 0.12); } catch(e) {}
+            const wrapper = document.getElementById('scannerWrapper');
+            wrapper.classList.add('scan-success-flash');
+            setTimeout(() => wrapper.classList.remove('scan-success-flash'), 500);
+            processBarcode(decodedText);
+        }
+
+        function processBarcode(code) {
+            if (!code || !code.trim()) { showToast('Barcode tidak boleh kosong', 'warning'); return; }
+            code = code.trim();
+            addScanHistory(code);
+            document.getElementById('manualBarcode').value = code;
+            const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase() || item.partNumber.toLowerCase().includes(code.toLowerCase()));
+            if (found) {
+                lastScannedPartNumber = found.partNumber;
+                document.getElementById('btnConfirmQty').disabled = false;
+                document.getElementById('lastScannedInfo').innerHTML = `
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center gap-2"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> Found</span></div>
+                        <div><strong style="color: var(--fg);">${found.partNumber}</strong></div>
+                        <div style="color: var(--fg-muted);">${found.description}</div>
+                        <div class="flex gap-4 mt-1">
+                            <span class="text-xs">System: <strong style="color: var(--fg);">${found.systemQty}</strong></span>
+                            <span class="text-xs">Actual: <strong style="color: var(--info);">${found.actualQty}</strong></span>
+                            <span class="text-xs">Available: <strong style="color: var(--accent);">${found.available}</strong></span>
+                            <span class="text-xs">Fisik: <strong style="color: var(--fg);">${found.fisik}</strong></span>
+                        </div>
+                    </div>`;
+                highlightRow(found.partNumber);
+                const qtyInput = document.getElementById('qtyInput');
+                qtyInput.value = found.actualQty + 1;
+                showToast(`Ditemukan: ${found.partNumber} - ${found.description}`, 'success');
+            } else {
+                lastScannedPartNumber = code;
+                document.getElementById('btnConfirmQty').disabled = false;
+                document.getElementById('lastScannedInfo').innerHTML = `
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center gap-2"><span class="badge badge-extra"><i class="fas fa-question-circle"></i> Not Found</span></div>
+                        <div><strong style="color: var(--warning);">${code}</strong></div>
+                        <div style="color: var(--fg-muted);">Part number tidak ditemukan di data sistem</div>
+                        <div class="text-xs mt-1" style="color: var(--fg-muted);">Tekan "Update QTY" untuk menambahkan sebagai barang extra</div>
+                    </div>`;
+                document.getElementById('qtyInput').value = 1;
+                showToast(`Barcode "${code}" tidak ditemukan di data`, 'warning');
+            }
+        }
+
+        function adjustQty(delta) { const input = document.getElementById('qtyInput'); let val = parseInt(input.value) || 0; input.value = Math.max(0, val + delta); }
+
+        function confirmActualQty() {
+            const qty = parseInt(document.getElementById('qtyInput').value) || 0;
+            const code = lastScannedPartNumber;
+            if (!code) { showToast('Tidak ada barcode yang dipilih', 'warning'); return; }
+            const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
+            if (found) {
+                found.actualQty = qty;
+                found.available = found.systemQty - found.actualQty; // Perhitungan Available
+                found.status = found.available === 0 ? 'match' : 'mismatch';
+                found.remarks = found.available === 0 ? 'Sesuai' : found.available > 0 ? `Sisa +${found.available}` : `Kurang ${found.available}`;
+                found.scanned = true;
+                showToast(`Updated: ${found.partNumber} → Actual QTY = ${qty}, Available = ${found.available}`, 'success');
+            } else {
+                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil scan barcode', systemQty: 0, actualQty: qty, available: -qty, fisik: '-', status: 'extra', remarks: 'Barang tambahan (scan barcode)', scanned: true };
+                mergedData.push(newItem);
+                showToast(`Ditambahkan: ${code} sebagai barang extra, QTY = ${qty}`, 'info');
+            }
+            const updated = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
+            if (updated) {
+                document.getElementById('lastScannedInfo').innerHTML = `
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center gap-2"><span class="badge badge-match"><i class="fas fa-check"></i> Updated</span></div>
+                        <div><strong style="color: var(--accent);">${updated.partNumber}</strong></div>
+                        <div style="color: var(--fg-muted);">${updated.description}</div>
+                        <div class="flex gap-4 mt-1">
+                            <span class="text-xs">System: <strong style="color: var(--fg);">${updated.systemQty}</strong></span>
+                            <span class="text-xs">Actual: <strong style="color: var(--info);">${updated.actualQty}</strong></span>
+                            <span class="text-xs">Available: <strong style="color: var(--accent);">${updated.available}</strong></span>
+                        </div>
+                    </div>`;
+            }
+            renderTable(mergedData); updateStats();
+            document.getElementById('btnExport').disabled = false;
+            document.getElementById('manualBarcode').value = '';
+            lastScannedPartNumber = '';
+            document.getElementById('btnConfirmQty').disabled = true;
+        }
+
+        function highlightRow(partNumber) {
+            document.querySelectorAll('.highlight-row').forEach(el => el.classList.remove('highlight-row'));
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => { const pnCell = row.cells[1]; if (pnCell && pnCell.textContent.trim().toLowerCase() === partNumber.toLowerCase()) { row.classList.add('highlight-row'); row.scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
+        }
+
+        function addScanHistory(code) {
+            if (scanHistoryList.length > 0 && scanHistoryList[0] === code) return;
+            scanHistoryList.unshift(code);
+            if (scanHistoryList.length > 20) scanHistoryList.pop();
+            document.getElementById('scanHistory').innerHTML = scanHistoryList.map(c => `<span class="text-xs px-2 py-1 rounded cursor-pointer" style="background: var(--bg); border: 1px solid var(--border-accent); color: var(--fg);" onclick="processBarcode('${c}')">${c}</span>`).join('');
+        }
+
+        function clearScanHistory() { scanHistoryList = []; document.getElementById('scanHistory').innerHTML = '<span class="text-xs italic">Kosong</span>'; }
+
+        async function fetchFromSheet() {
+            if (!apiUrl) { showToast('Silakan atur API URL terlebih dahulu di Settings', 'warning'); toggleConfig(); return; }
+            const btn = document.getElementById('btnFetch'); const origHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Fetching...';
+            try {
+                const response = await fetch(apiUrl); if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json();
+                if (Array.isArray(data) && data.length > 1) {
+                    sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => {
+                        const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0;
+                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: sysQty - actQty, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'sheet', scanned: false };
+                    });
+                    updateConnectionStatus(true); showToast(`Berhasil memuat ${sheetData.length} data dari Google Sheet`, 'success');
+                    if (mergedData.length === 0) mergedData = [...sheetData]; renderTable(mergedData); updateStats(); checkCompareReady();
+                } else { throw new Error('Format data tidak valid'); }
+            } catch (error) { console.error('Fetch error:', error); updateConnectionStatus(false); showToast(`Gagal mengambil data: ${error.message}`, 'error'); }
+            finally { btn.disabled = false; btn.innerHTML = origHTML; }
+        }
+
+        function handleFileUpload(event) { const file = event.target.files[0]; if (file) processFile(file); }
 
         function processFile(file) {
-            const validTypes = [
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-excel',
-                'text/csv'
-            ];
             const ext = file.name.split('.').pop().toLowerCase();
-            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
-                showToast('Format file tidak didukung. Gunakan .xlsx, .xls, atau .csv', 'error');
-                return;
-            }
-
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) { showToast('Format file tidak didukung', 'error'); return; }
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-                    if (jsonData.length < 2) {
-                        showToast('File kosong atau tidak memiliki data', 'warning');
-                        return;
-                    }
-
-                    // Deteksi header - cari baris yang mengandung "PART NUMBER" atau "part_number"
+                    const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const firstSheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    if (jsonData.length < 2) { showToast('File kosong', 'warning'); return; }
                     let headerIdx = 0;
-                    for (let i = 0; i < Math.min(jsonData.length, 5); i++) {
-                        const row = jsonData[i].map(c => String(c || '').toLowerCase());
-                        if (row.some(c => c.includes('part') || c.includes('part_number') || c.includes('partnumber'))) {
-                            headerIdx = i;
-                            break;
-                        }
-                    }
-
-                    excelData = jsonData.slice(headerIdx + 1).filter(row => {
-                        return row.some(cell => cell !== '' && cell !== null && cell !== undefined);
-                    }).map((row, idx) => {
-                        return {
-                            no: idx + 1,
-                            partNumber: String(row[0] || '').trim(),
-                            description: String(row[1] || '').trim(),
-                            systemQty: parseFloat(row[2]) || 0,
-                            actualQty: parseFloat(row[3]) || 0,
-                            location: String(row[4] || '').trim(),
-                            remarks: String(row[5] || '').trim(),
-                            source: 'excel'
-                        };
+                    for (let i = 0; i < Math.min(jsonData.length, 5); i++) { const row = jsonData[i].map(c => String(c || '').toLowerCase()); if (row.some(c => c.includes('part') || c.includes('part_number') || c.includes('partnumber'))) { headerIdx = i; break; } }
+                    excelData = jsonData.slice(headerIdx + 1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => {
+                        const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0;
+                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: sysQty - actQty, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'excel', scanned: false };
                     });
-
                     showToast(`Berhasil memuat ${excelData.length} data dari ${file.name}`, 'success');
-                    
-                    // Jika belum ada data merged, tampilkan excel data
-                    if (mergedData.length === 0) {
-                        mergedData = [...excelData];
-                    }
-                    
-                    renderTable(mergedData);
-                    updateStats();
-                    checkCompareReady();
-                } catch (err) {
-                    console.error('Parse error:', err);
-                    showToast('Gagal membaca file: ' + err.message, 'error');
-                }
+                    if (mergedData.length === 0) mergedData = [...excelData]; renderTable(mergedData); updateStats(); checkCompareReady();
+                } catch (err) { console.error('Parse error:', err); showToast('Gagal membaca file: ' + err.message, 'error'); }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // ============================================
-        // COMPARE DATA
-        // ============================================
         function compareData() {
-            if (sheetData.length === 0 || excelData.length === 0) {
-                showToast('Diperlukan data dari Google Sheet DAN Excel untuk dibandingkan', 'warning');
-                return;
-            }
-
-            mergedData = [];
-            const sheetMap = {};
-            const excelMap = {};
-
-            // Buat map dari sheet data
-            sheetData.forEach(item => {
-                sheetMap[item.partNumber] = item;
-            });
-
-            // Buat map dari excel data
-            excelData.forEach(item => {
-                excelMap[item.partNumber] = item;
-            });
-
-            // Gabungkan semua part number unik
-            const allPartNumbers = new Set([
-                ...Object.keys(sheetMap),
-                ...Object.keys(excelMap)
-            ]);
-
+            if (sheetData.length === 0 || excelData.length === 0) { showToast('Diperlukan data dari Google Sheet DAN Excel', 'warning'); return; }
+            mergedData = []; const sheetMap = {}, excelMap = {};
+            sheetData.forEach(item => { sheetMap[item.partNumber] = item; }); excelData.forEach(item => { excelMap[item.partNumber] = item; });
+            const allPartNumbers = new Set([...Object.keys(sheetMap), ...Object.keys(excelMap)]);
             let no = 1;
             allPartNumbers.forEach(partNumber => {
-                const inSheet = sheetMap[partNumber];
-                const inExcel = excelMap[partNumber];
-                
-                let status, diff, systemQty, actualQty, description, location, remarks;
-
+                const inSheet = sheetMap[partNumber]; const inExcel = excelMap[partNumber];
+                let status, systemQty, actualQty, available, description, fisik, remarks;
                 if (inSheet && inExcel) {
-                    // Ada di keduanya
-                    systemQty = inSheet.systemQty;
-                    actualQty = inExcel.actualQty;
-                    diff = actualQty - systemQty;
-                    description = inExcel.description || inSheet.description;
-                    location = inExcel.location || inSheet.location;
-                    
-                    if (diff === 0) {
-                        status = 'match';
-                        remarks = 'Sesuai';
-                    } else {
-                        status = 'mismatch';
-                        remarks = diff > 0 ? `Selisih +${diff}` : `Selisih ${diff}`;
-                    }
-                } else if (inSheet && !inExcel) {
-                    // Hanya ada di sheet (tidak ditemukan saat opname)
-                    systemQty = inSheet.systemQty;
-                    actualQty = 0;
-                    diff = -systemQty;
-                    status = 'missing';
-                    description = inSheet.description;
-                    location = inSheet.location;
-                    remarks = 'Tidak ditemukan';
-                } else if (!inSheet && inExcel) {
-                    // Hanya ada di excel (barang tambahan)
-                    systemQty = 0;
-                    actualQty = inExcel.actualQty;
-                    diff = actualQty;
-                    status = 'extra';
-                    description = inExcel.description;
-                    location = inExcel.location;
-                    remarks = 'Barang tambahan';
+                    systemQty = inSheet.systemQty; actualQty = inExcel.actualQty; available = systemQty - actualQty;
+                    description = inExcel.description || inSheet.description; fisik = inExcel.fisik || inSheet.fisik;
+                    status = available === 0 ? 'match' : 'mismatch';
+                    remarks = available === 0 ? 'Sesuai' : available > 0 ? `Sisa +${available}` : `Kurang ${available}`;
+                } else if (inSheet) {
+                    systemQty = inSheet.systemQty; actualQty = 0; available = systemQty - 0;
+                    status = 'missing'; description = inSheet.description; fisik = inSheet.fisik; remarks = 'Tidak ditemukan';
+                } else {
+                    systemQty = 0; actualQty = inExcel.actualQty; available = 0 - actualQty;
+                    status = 'extra'; description = inExcel.description; fisik = inExcel.fisik; remarks = 'Barang tambahan';
                 }
-
-                mergedData.push({
-                    no: no++,
-                    partNumber,
-                    description,
-                    systemQty,
-                    actualQty,
-                    diff,
-                    location,
-                    status,
-                    remarks
-                });
+                mergedData.push({ no: no++, partNumber, description, systemQty, actualQty, available, fisik, status, remarks, scanned: false });
             });
-
-            // Urutkan: mismatch dan missing dulu
             const order = { mismatch: 0, missing: 1, extra: 2, match: 3 };
-            mergedData.sort((a, b) => (order[a.status] || 0) - (order[b.status] || 0));
+            mergedData.sort((a, b) => (order[a.status]||0) - (order[b.status]||0));
             mergedData.forEach((item, i) => item.no = i + 1);
-
-            renderTable(mergedData);
-            updateStats();
-            document.getElementById('btnExport').disabled = false;
+            renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false;
             showToast(`Perbandingan selesai: ${mergedData.length} item diproses`, 'success');
         }
 
-        function checkCompareReady() {
-            const btn = document.getElementById('btnCompare');
-            btn.disabled = !(sheetData.length > 0 && excelData.length > 0);
-        }
+        function checkCompareReady() { document.getElementById('btnCompare').disabled = !(sheetData.length > 0 && excelData.length > 0); }
 
-        // ============================================
-        // RENDER TABLE
-        // ============================================
         function renderTable(data) {
-            const tbody = document.getElementById('tableBody');
-            const empty = document.getElementById('emptyState');
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '';
-                empty.style.display = 'block';
-                document.getElementById('visibleCount').textContent = '0';
-                document.getElementById('totalCount').textContent = '0';
-                return;
-            }
-
+            const tbody = document.getElementById('tableBody'); const empty = document.getElementById('emptyState');
+            if (!data || data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; document.getElementById('visibleCount').textContent = '0'; document.getElementById('totalCount').textContent = '0'; return; }
             empty.style.display = 'none';
-
-            const searchVal = document.getElementById('searchInput').value.toLowerCase();
-            const statusVal = document.getElementById('statusFilter').value;
-
+            const searchVal = document.getElementById('searchInput').value.toLowerCase(); const statusVal = document.getElementById('statusFilter').value;
             const filtered = data.filter(item => {
-                const matchSearch = !searchVal || 
-                    item.partNumber.toLowerCase().includes(searchVal) ||
-                    item.description.toLowerCase().includes(searchVal) ||
-                    item.location.toLowerCase().includes(searchVal);
-                const matchStatus = statusVal === 'all' || item.status === statusVal;
+                const matchSearch = !searchVal || item.partNumber.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal) || item.fisik.toLowerCase().includes(searchVal);
+                const matchStatus = statusVal === 'all' || (statusVal === 'scanned' ? item.scanned : item.status === statusVal);
                 return matchSearch && matchStatus;
             });
-
-            document.getElementById('visibleCount').textContent = filtered.length;
-            document.getElementById('totalCount').textContent = data.length;
-
+            document.getElementById('visibleCount').textContent = filtered.length; document.getElementById('totalCount').textContent = data.length;
+            const statusLabel = { match: '<i class="fas fa-check-circle"></i> Match', mismatch: '<i class="fas fa-times-circle"></i> Mismatch', missing: '<i class="fas fa-minus-circle"></i> Missing', extra: '<i class="fas fa-plus-circle"></i> Extra' };
             tbody.innerHTML = filtered.map(item => {
-                const diffClass = item.diff > 0 ? 'color: #00e676' : 
-                                  item.diff < 0 ? 'color: #ff5252' : 'color: var(--fg-muted)';
-                const diffPrefix = item.diff > 0 ? '+' : '';
-                
+                const availClass = item.available > 0 ? 'color: #00e676' : item.available < 0 ? 'color: #ff5252' : 'color: var(--fg-muted)';
+                const availPrefix = item.available > 0 ? '+' : '';
                 const badgeClass = `badge badge-${item.status || 'match'}`;
-                const statusLabel = {
-                    match: '<i class="fas fa-check-circle"></i> Match',
-                    mismatch: '<i class="fas fa-times-circle"></i> Mismatch',
-                    missing: '<i class="fas fa-minus-circle"></i> Missing',
-                    extra: '<i class="fas fa-plus-circle"></i> Extra'
-                };
-
+                const scanBadge = item.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : '';
                 return `
-                    <tr>
+                    <tr data-pn="${item.partNumber.toLowerCase()}">
                         <td class="text-center" style="color: var(--fg-muted);">${item.no}</td>
-                        <td style="color: var(--fg); font-weight: 500;">${item.partNumber}</td>
+                        <td style="color: var(--fg); font-weight: 500;">${item.partNumber}${scanBadge}</td>
                         <td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem;">${item.description}</td>
                         <td class="text-center">${item.systemQty}</td>
                         <td class="text-center" style="color: var(--fg);">${item.actualQty}</td>
-                        <td class="text-center" style="${diffClass}; font-weight: 600;">${diffPrefix}${item.diff}</td>
-                        <td style="color: var(--fg-muted);">${item.location}</td>
+                        <td class="text-center" style="${availClass}; font-weight: 600;">${availPrefix}${item.available}</td>
+                        <td style="color: var(--fg-muted);">${item.fisik}</td>
                         <td class="text-center"><span class="${badgeClass}">${statusLabel[item.status] || item.status}</span></td>
                         <td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem;">${item.remarks}</td>
-                    </tr>
-                `;
+                    </tr>`;
             }).join('');
         }
 
-        function filterTable() {
-            renderTable(mergedData);
-        }
+        function filterTable() { renderTable(mergedData); }
 
-        // ============================================
-        // UPDATE STATISTICS
-        // ============================================
         function updateStats() {
-            const total = mergedData.length;
-            const match = mergedData.filter(d => d.status === 'match').length;
-            const mismatch = mergedData.filter(d => d.status === 'mismatch').length;
-            const missing = mergedData.filter(d => d.status === 'missing').length;
-            const extra = mergedData.filter(d => d.status === 'extra').length;
-            const accuracy = total > 0 ? ((match / total) * 100).toFixed(1) : 0;
-
-            animateNumber('statTotal', total);
-            animateNumber('statMatch', match);
-            animateNumber('statMismatch', mismatch);
-            animateNumber('statMissing', missing);
-            animateNumber('statExtra', extra);
-            document.getElementById('statAccuracy').textContent = accuracy + '%';
+            const total = mergedData.length; const match = mergedData.filter(d => d.status === 'match').length;
+            const mismatch = mergedData.filter(d => d.status === 'mismatch').length; const missing = mergedData.filter(d => d.status === 'missing').length;
+            const extra = mergedData.filter(d => d.status === 'extra').length; const scanned = mergedData.filter(d => d.scanned).length;
+            animateNumber('statTotal', total); animateNumber('statMatch', match); animateNumber('statMismatch', mismatch);
+            animateNumber('statMissing', missing); animateNumber('statExtra', extra); animateNumber('statScanned', scanned);
         }
 
         function animateNumber(elementId, target) {
-            const el = document.getElementById(elementId);
-            const current = parseInt(el.textContent) || 0;
-            const diff = target - current;
-            if (diff === 0) return;
-
-            const duration = 400;
-            const steps = 20;
-            const increment = diff / steps;
-            let step = 0;
-
-            const timer = setInterval(() => {
-                step++;
-                if (step >= steps) {
-                    el.textContent = target;
-                    clearInterval(timer);
-                } else {
-                    el.textContent = Math.round(current + increment * step);
-                }
-            }, duration / steps);
+            const el = document.getElementById(elementId); const current = parseInt(el.textContent) || 0; const diff = target - current; if (diff === 0) return;
+            const steps = 20; const increment = diff / steps; let step = 0;
+            const timer = setInterval(() => { step++; if (step >= steps) { el.textContent = target; clearInterval(timer); } else { el.textContent = Math.round(current + increment * step); } }, 20);
         }
 
-        // ============================================
-        // EXPORT HASIL
-        // ============================================
         function exportResult() {
-            if (mergedData.length === 0) {
-                showToast('Tidak ada data untuk di-export', 'warning');
-                return;
-            }
-
-            const exportData = mergedData.map(item => ({
-                'NO': item.no,
-                'PART NUMBER': item.partNumber,
-                'DESCRIPTION': item.description,
-                'SYSTEM QTY': item.systemQty,
-                'ACTUAL QTY': item.actualQty,
-                'DIFF': item.diff,
-                'LOCATION': item.location,
-                'STATUS': (item.status || '').toUpperCase(),
-                'REMARKS': item.remarks
-            }));
-
+            if (mergedData.length === 0) { showToast('Tidak ada data untuk di-export', 'warning'); return; }
+            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESCRIPTION': item.description, 'SYSTEM QTY': item.systemQty, 'ACTUAL QTY': item.actualQty, 'AVAILABLE': item.available, 'FISIK': item.fisik, 'SELIH': (item.status || '').toUpperCase(), 'SCANNED': item.scanned ? 'YES' : 'NO', 'REMARKS': item.remarks }));
             const ws = XLSX.utils.json_to_sheet(exportData);
-
-            // Atur lebar kolom
-            ws['!cols'] = [
-                { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 },
-                { wch: 12 }, { wch: 8 }, { wch: 15 }, { wch: 12 }, { wch: 20 }
-            ];
-
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname Result');
-
-            const date = new Date().toISOString().slice(0, 10);
-            XLSX.writeFile(wb, `Stock_Opname_Result_${date}.xlsx`);
+            ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 8 }, { wch: 20 } ];
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname Result');
+            const date = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Stock_Opname_Result_${date}.xlsx`);
             showToast('File berhasil di-export', 'success');
         }
 
-        // ============================================
-        // CLEAR ALL
-        // ============================================
         function clearAll() {
-            sheetData = [];
-            excelData = [];
-            mergedData = [];
-            
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('fileInput').value = '';
-            document.getElementById('btnCompare').disabled = true;
-            document.getElementById('btnExport').disabled = true;
-
-            renderTable([]);
-            updateStats();
+            sheetData = []; excelData = []; mergedData = [];
+            document.getElementById('searchInput').value = ''; document.getElementById('statusFilter').value = 'all'; document.getElementById('fileInput').value = '';
+            document.getElementById('manualBarcode').value = ''; document.getElementById('qtyInput').value = 1;
+            document.getElementById('btnCompare').disabled = true; document.getElementById('btnExport').disabled = true; document.getElementById('btnConfirmQty').disabled = true;
+            document.getElementById('lastScannedInfo').innerHTML = '<span style="color: var(--fg-muted);">Belum ada barcode di-scan</span>';
+            lastScannedPartNumber = ''; clearScanHistory(); stopScanner(); renderTable([]); updateStats();
             showToast('Semua data telah dihapus', 'info');
         }
 
-        // ============================================
-        // KEYBOARD SHORTCUT
-        // ============================================
-        document.addEventListener('keydown', (e) => {
-            // Ctrl+F untuk focus search
-            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                const searchInput = document.getElementById('searchInput');
-                if (document.activeElement !== searchInput) {
-                    e.preventDefault();
-                    searchInput.focus();
-                }
-            }
-        });
+        document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'f') { const searchInput = document.getElementById('searchInput'); if (document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); } } });
     </script>
 </body>
 </html>
