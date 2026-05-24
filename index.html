@@ -73,10 +73,6 @@
         ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
         ::-webkit-scrollbar-thumb:hover { background:#333; }
 
-        @keyframes statPulse {
-            0%,100% { box-shadow:0 0 0 0 rgba(250,204,21,0.15); }
-            50% { box-shadow:0 0 20px 2px rgba(250,204,21,0.08); }
-        }
         .stat-card {
             background:var(--card);
             border:1px solid var(--border);
@@ -552,6 +548,8 @@
                             <th>PART NUMBER</th>
                             <th>DESKRIPSI</th>
                             <th class="text-center">QTY SYSTEM</th>
+                            <th class="text-center">QTY ALLOC</th>
+                            <th class="text-center">AVAILABLE</th>
                             <th class="text-center">FISIK</th>
                             <th class="text-center">SELISIH</th>
                             <th class="text-center">STATUS</th>
@@ -583,9 +581,19 @@
                 <p class="text-sm text-[var(--muted)] mt-1" id="modalDesc">-</p>
             </div>
             <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Qty System</label>
+                        <p class="text-2xl font-bold font-mono mt-1" id="modalQtySystem">0</p>
+                    </div>
+                    <div>
+                        <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Qty Alloc</label>
+                        <p class="text-2xl font-bold font-mono mt-1 text-[var(--warning)]" id="modalQtyAlloc">0</p>
+                    </div>
+                </div>
                 <div>
-                    <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Qty System</label>
-                    <p class="text-2xl font-bold font-mono mt-1" id="modalQtySystem">0</p>
+                    <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Available</label>
+                    <p class="text-2xl font-bold font-mono mt-1 text-[var(--success)]" id="modalAvailable">0</p>
                 </div>
                 <div>
                     <label class="text-xs text-[var(--muted)] uppercase tracking-wider font-medium">Fisik (Qty Actual)</label>
@@ -667,17 +675,24 @@
                         const partIdx = findColIndex(headers, ['part number','part_number','partnumber','part no','kode']);
                         const descIdx = findColIndex(headers, ['deskripsi','description','nama','desc','name']);
                         const qtySysIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem']);
+                        const qtyAllocIdx = findColIndex(headers, ['qty alloc','qty_alloc','alloc','alokasi']);
                         const qtyActIdx = findColIndex(headers, ['qty actual','qty_actual','fisik','stock actual','actual','qty act','stok aktual','hasil']);
                         const selisihIdx = findColIndex(headers, ['selisih','difference','diff','variance']);
 
                         const val = (idx) => (idx >= 0 && row[idx]) ? row[idx].trim() : '';
                         const numVal = (idx) => { const v = val(idx); const n = parseInt(v); return isNaN(n) ? 0 : n; };
 
+                        const qtySys = qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(3);
+                        const qtyAlloc = qtyAllocIdx >= 0 ? numVal(qtyAllocIdx) : 0;
+                        const available = qtySys - qtyAlloc;
+
                         return {
                             no: noIdx >= 0 ? val(noIdx) : String(i + 1),
                             partNumber: partIdx >= 0 ? val(partIdx) : val(0),
                             description: descIdx >= 0 ? val(descIdx) : val(1),
-                            qtySystem: qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(2),
+                            qtySystem: qtySys,
+                            qtyAlloc: qtyAlloc,
+                            available: available,
                             qtyActual: qtyActIdx >= 0 ? numVal(qtyActIdx) : null,
                             selisih: selisihIdx >= 0 ? numVal(selisihIdx) : null
                         };
@@ -728,16 +743,23 @@
                         const partIdx = findColIndex(headers, ['part number','part_number','partnumber','part no','kode']);
                         const descIdx = findColIndex(headers, ['deskripsi','description','nama','desc','name']);
                         const qtySysIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem']);
+                        const qtyAllocIdx = findColIndex(headers, ['qty alloc','qty_alloc','alloc','alokasi']);
                         const qtyActIdx = findColIndex(headers, ['qty actual','qty_actual','fisik','stock actual','actual','qty act','stok aktual','hasil']);
 
                         const val = (idx, def = '') => (idx >= 0 && row[idx] !== undefined) ? String(row[idx]).trim() : def;
                         const numVal = (idx, def = 0) => { const v = val(idx, ''); const n = parseInt(v); return isNaN(n) ? def : n; };
 
+                        const qtySys = qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(3);
+                        const qtyAlloc = qtyAllocIdx >= 0 ? numVal(qtyAllocIdx) : 0;
+                        const available = qtySys - qtyAlloc;
+
                         return {
                             no: noIdx >= 0 ? val(noIdx) : String(i + 1),
                             partNumber: partIdx >= 0 ? val(partIdx) : val(0),
                             description: descIdx >= 0 ? val(descIdx) : val(1),
-                            qtySystem: qtySysIdx >= 0 ? numVal(qtySysIdx) : numVal(2),
+                            qtySystem: qtySys,
+                            qtyAlloc: qtyAlloc,
+                            available: available,
                             qtyActual: qtyActIdx >= 0 ? numVal(qtyActIdx) : null,
                             selisih: null
                         };
@@ -780,6 +802,8 @@
             document.getElementById('modalPartNumber').textContent = item.partNumber;
             document.getElementById('modalDesc').textContent = item.description || '-';
             document.getElementById('modalQtySystem').textContent = item.qtySystem;
+            document.getElementById('modalQtyAlloc').textContent = item.qtyAlloc;
+            document.getElementById('modalAvailable').textContent = item.available;
             document.getElementById('modalQtyActual').value = item.qtyActual !== null ? item.qtyActual : '';
             document.getElementById('scanModal').classList.add('active');
             setTimeout(() => { document.getElementById('modalQtyActual').focus(); document.getElementById('modalQtyActual').select(); }, 100);
@@ -847,6 +871,8 @@
                     <td class="font-mono font-semibold text-[var(--accent)]">${item.partNumber}</td>
                     <td class="max-w-[200px] truncate" title="${item.description}">${item.description || '-'}</td>
                     <td class="text-center font-mono">${item.qtySystem}</td>
+                    <td class="text-center font-mono text-[var(--warning)]">${item.qtyAlloc}</td>
+                    <td class="text-center font-mono text-[var(--success)]">${item.available}</td>
                     <td class="text-center font-mono">${item.qtyActual !== null ? item.qtyActual : '-'}</td>
                     <td class="text-center">${selisihBadge}</td>
                     <td class="text-center">${statusBadge}</td>
@@ -882,14 +908,14 @@
 
         function exportExcel() {
             if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
-            const wsData = [['NO', 'PART NUMBER', 'DESKRIPSI', 'QTY SYSTEM', 'FISIK', 'SELISIH', 'STATUS']];
+            const wsData = [['NO', 'PART NUMBER', 'DESKRIPSI', 'QTY SYSTEM', 'QTY ALLOC', 'AVAILABLE', 'FISIK', 'SELISIH', 'STATUS']];
             stockData.forEach(item => {
                 const status = item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum Dihitung';
-                wsData.push([item.no, item.partNumber, item.description, item.qtySystem, item.qtyActual !== null ? item.qtyActual : '', item.selisih !== null ? item.selisih : '', status]);
+                wsData.push([item.no, item.partNumber, item.description, item.qtySystem, item.qtyAlloc, item.available, item.qtyActual !== null ? item.qtyActual : '', item.selisih !== null ? item.selisih : '', status]);
             });
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!cols'] = [{ wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 15 }];
+            ws['!cols'] = [{ wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 15 }];
             XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname');
             XLSX.writeFile(wb, `Stock_Opname_${new Date().toISOString().slice(0, 10)}.xlsx`);
             showToast('File Excel berhasil di-export', 'success');
@@ -904,18 +930,18 @@
             doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
             doc.text(`Total: ${stockData.length} | Dihitung: ${stockData.filter(i => i.qtyActual !== null).length} | Selisih: ${stockData.filter(i => i.selisih !== null && i.selisih !== 0).length}`, 14, 28);
             const tableData = stockData.map(item => [
-                item.no, item.partNumber, item.description.substring(0, 35), item.qtySystem,
+                item.no, item.partNumber, item.description.substring(0, 30), item.qtySystem, item.qtyAlloc, item.available,
                 item.qtyActual !== null ? item.qtyActual : '-',
                 item.selisih !== null ? (item.selisih > 0 ? '+' : '') + item.selisih : '-',
                 item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum'
             ]);
             doc.autoTable({
-                head: [['No', 'Part Number', 'Deskripsi', 'Qty Sys', 'Fisik', 'Selisih', 'Status']],
+                head: [['No', 'Part Number', 'Deskripsi', 'Qty Sys', 'Alloc', 'Avail', 'Fisik', 'Selisih', 'Status']],
                 body: tableData, startY: 33,
-                styles: { fontSize: 8, cellPadding: 2 },
+                styles: { fontSize: 7, cellPadding: 2 },
                 headStyles: { fillColor: [15, 15, 19], textColor: [250, 204, 21], fontStyle: 'bold' },
                 alternateRowStyles: { fillColor: [20, 20, 28] },
-                columnStyles: { 0: { cellWidth: 10 }, 4: { halign: 'center' }, 5: { halign: 'center' } }
+                columnStyles: { 0: { cellWidth: 8 }, 4: { halign: 'center' }, 5: { halign: 'center' }, 6: { halign: 'center' }, 7: { halign: 'center' } }
             });
             doc.save(`Stock_Opname_${new Date().toISOString().slice(0, 10)}.pdf`);
             showToast('File PDF berhasil di-export', 'success');
