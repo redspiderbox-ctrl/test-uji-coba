@@ -234,10 +234,10 @@
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg" style="background: var(--bg-card); border: 1px solid var(--border);">
                     <div class="pulse-dot" id="statusDot" style="background: var(--fg-muted); animation: none;"></div>
-                    <span class="text-xs font-medium" id="connectionStatus" style="color: var(--fg-muted);">Disconnected</span>
+                    <span class="text-xs font-medium" id="connectionStatus" style="color: var(--fg-muted);">Tidak Terhubung</span>
                 </div>
                 <button class="btn-outline text-sm flex items-center gap-2" onclick="toggleConfig()">
-                    <i class="fas fa-cog"></i> Settings
+                    <i class="fas fa-cog"></i> Pengaturan
                 </button>
             </div>
         </header>
@@ -246,10 +246,10 @@
             <div class="card p-5">
                 <div class="flex items-center gap-2 mb-4">
                     <i class="fas fa-link text-sm" style="color: var(--accent);"></i>
-                    <h3 class="font-semibold text-sm">Google Sheets API Configuration</h3>
+                    <h3 class="font-semibold text-sm">Konfigurasi Google Sheets API</h3>
                 </div>
                 <p class="text-xs mb-4" style="color: var(--fg-muted);">
-                    Paste your Google Sheets API URL below. Deploy Google Apps Script first, then paste the URL.<br>
+                    Paste URL Google Sheets API Anda di bawah. Deploy Google Apps Script terlebih dahulu, lalu paste URL-nya.<br>
                     <strong style="color: var(--fg);">Spreadsheet ID:</strong> 
                     <code class="text-xs px-1.5 py-0.5 rounded" style="background: var(--bg); color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code>
                 </p>
@@ -257,7 +257,7 @@
                     <input type="text" id="apiUrlInput" class="input-field flex-1 font-mono text-xs"
                            placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec" spellcheck="false">
                     <button class="btn-primary text-sm whitespace-nowrap" onclick="saveApiUrl()">
-                        <i class="fas fa-save mr-1"></i> Save
+                        <i class="fas fa-save mr-1"></i> Simpan
                     </button>
                 </div>
                 <details class="mt-4">
@@ -289,49 +289,49 @@
                     <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-database"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statTotal">0</div>
-                <div class="text-xs mt-1" style="color: var(--fg-muted);">Total Items</div>
+                <div class="text-xs mt-1" style="color: var(--fg-muted);">Total Item</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-check-circle"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statMatch">0</div>
-                <div class="text-xs mt-1" style="color: var(--fg-muted);">Match</div>
+                <div class="text-xs mt-1" style="color: var(--fg-muted);">Sesuai</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="stat-icon" style="background: rgba(255, 82, 82, 0.1); color: #ff5252;"><i class="fas fa-exclamation-triangle"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statMismatch">0</div>
-                <div class="text-xs mt-1" style="color: var(--fg-muted);">Mismatch</div>
+                <div class="text-xs mt-1" style="color: var(--fg-muted);">Tidak Sesuai</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="stat-icon" style="background: rgba(255, 171, 0, 0.1); color: #ffab00;"><i class="fas fa-search"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statMissing">0</div>
-                <div class="text-xs mt-1" style="color: var(--fg-muted);">Missing</div>
+                <div class="text-xs mt-1" style="color: var(--fg-muted);">Hilang</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="stat-icon" style="background: rgba(64, 196, 255, 0.1); color: #40c4ff;"><i class="fas fa-plus-circle"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statExtra">0</div>
-                <div class="text-xs mt-1" style="color: var(--fg-muted);">Extra</div>
+                <div class="text-xs mt-1" style="color: var(--fg-muted);">Tambahan</div>
             </div>
             <div class="card stat-card p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="stat-icon" style="background: rgba(0, 230, 118, 0.1); color: #00e676;"><i class="fas fa-barcode"></i></div>
                 </div>
                 <div class="text-2xl font-bold font-mono" id="statScanned">0</div>
-                <div class="text-xs mt-1" style="color: var(--fg-muted);">Scanned</div>
+                <div class="text-xs mt-1" style="color: var(--fg-muted);">Di-scan</div>
             </div>
         </div>
 
         <div class="card p-5 mb-6">
             <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-barcode text-sm" style="color: var(--accent);"></i>
-                <h3 class="font-semibold text-sm">Barcode Scanner</h3>
+                <h3 class="font-semibold text-sm">Pemindai Barcode</h3>
                 <span class="badge badge-match text-xs ml-2">LIVE</span>
             </div>
             <div class="flex flex-col lg:flex-row gap-5">
@@ -343,24 +343,24 @@
                         </div>
                         <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center" style="color: var(--fg-muted);">
                             <i class="fas fa-camera text-4xl mb-3 opacity-30"></i>
-                            <p class="text-sm">Klik Start untuk membuka kamera</p>
+                            <p class="text-sm">Klik Mulai untuk membuka kamera</p>
                         </div>
                     </div>
                     <div class="flex gap-2 mt-3">
                         <button class="btn-primary text-sm flex-1 flex items-center justify-center gap-2" onclick="startScanner()" id="btnStartScan">
-                            <i class="fas fa-play"></i> Start Scanner
+                            <i class="fas fa-play"></i> Mulai Pindai
                         </button>
                         <button class="btn-outline text-sm flex-1 flex items-center justify-center gap-2" onclick="stopScanner()" id="btnStopScan" disabled>
-                            <i class="fas fa-stop"></i> Stop
+                            <i class="fas fa-stop"></i> Berhenti
                         </button>
                     </div>
                 </div>
                 <div class="flex-1 flex flex-col gap-4">
                     <div>
-                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Manual Barcode Input</label>
+                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Input Barcode Manual</label>
                         <div class="flex gap-2">
                             <input type="text" id="manualBarcode" class="input-field font-mono" 
-                                   placeholder="Scan atau ketik barcode/part number..."
+                                   placeholder="Pindai atau ketik barcode/part number..."
                                    onkeydown="if(event.key==='Enter') processBarcode(this.value)">
                             <button class="btn-primary text-sm whitespace-nowrap" onclick="processBarcode(document.getElementById('manualBarcode').value)">
                                 <i class="fas fa-search mr-1"></i> Cari
@@ -368,19 +368,19 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Qty Input (untuk aktual)</label>
+                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Input Qty (untuk aktual)</label>
                         <div class="flex gap-2 items-center">
                             <button class="btn-outline text-lg px-4 py-2" onclick="adjustQty(-1)">-</button>
                             <input type="number" id="qtyInput" class="input-field text-center font-mono text-lg" value="1" min="0" style="width: 100px;">
                             <button class="btn-outline text-lg px-4 py-2" onclick="adjustQty(1)">+</button>
                             <button class="btn-primary text-sm ml-2 flex items-center gap-2" onclick="confirmActualQty()" id="btnConfirmQty" disabled>
-                                <i class="fas fa-check"></i> Update QTY
+                                <i class="fas fa-check"></i> Perbarui QTY
                             </button>
                         </div>
                     </div>
                     <div class="card p-4 flex-1" id="lastScannedCard" style="border-color: var(--border-accent);">
                         <div class="text-xs font-medium mb-3" style="color: var(--fg-muted);">
-                            <i class="fas fa-history mr-1"></i> Last Scanned
+                            <i class="fas fa-history mr-1"></i> Terakhir Di-scan
                         </div>
                         <div id="lastScannedInfo" class="text-sm" style="color: var(--fg-muted);">
                             Belum ada barcode di-scan
@@ -388,7 +388,7 @@
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-medium" style="color: var(--fg-muted);"><i class="fas fa-list mr-1"></i> Riwayat Scan</span>
+                            <span class="text-xs font-medium" style="color: var(--fg-muted);"><i class="fas fa-list mr-1"></i> Riwayat Pindai</span>
                             <button class="text-xs" style="color: var(--danger);" onclick="clearScanHistory()">Hapus</button>
                         </div>
                         <div id="scanHistory" class="flex flex-wrap gap-2 max-h-20 overflow-y-auto" style="color: var(--fg-muted);">
@@ -402,27 +402,27 @@
         <div class="card p-5 mb-6">
             <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-file-excel text-sm" style="color: var(--accent);"></i>
-                <h3 class="font-semibold text-sm">Upload Excel File</h3>
+                <h3 class="font-semibold text-sm">Unggah File Excel</h3>
             </div>
             <div class="flex flex-col sm:flex-row gap-4">
                 <div class="upload-zone flex-1 p-8 text-center" id="uploadZone" onclick="document.getElementById('fileInput').click()">
                     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileUpload(event)">
                     <i class="fas fa-cloud-upload-alt text-3xl mb-3" style="color: var(--fg-muted);"></i>
-                    <p class="text-sm font-medium" style="color: var(--fg);">Drag & drop file atau klik untuk browse</p>
+                    <p class="text-sm font-medium" style="color: var(--fg);">Seret & lepaskan file atau klik untuk mencari</p>
                     <p class="text-xs mt-2" style="color: var(--fg-muted);">Format: .xlsx, .xls, .csv</p>
                 </div>
                 <div class="flex flex-col gap-2 sm:w-52">
                     <button class="btn-primary text-sm flex items-center justify-center gap-2" onclick="fetchFromSheet()" id="btnFetch">
-                        <i class="fas fa-sync-alt"></i> Fetch from Sheet
+                        <i class="fas fa-sync-alt"></i> Ambil dari Sheet
                     </button>
                     <button class="btn-outline text-sm flex items-center justify-center gap-2" onclick="compareData()" id="btnCompare" disabled>
-                        <i class="fas fa-exchange-alt"></i> Compare Data
+                        <i class="fas fa-exchange-alt"></i> Bandingkan Data
                     </button>
                     <button class="btn-outline text-sm flex items-center justify-center gap-2" onclick="exportResult()" id="btnExport" disabled>
-                        <i class="fas fa-download"></i> Export Result
+                        <i class="fas fa-download"></i> Ekspor Hasil
                     </button>
                     <button class="btn-outline text-sm flex items-center justify-center gap-2" onclick="clearAll()" style="border-color: rgba(255,82,82,0.3); color: #ff5252;">
-                        <i class="fas fa-trash-alt"></i> Clear All
+                        <i class="fas fa-trash-alt"></i> Hapus Semua
                     </button>
                 </div>
             </div>
@@ -434,16 +434,16 @@
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color: var(--fg-muted);"></i>
                     <input type="text" id="searchInput" class="input-field pl-9" placeholder="Cari part number, nama, fisik..." oninput="filterTable()">
                 </div>
-                <select id="statusFilter" class="input-field sm:w-44" onchange="filterTable()">
+                <select id="statusFilter" class="input-field sm:w-48" onchange="filterTable()">
                     <option value="all">Semua Selisih</option>
-                    <option value="match">Match</option>
-                    <option value="mismatch">Mismatch</option>
-                    <option value="missing">Missing</option>
-                    <option value="extra">Extra</option>
-                    <option value="scanned">Scanned</option>
+                    <option value="match">Sesuai</option>
+                    <option value="mismatch">Tidak Sesuai</option>
+                    <option value="missing">Hilang</option>
+                    <option value="extra">Tambahan</option>
+                    <option value="scanned">Di-scan</option>
                 </select>
                 <div class="flex items-center gap-2 text-xs" style="color: var(--fg-muted);">
-                    <span>Showing <strong id="visibleCount" style="color: var(--fg);">0</strong> of <strong id="totalCount" style="color: var(--fg);">0</strong></span>
+                    <span>Menampilkan <strong id="visibleCount" style="color: var(--fg);">0</strong> dari <strong id="totalCount" style="color: var(--fg);">0</strong></span>
                 </div>
             </div>
         </div>
@@ -455,13 +455,13 @@
                         <tr>
                             <th class="text-center" style="width: 50px;">NO</th>
                             <th>PART NUMBER</th>
-                            <th>DESCRIPTION</th>
-                            <th class="text-center">SYSTEM QTY</th>
-                            <th class="text-center">ACTUAL QTY</th>
-                            <th class="text-center">AVAILABLE</th>
+                            <th>DESKRIPSI</th>
+                            <th class="text-center">QTY SISTEM</th>
+                            <th class="text-center">QTY AKTUAL</th>
+                            <th class="text-center">TERSEDIA</th>
                             <th>FISIK</th>
                             <th class="text-center">SELIH</th>
-                            <th>REMARKS</th>
+                            <th>CATATAN</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -470,7 +470,7 @@
             <div class="empty-state" id="emptyState">
                 <i class="fas fa-inbox block"></i>
                 <p class="text-sm font-medium mb-1">Tidak ada data</p>
-                <p class="text-xs" style="color: var(--fg-muted);">Upload file Excel, fetch dari Google Sheet, atau scan barcode untuk memulai</p>
+                <p class="text-xs" style="color: var(--fg-muted);">Unggah file Excel, ambil dari Google Sheet, atau pindai barcode untuk memulai</p>
             </div>
         </div>
 
@@ -528,8 +528,8 @@
         function updateConnectionStatus(connected) {
             const dot = document.getElementById('statusDot');
             const status = document.getElementById('connectionStatus');
-            if (connected) { dot.style.background = '#00e676'; dot.style.animation = 'pulse 2s infinite'; status.textContent = 'Connected'; status.style.color = '#00e676'; }
-            else { dot.style.background = 'var(--fg-muted)'; dot.style.animation = 'none'; status.textContent = 'Disconnected'; status.style.color = 'var(--fg-muted)'; }
+            if (connected) { dot.style.background = '#00e676'; dot.style.animation = 'pulse 2s infinite'; status.textContent = 'Terhubung'; status.style.color = '#00e676'; }
+            else { dot.style.background = 'var(--fg-muted)'; dot.style.animation = 'none'; status.textContent = 'Tidak Terhubung'; status.style.color = 'var(--fg-muted)'; }
         }
 
         async function startScanner() {
@@ -542,7 +542,7 @@
                 scannerActive = true;
                 document.getElementById('btnStartScan').disabled = true;
                 document.getElementById('btnStopScan').disabled = false;
-                showToast('Scanner kamera aktif', 'success');
+                showToast('Pemindai kamera aktif', 'success');
             } catch (err) {
                 console.error('Scanner error:', err);
                 document.getElementById('cameraPlaceholder').style.display = 'flex';
@@ -559,7 +559,7 @@
                 document.getElementById('btnStopScan').disabled = true;
                 document.getElementById('cameraPlaceholder').style.display = 'flex';
                 document.getElementById('scanIndicator').style.display = 'none';
-                showToast('Scanner dihentikan', 'info');
+                showToast('Pemindai dihentikan', 'info');
             }
         }
 
@@ -586,13 +586,13 @@
                 document.getElementById('btnConfirmQty').disabled = false;
                 document.getElementById('lastScannedInfo').innerHTML = `
                     <div class="flex flex-col gap-1.5">
-                        <div class="flex items-center gap-2"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> Found</span></div>
+                        <div class="flex items-center gap-2"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> Ditemukan</span></div>
                         <div><strong style="color: var(--fg);">${found.partNumber}</strong></div>
                         <div style="color: var(--fg-muted);">${found.description}</div>
                         <div class="flex gap-4 mt-1">
-                            <span class="text-xs">System: <strong style="color: var(--fg);">${found.systemQty}</strong></span>
-                            <span class="text-xs">Actual: <strong style="color: var(--info);">${found.actualQty}</strong></span>
-                            <span class="text-xs">Available: <strong style="color: var(--accent);">${found.available}</strong></span>
+                            <span class="text-xs">Sistem: <strong style="color: var(--fg);">${found.systemQty}</strong></span>
+                            <span class="text-xs">Aktual: <strong style="color: var(--info);">${found.actualQty}</strong></span>
+                            <span class="text-xs">Tersedia: <strong style="color: var(--accent);">${found.available}</strong></span>
                             <span class="text-xs">Fisik: <strong style="color: var(--fg);">${found.fisik}</strong></span>
                         </div>
                     </div>`;
@@ -605,10 +605,10 @@
                 document.getElementById('btnConfirmQty').disabled = false;
                 document.getElementById('lastScannedInfo').innerHTML = `
                     <div class="flex flex-col gap-1.5">
-                        <div class="flex items-center gap-2"><span class="badge badge-extra"><i class="fas fa-question-circle"></i> Not Found</span></div>
+                        <div class="flex items-center gap-2"><span class="badge badge-extra"><i class="fas fa-question-circle"></i> Tidak Ditemukan</span></div>
                         <div><strong style="color: var(--warning);">${code}</strong></div>
-                        <div style="color: var(--fg-muted);">Part number tidak ditemukan di data sistem</div>
-                        <div class="text-xs mt-1" style="color: var(--fg-muted);">Tekan "Update QTY" untuk menambahkan sebagai barang extra</div>
+                        <div style="color: var(--fg-muted);">Part number tidak ada di data sistem</div>
+                        <div class="text-xs mt-1" style="color: var(--fg-muted);">Tekan "Perbarui QTY" untuk menambahkan sebagai barang tambahan</div>
                     </div>`;
                 document.getElementById('qtyInput').value = 1;
                 showToast(`Barcode "${code}" tidak ditemukan di data`, 'warning');
@@ -624,27 +624,27 @@
             const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
             if (found) {
                 found.actualQty = qty;
-                found.available = found.systemQty - found.actualQty; // Perhitungan Available
+                found.available = found.systemQty - found.actualQty; 
                 found.status = found.available === 0 ? 'match' : 'mismatch';
                 found.remarks = found.available === 0 ? 'Sesuai' : found.available > 0 ? `Sisa +${found.available}` : `Kurang ${found.available}`;
                 found.scanned = true;
-                showToast(`Updated: ${found.partNumber} → Actual QTY = ${qty}, Available = ${found.available}`, 'success');
+                showToast(`Diperbarui: ${found.partNumber} → QTY Aktual = ${qty}, Tersedia = ${found.available}`, 'success');
             } else {
-                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil scan barcode', systemQty: 0, actualQty: qty, available: -qty, fisik: '-', status: 'extra', remarks: 'Barang tambahan (scan barcode)', scanned: true };
+                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai barcode', systemQty: 0, actualQty: qty, available: -qty, fisik: '-', status: 'extra', remarks: 'Barang tambahan (pindai barcode)', scanned: true };
                 mergedData.push(newItem);
-                showToast(`Ditambahkan: ${code} sebagai barang extra, QTY = ${qty}`, 'info');
+                showToast(`Ditambahkan: ${code} sebagai barang tambahan, QTY = ${qty}`, 'info');
             }
             const updated = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
             if (updated) {
                 document.getElementById('lastScannedInfo').innerHTML = `
                     <div class="flex flex-col gap-1.5">
-                        <div class="flex items-center gap-2"><span class="badge badge-match"><i class="fas fa-check"></i> Updated</span></div>
+                        <div class="flex items-center gap-2"><span class="badge badge-match"><i class="fas fa-check"></i> Diperbarui</span></div>
                         <div><strong style="color: var(--accent);">${updated.partNumber}</strong></div>
                         <div style="color: var(--fg-muted);">${updated.description}</div>
                         <div class="flex gap-4 mt-1">
-                            <span class="text-xs">System: <strong style="color: var(--fg);">${updated.systemQty}</strong></span>
-                            <span class="text-xs">Actual: <strong style="color: var(--info);">${updated.actualQty}</strong></span>
-                            <span class="text-xs">Available: <strong style="color: var(--accent);">${updated.available}</strong></span>
+                            <span class="text-xs">Sistem: <strong style="color: var(--fg);">${updated.systemQty}</strong></span>
+                            <span class="text-xs">Aktual: <strong style="color: var(--info);">${updated.actualQty}</strong></span>
+                            <span class="text-xs">Tersedia: <strong style="color: var(--accent);">${updated.available}</strong></span>
                         </div>
                     </div>`;
             }
@@ -671,8 +671,8 @@
         function clearScanHistory() { scanHistoryList = []; document.getElementById('scanHistory').innerHTML = '<span class="text-xs italic">Kosong</span>'; }
 
         async function fetchFromSheet() {
-            if (!apiUrl) { showToast('Silakan atur API URL terlebih dahulu di Settings', 'warning'); toggleConfig(); return; }
-            const btn = document.getElementById('btnFetch'); const origHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Fetching...';
+            if (!apiUrl) { showToast('Silakan atur API URL terlebih dahulu di Pengaturan', 'warning'); toggleConfig(); return; }
+            const btn = document.getElementById('btnFetch'); const origHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Mengambil...';
             try {
                 const response = await fetch(apiUrl); if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json();
                 if (Array.isArray(data) && data.length > 1) {
@@ -753,7 +753,15 @@
                 return matchSearch && matchStatus;
             });
             document.getElementById('visibleCount').textContent = filtered.length; document.getElementById('totalCount').textContent = data.length;
-            const statusLabel = { match: '<i class="fas fa-check-circle"></i> Match', mismatch: '<i class="fas fa-times-circle"></i> Mismatch', missing: '<i class="fas fa-minus-circle"></i> Missing', extra: '<i class="fas fa-plus-circle"></i> Extra' };
+            
+            // Keterangan Selisih dalam Bahasa Indonesia
+            const statusLabel = { 
+                match: '<i class="fas fa-check-circle"></i> Sesuai', 
+                mismatch: '<i class="fas fa-times-circle"></i> Tidak Sesuai', 
+                missing: '<i class="fas fa-minus-circle"></i> Hilang', 
+                extra: '<i class="fas fa-plus-circle"></i> Tambahan' 
+            };
+            
             tbody.innerHTML = filtered.map(item => {
                 const availClass = item.available > 0 ? 'color: #00e676' : item.available < 0 ? 'color: #ff5252' : 'color: var(--fg-muted)';
                 const availPrefix = item.available > 0 ? '+' : '';
@@ -791,13 +799,14 @@
         }
 
         function exportResult() {
-            if (mergedData.length === 0) { showToast('Tidak ada data untuk di-export', 'warning'); return; }
-            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESCRIPTION': item.description, 'SYSTEM QTY': item.systemQty, 'ACTUAL QTY': item.actualQty, 'AVAILABLE': item.available, 'FISIK': item.fisik, 'SELIH': (item.status || '').toUpperCase(), 'SCANNED': item.scanned ? 'YES' : 'NO', 'REMARKS': item.remarks }));
+            if (mergedData.length === 0) { showToast('Tidak ada data untuk diekspor', 'warning'); return; }
+            const statusMap = { match: 'Sesuai', mismatch: 'Tidak Sesuai', missing: 'Hilang', extra: 'Tambahan' };
+            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'TERSEDIA': item.available, 'FISIK': item.fisik, 'SELIH': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK', 'CATATAN': item.remarks }));
             const ws = XLSX.utils.json_to_sheet(exportData);
-            ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 8 }, { wch: 20 } ];
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname Result');
-            const date = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Stock_Opname_Result_${date}.xlsx`);
-            showToast('File berhasil di-export', 'success');
+            ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 20 } ];
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Hasil Stock Opname');
+            const date = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Hasil_Stock_Opname_${date}.xlsx`);
+            showToast('File berhasil diekspor', 'success');
         }
 
         function clearAll() {
