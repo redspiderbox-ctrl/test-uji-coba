@@ -23,24 +23,12 @@
     </script>
     <style>
         :root {
-            --bg: #0a0a0f;
-            --bg-card: #12121a;
-            --bg-card-hover: #1a1a26;
-            --border: #1e1e2e;
-            --border-accent: #2a2a3e;
-            --fg: #e8e8f0;
-            --fg-muted: #6b6b80;
-            --accent: #00e676;
-            --accent-dim: #00c853;
-            --accent-glow: rgba(0, 230, 118, 0.15);
-            --warning: #ffab00;
-            --danger: #ff5252;
-            --info: #40c4ff;
+            --bg: #0a0a0f; --bg-card: #12121a; --bg-card-hover: #1a1a26; --border: #1e1e2e; --border-accent: #2a2a3e;
+            --fg: #e8e8f0; --fg-muted: #6b6b80; --accent: #00e676; --accent-dim: #00c853; --accent-glow: rgba(0, 230, 118, 0.15);
+            --warning: #ffab00; --danger: #ff5252; --info: #40c4ff;
         }
         * { box-sizing: border-box; }
-        body {
-            background: var(--bg); color: var(--fg); font-family: 'Space Grotesk', sans-serif; min-height: 100vh;
-        }
+        body { background: var(--bg); color: var(--fg); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
         body::before {
             content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
             background: radial-gradient(ellipse at 20% 20%, rgba(0, 230, 118, 0.03) 0%, transparent 50%),
@@ -257,7 +245,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Input Qty (untuk aktual)</label>
+                        <label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Input Qty (untuk Fisik)</label>
                         <div class="flex gap-2 items-center">
                             <button class="btn-outline text-lg px-4 py-2" onclick="adjustQty(-1)">-</button>
                             <input type="number" id="qtyInput" class="input-field text-center font-mono text-lg" value="1" min="0" style="width: 100px;">
@@ -333,7 +321,7 @@
                             <th class="text-center">QTY SISTEM</th>
                             <th class="text-center">QTY AKTUAL</th>
                             <th class="text-center">AVAILABLE</th>
-                            <th>FISIK</th>
+                            <th class="text-center">FISIK</th>
                             <th class="text-center">SELIH</th>
                             <th>CATATAN</th>
                         </tr>
@@ -349,7 +337,7 @@
         </div>
 
         <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);">
-            <p>Stock Opname System v2.4 &mdash; Data tersimpan lokal di browser Anda</p>
+            <p>Stock Opname System v2.5 &mdash; Data tersimpan lokal di browser Anda</p>
             <p class="mt-1">Google Sheet ID: <code style="color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code></p>
         </footer>
     </div>
@@ -437,12 +425,10 @@
                         <div style="color: var(--fg-muted);">${found.description}</div>
                         <div class="flex gap-4 mt-1">
                             <span class="text-xs">Sistem: <strong style="color: var(--fg);">${found.systemQty}</strong></span>
-                            <span class="text-xs">Aktual: <strong style="color: var(--info);">${found.actualQty}</strong></span>
-                            <span class="text-xs">Tersedia: <strong style="color: var(--accent);">${found.available}</strong></span>
-                            <span class="text-xs">Fisik: <strong style="color: var(--fg);">${found.fisik}</strong></span>
+                            <span class="text-xs">Fisik Saat Ini: <strong style="color: var(--info);">${found.fisik}</strong></span>
                         </div>
                     </div>`;
-                highlightRow(found.partNumber); document.getElementById('qtyInput').value = found.actualQty + 1;
+                highlightRow(found.partNumber); document.getElementById('qtyInput').value = 1;
                 showToast(`Ditemukan: ${found.partNumber} - ${found.description}`, 'success');
             } else {
                 lastScannedPartNumber = code; document.getElementById('btnConfirmQty').disabled = false;
@@ -472,13 +458,14 @@
             const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
             if (found) {
                 found.actualQty = qty; found.available = found.systemQty - found.actualQty;
+                found.fisik = qty; // Saat input QTY, angka masuk ke kolom FISIK
                 found.status = getStatusFromAvailable(found.available);
                 found.remarks = found.available === 0 ? 'Sesuai' : found.available > 0 ? `Lebih +${found.available}` : `Kurang ${found.available}`;
                 found.scanned = true;
-                showToast(`Diperbarui: ${found.partNumber} → QTY Aktual = ${qty}, Available = ${found.available}`, 'success');
+                showToast(`Diperbarui: ${found.partNumber} → Fisik = ${qty}`, 'success');
             } else {
-                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai barcode', systemQty: 0, actualQty: qty, available: -qty, fisik: '-', status: 'extra', remarks: 'Barang tambahan (pindai barcode)', scanned: true };
-                mergedData.push(newItem); showToast(`Ditambahkan: ${code} sebagai barang tambahan, QTY = ${qty}`, 'info');
+                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai barcode', systemQty: 0, actualQty: qty, available: -qty, fisik: qty, status: 'extra', remarks: 'Barang tambahan (pindai barcode)', scanned: true };
+                mergedData.push(newItem); showToast(`Ditambahkan: ${code} sebagai barang tambahan, Fisik = ${qty}`, 'info');
             }
             renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false;
             document.getElementById('manualBarcode').value = ''; lastScannedPartNumber = ''; document.getElementById('btnConfirmQty').disabled = true;
@@ -502,7 +489,7 @@
                 if (Array.isArray(data) && data.length > 1) {
                     sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => {
                         const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; const available = sysQty - actQty;
-                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: available, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'sheet', scanned: false, status: getStatusFromAvailable(available) };
+                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: available, fisik: '-', remarks: String(row[5] || '').trim(), source: 'sheet', scanned: false, status: getStatusFromAvailable(available) };
                     });
                     updateConnectionStatus(true); showToast(`Berhasil memuat ${sheetData.length} data dari Google Sheet`, 'success');
                     if (mergedData.length === 0) mergedData = [...sheetData]; renderTable(mergedData); updateStats(); checkCompareReady();
@@ -524,7 +511,7 @@
                     for (let i = 0; i < Math.min(jsonData.length, 5); i++) { const row = jsonData[i].map(c => String(c || '').toLowerCase()); if (row.some(c => c.includes('part') || c.includes('part_number') || c.includes('partnumber'))) { headerIdx = i; break; } }
                     excelData = jsonData.slice(headerIdx + 1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => {
                         const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; const available = sysQty - actQty;
-                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: available, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'excel', scanned: false, status: getStatusFromAvailable(available) };
+                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: available, fisik: '-', remarks: String(row[5] || '').trim(), source: 'excel', scanned: false, status: getStatusFromAvailable(available) };
                     });
                     showToast(`Berhasil memuat ${excelData.length} data dari ${file.name}`, 'success');
                     if (mergedData.length === 0) mergedData = [...excelData]; renderTable(mergedData); updateStats(); checkCompareReady();
@@ -543,13 +530,13 @@
                 let status, systemQty, actualQty, available, description, fisik, remarks;
                 if (inSheet && inExcel) {
                     systemQty = inSheet.systemQty; actualQty = inExcel.actualQty; available = systemQty - actualQty;
-                    description = inExcel.description || inSheet.description; fisik = inExcel.fisik || inSheet.fisik;
+                    description = inExcel.description || inSheet.description; fisik = '-';
                     status = getStatusFromAvailable(available);
                     remarks = available === 0 ? 'Sesuai' : available > 0 ? `Lebih +${available}` : `Kurang ${available}`;
                 } else if (inSheet) {
-                    systemQty = inSheet.systemQty; actualQty = 0; available = systemQty; status = 'missing'; description = inSheet.description; fisik = inSheet.fisik; remarks = 'Hilang (Tidak ditemukan)';
+                    systemQty = inSheet.systemQty; actualQty = 0; available = systemQty; status = 'missing'; description = inSheet.description; fisik = '-'; remarks = 'Hilang (Tidak ditemukan)';
                 } else {
-                    systemQty = 0; actualQty = inExcel.actualQty; available = -actualQty; status = 'extra'; description = inExcel.description; fisik = inExcel.fisik; remarks = 'Barang tambahan';
+                    systemQty = 0; actualQty = inExcel.actualQty; available = -actualQty; status = 'extra'; description = inExcel.description; fisik = '-'; remarks = 'Barang tambahan';
                 }
                 mergedData.push({ no: no++, partNumber, description, systemQty, actualQty, available, fisik, status, remarks, scanned: false });
             });
@@ -567,19 +554,21 @@
             empty.style.display = 'none';
             const searchVal = document.getElementById('searchInput').value.toLowerCase(); const statusVal = document.getElementById('statusFilter').value;
             const filtered = data.filter(item => {
-                const matchSearch = !searchVal || item.partNumber.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal) || item.fisik.toLowerCase().includes(searchVal);
+                const matchSearch = !searchVal || item.partNumber.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal) || String(item.fisik).toLowerCase().includes(searchVal);
                 const matchStatus = statusVal === 'all' || (statusVal === 'scanned' ? item.scanned : item.status === statusVal);
                 return matchSearch && matchStatus;
             });
             document.getElementById('visibleCount').textContent = filtered.length; document.getElementById('totalCount').textContent = data.length;
             const statusLabel = { match: '<i class="fas fa-check-circle"></i> Sesuai', deficit: '<i class="fas fa-arrow-down"></i> Kurang', surplus: '<i class="fas fa-arrow-up"></i> Lebih', missing: '<i class="fas fa-minus-circle"></i> Hilang', extra: '<i class="fas fa-plus-circle"></i> Tambahan' };
             
-            // Render tabel dengan kolom AVAILABLE di sebelah kiri FISIK
             tbody.innerHTML = filtered.map(item => {
                 const availClass = item.available > 0 ? 'color: #00e676' : item.available < 0 ? 'color: #ff5252' : 'color: var(--fg-muted)';
                 const availPrefix = item.available > 0 ? '+' : '';
                 const badgeClass = `badge badge-${item.status || 'match'}`;
                 const scanBadge = item.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : '';
+                // Fisik akan tampil kosong jika '-' dan tampil angka jika sudah di-scan
+                const fisikDisplay = item.fisik === '-' ? '<span style="color: var(--fg-muted); opacity: 0.4;">-</span>' : `<span style="color: var(--info); font-weight: 600;">${item.fisik}</span>`;
+                
                 return `
                     <tr data-pn="${item.partNumber.toLowerCase()}">
                         <td class="text-center" style="color: var(--fg-muted);">${item.no}</td>
@@ -588,7 +577,7 @@
                         <td class="text-center">${item.systemQty}</td>
                         <td class="text-center" style="color: var(--fg);">${item.actualQty}</td>
                         <td class="text-center" style="${availClass}; font-weight: 600;">${availPrefix}${item.available}</td>
-                        <td style="color: var(--fg-muted);">${item.fisik}</td>
+                        <td class="text-center">${fisikDisplay}</td>
                         <td class="text-center"><span class="${badgeClass}">${statusLabel[item.status] || item.status}</span></td>
                         <td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem;">${item.remarks}</td>
                     </tr>`;
@@ -614,8 +603,8 @@
         function exportResult() {
             if (mergedData.length === 0) { showToast('Tidak ada data untuk diekspor', 'warning'); return; }
             const statusMap = { match: 'Sesuai', deficit: 'Kurang', surplus: 'Lebih', missing: 'Hilang', extra: 'Tambahan' };
-            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'AVAILABLE': item.available, 'FISIK': item.fisik, 'SELIH': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK', 'CATATAN': item.remarks }));
-            const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 20 } ];
+            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'AVAILABLE': item.available, 'FISIK': item.fisik === '-' ? '' : item.fisik, 'SELIH': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK', 'CATATAN': item.remarks }));
+            const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 20 } ];
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Hasil Stock Opname');
             const date = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Hasil_Stock_Opname_${date}.xlsx`); showToast('File berhasil diekspor', 'success');
         }
