@@ -75,11 +75,10 @@
 
         .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.03em; }
         .badge-match { background: rgba(0, 230, 118, 0.12); color: #00e676; }
-        .badge-mismatch { background: rgba(255, 82, 82, 0.12); color: #ff5252; }
+        .badge-deficit { background: rgba(255, 82, 82, 0.12); color: #ff5252; }
+        .badge-surplus { background: rgba(0, 230, 118, 0.12); color: #00e676; }
         .badge-missing { background: rgba(255, 171, 0, 0.12); color: #ffab00; }
         .badge-extra { background: rgba(64, 196, 255, 0.12); color: #40c4ff; }
-        .badge-surplus { background: rgba(0, 230, 118, 0.12); color: #00e676; }
-        .badge-deficit { background: rgba(255, 82, 82, 0.12); color: #ff5252; }
         .badge-scanned { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0,230,118,0.3); }
 
         .btn-primary { background: var(--accent); color: #0a0a0f; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease; font-family: 'Space Grotesk', sans-serif; }
@@ -125,7 +124,6 @@
         .scan-success-flash { animation: flashGreen 0.5s ease; }
         @keyframes flashGreen { 0% { background: rgba(0, 230, 118, 0.2); } 100% { background: transparent; } }
 
-        /* Efek highlight untuk search bar saat scan */
         .search-highlight { border-color: var(--accent) !important; box-shadow: 0 0 12px rgba(0, 230, 118, 0.3) !important; transition: all 0.3s ease; }
 
         @media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr) !important; } .action-bar { flex-direction: column; } }
@@ -335,7 +333,6 @@
                             <th>DESKRIPSI</th>
                             <th class="text-center">QTY SISTEM</th>
                             <th class="text-center">QTY AKTUAL</th>
-                            <th class="text-center">TERSEDIA</th>
                             <th>FISIK</th>
                             <th class="text-center">SELIH</th>
                             <th>CATATAN</th>
@@ -352,7 +349,7 @@
         </div>
 
         <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);">
-            <p>Stock Opname System v2.2 &mdash; Data tersimpan lokal di browser Anda</p>
+            <p>Stock Opname System v2.3 &mdash; Data tersimpan lokal di browser Anda</p>
             <p class="mt-1">Google Sheet ID: <code style="color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</code></p>
         </footer>
     </div>
@@ -434,6 +431,7 @@
             const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase() || item.partNumber.toLowerCase().includes(code.toLowerCase()));
             if (found) {
                 lastScannedPartNumber = found.partNumber; document.getElementById('btnConfirmQty').disabled = false;
+                const diff = found.systemQty - found.actualQty;
                 document.getElementById('lastScannedInfo').innerHTML = `
                     <div class="flex flex-col gap-1.5">
                         <div class="flex items-center gap-2"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> Ditemukan</span></div>
@@ -442,7 +440,7 @@
                         <div class="flex gap-4 mt-1">
                             <span class="text-xs">Sistem: <strong style="color: var(--fg);">${found.systemQty}</strong></span>
                             <span class="text-xs">Aktual: <strong style="color: var(--info);">${found.actualQty}</strong></span>
-                            <span class="text-xs">Tersedia: <strong style="color: var(--accent);">${found.available}</strong></span>
+                            <span class="text-xs">Selisih: <strong style="color: ${diff > 0 ? '#00e676' : diff < 0 ? '#ff5252' : 'var(--fg-muted)'};">${diff > 0 ? '+' : ''}${diff}</strong></span>
                             <span class="text-xs">Fisik: <strong style="color: var(--fg);">${found.fisik}</strong></span>
                         </div>
                     </div>`;
@@ -464,11 +462,10 @@
 
         function adjustQty(delta) { const input = document.getElementById('qtyInput'); let val = parseInt(input.value) || 0; input.value = Math.max(0, val + delta); }
 
-        // Fungsi pembantu untuk menentukan status selisih
-        function getStatusFromAvailable(available) {
-            if (available > 0) return 'surplus';  // Lebih
-            if (available < 0) return 'deficit';  // Kurang
-            return 'match';                       // Sesuai
+        function getStatusFromDiff(diff) {
+            if (diff > 0) return 'surplus';  // Lebih
+            if (diff < 0) return 'deficit';  // Kurang
+            return 'match';                  // Sesuai
         }
 
         function confirmActualQty() {
@@ -476,20 +473,19 @@
             if (!code) { showToast('Tidak ada barcode yang dipilih', 'warning'); return; }
             const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
             if (found) {
-                found.actualQty = qty; found.available = found.systemQty - found.actualQty;
-                found.status = getStatusFromAvailable(found.available);
-                found.remarks = found.available === 0 ? 'Sesuai' : found.available > 0 ? `Lebih +${found.available}` : `Kurang ${found.available}`;
+                found.actualQty = qty; 
+                const diff = found.systemQty - found.actualQty;
+                found.status = getStatusFromDiff(diff);
+                found.remarks = diff === 0 ? 'Sesuai' : diff > 0 ? `Lebih +${diff}` : `Kurang ${diff}`;
                 found.scanned = true;
-                showToast(`Diperbarui: ${found.partNumber} → QTY Aktual = ${qty}, Tersedia = ${found.available}`, 'success');
+                showToast(`Diperbarui: ${found.partNumber} → QTY Aktual = ${qty}`, 'success');
             } else {
-                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai barcode', systemQty: 0, actualQty: qty, available: -qty, fisik: '-', status: 'extra', remarks: 'Barang tambahan (pindai barcode)', scanned: true };
+                const diff = 0 - qty;
+                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai barcode', systemQty: 0, actualQty: qty, fisik: '-', status: 'extra', remarks: 'Barang tambahan (pindai barcode)', scanned: true };
                 mergedData.push(newItem); showToast(`Ditambahkan: ${code} sebagai barang tambahan, QTY = ${qty}`, 'info');
             }
-            const updated = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
-            if (updated) { document.getElementById('lastScannedInfo').innerHTML = `...updated info...` } // disingkat
             renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false;
             document.getElementById('manualBarcode').value = ''; lastScannedPartNumber = ''; document.getElementById('btnConfirmQty').disabled = true;
-            // Pertahankan filter pencarian dari scan terakhir
             filterTable();
         }
 
@@ -509,8 +505,8 @@
                 const response = await fetch(apiUrl); if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json();
                 if (Array.isArray(data) && data.length > 1) {
                     sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => {
-                        const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; const available = sysQty - actQty;
-                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: available, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'sheet', scanned: false, status: getStatusFromAvailable(available) };
+                        const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; const diff = sysQty - actQty;
+                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'sheet', scanned: false, status: getStatusFromDiff(diff) };
                     });
                     updateConnectionStatus(true); showToast(`Berhasil memuat ${sheetData.length} data dari Google Sheet`, 'success');
                     if (mergedData.length === 0) mergedData = [...sheetData]; renderTable(mergedData); updateStats(); checkCompareReady();
@@ -531,8 +527,8 @@
                     let headerIdx = 0;
                     for (let i = 0; i < Math.min(jsonData.length, 5); i++) { const row = jsonData[i].map(c => String(c || '').toLowerCase()); if (row.some(c => c.includes('part') || c.includes('part_number') || c.includes('partnumber'))) { headerIdx = i; break; } }
                     excelData = jsonData.slice(headerIdx + 1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => {
-                        const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; const available = sysQty - actQty;
-                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: available, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'excel', scanned: false, status: getStatusFromAvailable(available) };
+                        const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; const diff = sysQty - actQty;
+                        return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, fisik: String(row[4] || '').trim(), remarks: String(row[5] || '').trim(), source: 'excel', scanned: false, status: getStatusFromDiff(diff) };
                     });
                     showToast(`Berhasil memuat ${excelData.length} data dari ${file.name}`, 'success');
                     if (mergedData.length === 0) mergedData = [...excelData]; renderTable(mergedData); updateStats(); checkCompareReady();
@@ -548,18 +544,18 @@
             const allPartNumbers = new Set([...Object.keys(sheetMap), ...Object.keys(excelMap)]); let no = 1;
             allPartNumbers.forEach(partNumber => {
                 const inSheet = sheetMap[partNumber]; const inExcel = excelMap[partNumber];
-                let status, systemQty, actualQty, available, description, fisik, remarks;
+                let status, systemQty, actualQty, diff, description, fisik, remarks;
                 if (inSheet && inExcel) {
-                    systemQty = inSheet.systemQty; actualQty = inExcel.actualQty; available = systemQty - actualQty;
+                    systemQty = inSheet.systemQty; actualQty = inExcel.actualQty; diff = systemQty - actualQty;
                     description = inExcel.description || inSheet.description; fisik = inExcel.fisik || inSheet.fisik;
-                    status = getStatusFromAvailable(available);
-                    remarks = available === 0 ? 'Sesuai' : available > 0 ? `Lebih +${available}` : `Kurang ${available}`;
+                    status = getStatusFromDiff(diff);
+                    remarks = diff === 0 ? 'Sesuai' : diff > 0 ? `Lebih +${diff}` : `Kurang ${diff}`;
                 } else if (inSheet) {
-                    systemQty = inSheet.systemQty; actualQty = 0; available = systemQty; status = 'missing'; description = inSheet.description; fisik = inSheet.fisik; remarks = 'Hilang (Tidak ditemukan)';
+                    systemQty = inSheet.systemQty; actualQty = 0; diff = systemQty; status = 'missing'; description = inSheet.description; fisik = inSheet.fisik; remarks = 'Hilang (Tidak ditemukan)';
                 } else {
-                    systemQty = 0; actualQty = inExcel.actualQty; available = -actualQty; status = 'extra'; description = inExcel.description; fisik = inExcel.fisik; remarks = 'Barang tambahan';
+                    systemQty = 0; actualQty = inExcel.actualQty; diff = -actualQty; status = 'extra'; description = inExcel.description; fisik = inExcel.fisik; remarks = 'Barang tambahan';
                 }
-                mergedData.push({ no: no++, partNumber, description, systemQty, actualQty, available, fisik, status, remarks, scanned: false });
+                mergedData.push({ no: no++, partNumber, description, systemQty, actualQty, fisik, status, remarks, scanned: false });
             });
             const order = { deficit: 0, missing: 1, surplus: 2, extra: 3, match: 4 };
             mergedData.sort((a, b) => (order[a.status]||0) - (order[b.status]||0)); mergedData.forEach((item, i) => item.no = i + 1);
@@ -582,8 +578,7 @@
             document.getElementById('visibleCount').textContent = filtered.length; document.getElementById('totalCount').textContent = data.length;
             const statusLabel = { match: '<i class="fas fa-check-circle"></i> Sesuai', deficit: '<i class="fas fa-arrow-down"></i> Kurang', surplus: '<i class="fas fa-arrow-up"></i> Lebih', missing: '<i class="fas fa-minus-circle"></i> Hilang', extra: '<i class="fas fa-plus-circle"></i> Tambahan' };
             tbody.innerHTML = filtered.map(item => {
-                const availClass = item.available > 0 ? 'color: #00e676' : item.available < 0 ? 'color: #ff5252' : 'color: var(--fg-muted)';
-                const availPrefix = item.available > 0 ? '+' : '';
+                const diff = item.systemQty - item.actualQty;
                 const badgeClass = `badge badge-${item.status || 'match'}`;
                 const scanBadge = item.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : '';
                 return `
@@ -593,7 +588,6 @@
                         <td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem;">${item.description}</td>
                         <td class="text-center">${item.systemQty}</td>
                         <td class="text-center" style="color: var(--fg);">${item.actualQty}</td>
-                        <td class="text-center" style="${availClass}; font-weight: 600;">${availPrefix}${item.available}</td>
                         <td style="color: var(--fg-muted);">${item.fisik}</td>
                         <td class="text-center"><span class="${badgeClass}">${statusLabel[item.status] || item.status}</span></td>
                         <td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem;">${item.remarks}</td>
@@ -620,8 +614,8 @@
         function exportResult() {
             if (mergedData.length === 0) { showToast('Tidak ada data untuk diekspor', 'warning'); return; }
             const statusMap = { match: 'Sesuai', deficit: 'Kurang', surplus: 'Lebih', missing: 'Hilang', extra: 'Tambahan' };
-            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'TERSEDIA': item.available, 'FISIK': item.fisik, 'SELIH': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK', 'CATATAN': item.remarks }));
-            const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 20 } ];
+            const exportData = mergedData.map(item => ({ 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'FISIK': item.fisik, 'SELIH': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK', 'CATATAN': item.remarks }));
+            const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 20 } ];
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Hasil Stock Opname');
             const date = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Hasil_Stock_Opname_${date}.xlsx`); showToast('File berhasil diekspor', 'success');
         }
