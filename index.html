@@ -204,7 +204,7 @@
             border:1px solid rgba(239,68,68,0.2);
             cursor:pointer;
             transition:all 0.2s ease;
-            font-family:'Space Grotesk',sans-serif;
+            font-family:'Space Grotesk',sans-serif';
             font-size:13px;
             display:inline-flex;
             align-items:center;
@@ -372,7 +372,11 @@
             background:var(--success-dim);
             color:var(--success);
         }
-        .badge-selisih.not-zero {
+        .badge-selisih.plus { /* Lebih */
+            background:var(--warning-dim);
+            color:var(--warning);
+        }
+        .badge-selisih.minus { /* Kurang */
             background:var(--danger-dim);
             color:var(--danger);
         }
@@ -658,6 +662,12 @@
             fetchGoogleSheet();
         }
 
+        // Fungsi helper untuk kalkulasi Selisih Baru
+        function calculateSelisih(fisik, available) {
+            if (fisik === null || isNaN(fisik)) return null;
+            return fisik - available; // Rumus: Fisik - Available
+        }
+
         async function fetchGoogleSheet() {
             const url = localStorage.getItem(API_URL_KEY);
             if (!url) { updateStatus('disconnected', 'Belum terhubung'); return; }
@@ -674,7 +684,7 @@
                         const noIdx = findColIndex(headers, ['no','nomor','number']);
                         const partIdx = findColIndex(headers, ['part number','part_number','partnumber','part no','kode']);
                         const descIdx = findColIndex(headers, ['deskripsi','description','nama','desc','name']);
-                        const qtyIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem','qty']); // Ditambah 'qty'
+                        const qtyIdx = findColIndex(headers, ['qty system','qty_system','stock system','system','qty sys','stok sistem','qty']); 
                         const qtyAllocIdx = findColIndex(headers, ['qty alloc','qty_alloc','alloc','alokasi']);
                         const availableIdx = findColIndex(headers, ['available','qty available','qty_available','sedia','tersedia']);
                         const qtyActIdx = findColIndex(headers, ['qty actual','qty_actual','fisik','stock actual','actual','qty act','stok aktual','hasil']);
@@ -687,18 +697,15 @@
                         const available = availableIdx >= 0 ? numVal(availableIdx) : 0;
                         const qtyActual = qtyActIdx >= 0 ? numVal(qtyActIdx) : null;
 
-                        // Rumus baru: Selisih = Available - Fisik
-                        const selisih = qtyActual !== null ? available - qtyActual : null;
-
                         return {
                             no: noIdx >= 0 ? val(noIdx) : String(i + 1),
                             partNumber: partIdx >= 0 ? val(partIdx) : val(0),
                             description: descIdx >= 0 ? val(descIdx) : val(1),
-                            qtySystem: qty, // Tetap pakai qtySystem di variable agar mudah, tapi menampilkan QTY
+                            qtySystem: qty, 
                             qtyAlloc: qtyAlloc,
                             available: available,
                             qtyActual: qtyActual,
-                            selisih: selisih
+                            selisih: calculateSelisih(qtyActual, available)
                         };
                     });
                     stockData.forEach((item, i) => { if (!item.no) item.no = String(i + 1); });
@@ -758,7 +765,6 @@
                         const qtyAlloc = qtyAllocIdx >= 0 ? numVal(qtyAllocIdx) : 0;
                         const available = availableIdx >= 0 ? numVal(availableIdx) : 0;
                         const qtyActual = qtyActIdx >= 0 ? numVal(qtyActIdx) : null;
-                        const selisih = qtyActual !== null ? available - qtyActual : null;
 
                         return {
                             no: noIdx >= 0 ? val(noIdx) : String(i + 1),
@@ -768,7 +774,7 @@
                             qtyAlloc: qtyAlloc,
                             available: available,
                             qtyActual: qtyActual,
-                            selisih: selisih
+                            selisih: calculateSelisih(qtyActual, available)
                         };
                     });
                     stockData.forEach((item, i) => { if (!item.no) item.no = String(i + 1); });
@@ -825,14 +831,19 @@
             if (qtyActual !== null && isNaN(qtyActual)) { showToast('Fisik harus berupa angka', 'error'); return; }
 
             stockData[currentScanIndex].qtyActual = qtyActual;
-            // Rumus Selisih Baru: Available - Fisik
-            stockData[currentScanIndex].selisih = qtyActual !== null ? stockData[currentScanIndex].available - qtyActual : null;
+            stockData[currentScanIndex].selisih = calculateSelisih(qtyActual, stockData[currentScanIndex].available);
 
             saveLocalData(); renderTable(); updateStats(); closeModal();
 
             const item = stockData[currentScanIndex];
-            const selisihText = item.selisih !== null ? (item.selisih === 0 ? 'SESUAI' : `SELISIH: ${item.selisih > 0 ? '+' : ''}${item.selisih}`) : '';
-            showToast(`${item.partNumber} — Fisik: ${qtyActual} ${selisihText}`, qtyActual !== null && item.selisih === 0 ? 'success' : 'info');
+            const selisihVal = item.selisih;
+            let selisihText = '';
+            if (selisihVal !== null) {
+                if (selisihVal === 0) selisihText = 'SESUAI';
+                else if (selisihVal > 0) selisihText = `LEBIH +${selisihVal}`;
+                else selisihText = `KURANG ${selisihVal}`;
+            }
+            showToast(`${item.partNumber} — Fisik: ${qtyActual} ${selisihText}`, qtyActual !== null && selisihVal === 0 ? 'success' : 'info');
 
             setTimeout(() => {
                 const row = document.querySelector(`[data-index="${currentScanIndex}"]`);
@@ -858,21 +869,32 @@
             tbody.innerHTML = filtered.map((item, i) => {
                 const origIdx = stockData.indexOf(item);
                 const isCounted = item.qtyActual !== null;
-                const hasSelisih = item.selisih !== null && item.selisih !== 0;
-                const isOk = item.selisih !== null && item.selisih === 0;
+                const selisihVal = item.selisih;
+                
+                const hasSelisih = selisihVal !== null && selisihVal !== 0;
+                const isOk = selisihVal !== null && selisihVal === 0;
+                const isPlus = selisihVal !== null && selisihVal > 0;
+                
                 let rowClass = '';
                 if (isOk) rowClass = 'counted-ok';
                 else if (hasSelisih) rowClass = 'has-selisih';
 
-                const selisihBadge = item.selisih !== null
-                    ? `<span class="badge-selisih ${item.selisih === 0 ? 'zero' : 'not-zero'}">${item.selisih > 0 ? '+' : ''}${item.selisih}</span>`
+                let badgeClass = 'zero';
+                if (isPlus) badgeClass = 'plus';
+                else if (hasSelisih) badgeClass = 'minus';
+
+                const selisihBadge = selisihVal !== null
+                    ? `<span class="badge-selisih ${badgeClass}">${selisihVal > 0 ? '+' : ''}${selisihVal}</span>`
                     : '<span class="text-[var(--muted)]">-</span>';
 
-                const statusBadge = isCounted
-                    ? (isOk ? '<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--success)]"><i class="fas fa-check-circle"></i> Sesuai</span>'
-                        : hasSelisih ? '<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--warning)]"><i class="fas fa-exclamation-triangle"></i> Selisih</span>'
-                        : '<span class="inline-flex items-center gap-1 text-[11px] text-[var(--success)]"><i class="fas fa-check"></i> Dihitung</span>')
-                    : '<span class="inline-flex items-center gap-1 text-[11px] text-[var(--muted)]"><i class="fas fa-hourglass-half"></i> Belum</span>';
+                let statusBadge = '';
+                if (!isCounted) {
+                    statusBadge = '<span class="inline-flex items-center gap-1 text-[11px] text-[var(--muted)]"><i class="fas fa-hourglass-half"></i> Belum</span>';
+                } else {
+                    if (isOk) statusBadge = '<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--success)]"><i class="fas fa-check-circle"></i> Sesuai</span>';
+                    else if (isPlus) statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--warning)]"><i class="fas fa-arrow-up"></i> Lebih +${selisihVal}</span>`;
+                    else if (hasSelisih) statusBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--danger)]"><i class="fas fa-arrow-down"></i> Kurang ${selisihVal}</span>`;
+                }
 
                 return `<tr class="${rowClass}" data-index="${origIdx}">
                     <td class="text-center"><span class="row-num">${item.no}</span></td>
@@ -918,8 +940,14 @@
             if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
             const wsData = [['NO', 'PART NUMBER', 'DESKRIPSI', 'QTY', 'QTY ALLOC', 'AVAILABLE', 'FISIK', 'SELISIH', 'STATUS']];
             stockData.forEach(item => {
-                const status = item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum Dihitung';
-                wsData.push([item.no, item.partNumber, item.description, item.qtySystem, item.qtyAlloc, item.available, item.qtyActual !== null ? item.qtyActual : '', item.selisih !== null ? item.selisih : '', status]);
+                let status = 'Belum Dihitung';
+                const s = item.selisih;
+                if (item.qtyActual !== null) {
+                    if (s === 0) status = 'Sesuai';
+                    else if (s > 0) status = `Lebih +${s}`;
+                    else status = `Kurang ${s}`;
+                }
+                wsData.push([item.no, item.partNumber, item.description, item.qtySystem, item.qtyAlloc, item.available, item.qtyActual !== null ? item.qtyActual : '', s !== null ? s : '', status]);
             });
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -937,12 +965,21 @@
             doc.setFontSize(10); doc.setFont(undefined, 'normal');
             doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
             doc.text(`Total: ${stockData.length} | Dihitung: ${stockData.filter(i => i.qtyActual !== null).length} | Selisih: ${stockData.filter(i => i.selisih !== null && i.selisih !== 0).length}`, 14, 28);
-            const tableData = stockData.map(item => [
-                item.no, item.partNumber, item.description.substring(0, 30), item.qtySystem, item.qtyAlloc, item.available,
-                item.qtyActual !== null ? item.qtyActual : '-',
-                item.selisih !== null ? (item.selisih > 0 ? '+' : '') + item.selisih : '-',
-                item.qtyActual !== null ? (item.selisih === 0 ? 'Sesuai' : 'Selisih') : 'Belum'
-            ]);
+            const tableData = stockData.map(item => {
+                let status = 'Belum';
+                const s = item.selisih;
+                if (item.qtyActual !== null) {
+                    if (s === 0) status = 'Sesuai';
+                    else if (s > 0) status = `Lebih +${s}`;
+                    else status = `Kurang ${s}`;
+                }
+                return [
+                    item.no, item.partNumber, item.description.substring(0, 30), item.qtySystem, item.qtyAlloc, item.available,
+                    item.qtyActual !== null ? item.qtyActual : '-',
+                    s !== null ? (s > 0 ? '+' : '') + s : '-',
+                    status
+                ];
+            });
             doc.autoTable({
                 head: [['No', 'Part Number', 'Deskripsi', 'QTY', 'Alloc', 'Avail', 'Fisik', 'Selisih', 'Status']],
                 body: tableData, startY: 33,
