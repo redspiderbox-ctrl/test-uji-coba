@@ -57,12 +57,55 @@
         @keyframes scanMove { 0%,100%{ top:5%; } 50%{ top:90%; } }
         .scan-success-flash { animation: flashGreen 0.5s ease; } @keyframes flashGreen { 0% { background: rgba(0, 230, 118, 0.2); } 100% { background: transparent; } }
         .search-highlight { border-color: var(--accent) !important; box-shadow: 0 0 12px rgba(0, 230, 118, 0.3) !important; transition: all 0.3s ease; }
-        @media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr) !important; } .action-bar { flex-direction: column; } }
+        
+        /* Floating Action Button & Scanner Panel Styles */
+        .fab-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: #0a0a0f; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,230,118,0.4); z-index: 1000; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
+        .fab-btn:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(0,230,118,0.6); }
+        .fab-btn.active { background: var(--danger); box-shadow: 0 4px 20px rgba(255,82,82,0.4); }
+        .fab-btn.active:hover { box-shadow: 0 6px 30px rgba(255,82,82,0.6); }
+
+        .scanner-panel { position: fixed; bottom: 100px; right: 30px; width: 380px; max-height: calc(100vh - 140px); overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 16px; box-shadow: 0 15px 50px rgba(0,0,0,0.5); z-index: 999; transform: scale(0.8) translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .scanner-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr) !important; } .action-bar { flex-direction: column; } .scanner-panel { width: calc(100% - 30px); right: 15px; bottom: 90px; } }
         @media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr !important; } }
     </style>
 </head>
 <body class="relative">
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Floating Action Button -->
+    <button class="fab-btn" id="fabScanner" onclick="toggleScannerPanel()">
+        <i class="fas fa-barcode" id="fabIcon"></i>
+    </button>
+
+    <!-- Floating Scanner Panel -->
+    <div class="scanner-panel" id="scannerPanel">
+        <div class="p-5">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2"><i class="fas fa-barcode text-sm" style="color: var(--accent);"></i><h3 class="font-semibold text-sm">Pemindai Barcode</h3><span class="badge badge-match text-xs">LIVE</span></div>
+                <button onclick="toggleScannerPanel()" style="color: var(--fg-muted); background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="rounded-xl overflow-hidden mb-4" style="background: #000; min-height: 220px; position: relative;" id="scannerWrapper">
+                <div id="barcodeReader" style="width: 100%;"></div>
+                <div class="scan-indicator" id="scanIndicator" style="display:none;"><div class="scan-line"></div></div>
+                <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center" style="color: var(--fg-muted);"><i class="fas fa-camera text-3xl mb-2 opacity-30"></i><p class="text-xs">Klik Mulai untuk membuka kamera</p></div>
+            </div>
+            <div class="flex gap-2 mb-5">
+                <button class="btn-primary text-sm flex-1 flex items-center justify-center gap-2" onclick="startScanner()" id="btnStartScan"><i class="fas fa-play"></i> Mulai Pindai</button>
+                <button class="btn-outline text-sm flex-1 flex items-center justify-center gap-2" onclick="stopScanner()" id="btnStopScan" disabled><i class="fas fa-stop"></i> Berhenti</button>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div><label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Input Barcode Manual (Otomatis +1 Fisik)</label><div class="flex gap-2"><input type="text" id="manualBarcode" class="input-field font-mono text-sm" placeholder="Ketik barcode..." onkeydown="if(event.key==='Enter') processBarcode(this.value)"><button class="btn-primary text-sm whitespace-nowrap" onclick="processBarcode(document.getElementById('manualBarcode').value)"><i class="fas fa-search"></i></button></div></div>
+                <div><label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Override Qty Fisik (Opsional)</label><div class="flex gap-2 items-center"><button class="btn-outline text-base px-3 py-1" onclick="adjustQty(-1)">-</button><input type="number" id="qtyInput" class="input-field text-center font-mono text-base" value="1" min="0" style="width: 70px;"><button class="btn-outline text-base px-3 py-1" onclick="adjustQty(1)">+</button><button class="btn-outline text-xs ml-1 flex items-center gap-1 px-3" onclick="confirmActualQty()" id="btnConfirmQty" disabled><i class="fas fa-pen"></i> Set Manual</button></div></div>
+                <div class="card p-3" style="border-color: var(--border-accent);"><div class="text-xs font-medium mb-2" style="color: var(--fg-muted);"><i class="fas fa-history mr-1"></i> Terakhir Di-scan</div><div id="lastScannedInfo" class="text-xs" style="color: var(--fg-muted);">Belum ada barcode di-scan</div></div>
+                <div><div class="flex items-center justify-between mb-2"><span class="text-xs font-medium" style="color: var(--fg-muted);"><i class="fas fa-list mr-1"></i> Riwayat</span><button class="text-xs" style="color: var(--danger); background: none; border: none; cursor: pointer;" onclick="clearScanHistory()">Hapus</button></div><div id="scanHistory" class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto" style="color: var(--fg-muted);"><span class="text-xs italic">Kosong</span></div></div>
+            </div>
+        </div>
+    </div>
+
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
@@ -99,22 +142,6 @@
         </div>
 
         <div class="card p-5 mb-6">
-            <div class="flex items-center gap-2 mb-4"><i class="fas fa-barcode text-sm" style="color: var(--accent);"></i><h3 class="font-semibold text-sm">Pemindai Barcode</h3><span class="badge badge-match text-xs ml-2">LIVE</span></div>
-            <div class="flex flex-col lg:flex-row gap-5">
-                <div class="lg:w-96 flex-shrink-0">
-                    <div class="relative rounded-xl overflow-hidden" style="background: #000; min-height: 260px;" id="scannerWrapper"><div id="barcodeReader" style="width: 100%;"></div><div class="scan-indicator" id="scanIndicator" style="display:none;"><div class="scan-line"></div></div><div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center" style="color: var(--fg-muted);"><i class="fas fa-camera text-4xl mb-3 opacity-30"></i><p class="text-sm">Klik Mulai untuk membuka kamera</p></div></div>
-                    <div class="flex gap-2 mt-3"><button class="btn-primary text-sm flex-1 flex items-center justify-center gap-2" onclick="startScanner()" id="btnStartScan"><i class="fas fa-play"></i> Mulai Pindai</button><button class="btn-outline text-sm flex-1 flex items-center justify-center gap-2" onclick="stopScanner()" id="btnStopScan" disabled><i class="fas fa-stop"></i> Berhenti</button></div>
-                </div>
-                <div class="flex-1 flex flex-col gap-4">
-                    <div><label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Input Barcode Manual (Otomatis +1 Fisik)</label><div class="flex gap-2"><input type="text" id="manualBarcode" class="input-field font-mono" placeholder="Pindai atau ketik barcode..." onkeydown="if(event.key==='Enter') processBarcode(this.value)"><button class="btn-primary text-sm whitespace-nowrap" onclick="processBarcode(document.getElementById('manualBarcode').value)"><i class="fas fa-search mr-1"></i> Cari</button></div></div>
-                    <div><label class="text-xs font-medium mb-2 block" style="color: var(--fg-muted);">Override Qty Fisik (Opsional)</label><div class="flex gap-2 items-center"><button class="btn-outline text-lg px-4 py-2" onclick="adjustQty(-1)">-</button><input type="number" id="qtyInput" class="input-field text-center font-mono text-lg" value="1" min="0" style="width: 100px;"><button class="btn-outline text-lg px-4 py-2" onclick="adjustQty(1)">+</button><button class="btn-outline text-sm ml-2 flex items-center gap-2" onclick="confirmActualQty()" id="btnConfirmQty" disabled><i class="fas fa-pen"></i> Set Manual</button></div></div>
-                    <div class="card p-4 flex-1" id="lastScannedCard" style="border-color: var(--border-accent);"><div class="text-xs font-medium mb-3" style="color: var(--fg-muted);"><i class="fas fa-history mr-1"></i> Terakhir Di-scan</div><div id="lastScannedInfo" class="text-sm" style="color: var(--fg-muted);">Belum ada barcode di-scan</div></div>
-                    <div><div class="flex items-center justify-between mb-2"><span class="text-xs font-medium" style="color: var(--fg-muted);"><i class="fas fa-list mr-1"></i> Riwayat Pindai</span><button class="text-xs" style="color: var(--danger);" onclick="clearScanHistory()">Hapus</button></div><div id="scanHistory" class="flex flex-wrap gap-2 max-h-20 overflow-y-auto" style="color: var(--fg-muted);"><span class="text-xs italic">Kosong</span></div></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card p-5 mb-6">
             <div class="flex items-center gap-2 mb-4"><i class="fas fa-file-excel text-sm" style="color: var(--accent);"></i><h3 class="font-semibold text-sm">Unggah File Excel</h3></div>
             <div class="flex flex-col sm:flex-row gap-4">
                 <div class="upload-zone flex-1 p-8 text-center" id="uploadZone" onclick="document.getElementById('fileInput').click()"><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileUpload(event)"><i class="fas fa-cloud-upload-alt text-3xl mb-3" style="color: var(--fg-muted);"></i><p class="text-sm font-medium" style="color: var(--fg);">Seret & lepaskan file atau klik untuk mencari</p><p class="text-xs mt-2" style="color: var(--fg-muted);">Format: .xlsx, .xls, .csv</p></div>
@@ -141,14 +168,14 @@
             </div>
             <div class="empty-state" id="emptyState"><i class="fas fa-inbox block"></i><p class="text-sm font-medium mb-1">Tidak ada data</p><p class="text-xs" style="color: var(--fg-muted);">Unggah file Excel, ambil dari Google Sheet, atau pindai barcode untuk memulai</p></div>
         </div>
-
-        <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);"><p>Stock Opname System v3.1 &mdash; Data tersimpan lokal di browser Anda</p></footer>
+        <footer class="text-center py-4 text-xs" style="color: var(--fg-muted);"><p>Stock Opname System v3.2 &mdash; Data tersimpan lokal di browser Anda</p></footer>
     </div>
 
     <script>
         let sheetData = [], excelData = [], mergedData = [];
         let apiUrl = localStorage.getItem('stockOpnameApiUrl') || '';
         let html5QrCode = null, scannerActive = false, lastScannedPartNumber = '', scanHistoryList = [];
+        let isPanelOpen = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (apiUrl) document.getElementById('apiUrlInput').value = apiUrl;
@@ -163,7 +190,26 @@
         function saveApiUrl() { const url = document.getElementById('apiUrlInput').value.trim(); if (!url) { showToast('API URL tidak boleh kosong', 'warning'); return; } apiUrl = url; localStorage.setItem('stockOpnameApiUrl', url); showToast('API URL berhasil disimpan', 'success'); updateConnectionStatus(true); }
         function updateConnectionStatus(connected) { const dot = document.getElementById('statusDot'); const status = document.getElementById('connectionStatus'); if (connected) { dot.style.background = '#00e676'; dot.style.animation = 'pulse 2s infinite'; status.textContent = 'Terhubung'; status.style.color = '#00e676'; } else { dot.style.background = 'var(--fg-muted)'; dot.style.animation = 'none'; status.textContent = 'Tidak Terhubung'; status.style.color = 'var(--fg-muted)'; } }
 
-        async function startScanner() { try { if (!html5QrCode) html5QrCode = new Html5Qrcode("barcodeReader"); document.getElementById('cameraPlaceholder').style.display = 'none'; document.getElementById('scanIndicator').style.display = 'block'; const config = { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.5, formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.CODE_93, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.ITF, Html5QrcodeSupportedFormats.CODABAR ] }; await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}); scannerActive = true; document.getElementById('btnStartScan').disabled = true; document.getElementById('btnStopScan').disabled = false; showToast('Pemindai kamera aktif', 'success'); } catch (err) { console.error('Scanner error:', err); document.getElementById('cameraPlaceholder').style.display = 'flex'; document.getElementById('scanIndicator').style.display = 'none'; showToast('Gagal mengakses kamera: ' + err, 'error'); } }
+        // Toggle Floating Scanner Panel
+        function toggleScannerPanel() {
+            isPanelOpen = !isPanelOpen;
+            const panel = document.getElementById('scannerPanel');
+            const fab = document.getElementById('fabScanner');
+            const fabIcon = document.getElementById('fabIcon');
+            
+            if (isPanelOpen) {
+                panel.classList.add('open');
+                fab.classList.add('active');
+                fabIcon.className = 'fas fa-times';
+            } else {
+                panel.classList.remove('open');
+                fab.classList.remove('active');
+                fabIcon.className = 'fas fa-barcode';
+                stopScanner(); // Stop camera when closing panel
+            }
+        }
+
+        async function startScanner() { try { if (!html5QrCode) html5QrCode = new Html5Qrcode("barcodeReader"); document.getElementById('cameraPlaceholder').style.display = 'none'; document.getElementById('scanIndicator').style.display = 'block'; const config = { fps: 10, qrbox: { width: 220, height: 130 }, aspectRatio: 1.5, formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.CODE_93, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.ITF, Html5QrcodeSupportedFormats.CODABAR ] }; await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}); scannerActive = true; document.getElementById('btnStartScan').disabled = true; document.getElementById('btnStopScan').disabled = false; showToast('Pemindai kamera aktif', 'success'); } catch (err) { console.error('Scanner error:', err); document.getElementById('cameraPlaceholder').style.display = 'flex'; document.getElementById('scanIndicator').style.display = 'none'; showToast('Gagal mengakses kamera: ' + err, 'error'); } }
         async function stopScanner() { if (html5QrCode && scannerActive) { try { await html5QrCode.stop(); } catch(e) {} scannerActive = false; document.getElementById('btnStartScan').disabled = false; document.getElementById('btnStopScan').disabled = true; document.getElementById('cameraPlaceholder').style.display = 'flex'; document.getElementById('scanIndicator').style.display = 'none'; } }
 
         let lastScanTime = 0;
@@ -174,58 +220,33 @@
             code = code.trim(); addScanHistory(code);
             const searchInput = document.getElementById('searchInput'); searchInput.value = code; searchInput.classList.add('search-highlight'); setTimeout(() => searchInput.classList.remove('search-highlight'), 1500); filterTable();
             document.getElementById('manualBarcode').value = code;
-            
             const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase() || item.partNumber.toLowerCase().includes(code.toLowerCase()));
             if (found) {
-                // OTOMATIS TAMBAH +1 FISIK SAAT SCAN BERHASIL
                 const currentFisik = found.fisik === '-' ? 0 : parseInt(found.fisik) || 0;
                 updateItemFisik(found, currentFisik + 1);
-                
                 lastScannedPartNumber = found.partNumber; document.getElementById('btnConfirmQty').disabled = false;
-                document.getElementById('qtyInput').value = found.fisik; // Set qty input sesuai fisik terbaru
-                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1.5"><div class="flex items-center gap-2"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> +1 Ditambahkan</span></div><div><strong style="color: var(--fg);">${found.partNumber}</strong></div><div style="color: var(--fg-muted);">${found.description}</div><div class="flex gap-4 mt-1"><span class="text-xs">Available: <strong style="color: var(--accent);">${found.available}</strong></span><span class="text-xs">Fisik: <strong style="color: var(--info);">${found.fisik}</strong></span><span class="text-xs">Selisih: <strong style="color: ${found.status === 'deficit' ? 'var(--danger)' : 'var(--accent)'}">${found.remarks}</strong></span></div></div>`;
+                document.getElementById('qtyInput').value = found.fisik;
+                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1"><div class="flex items-center gap-2"><span class="badge badge-scanned"><i class="fas fa-barcode"></i> +1 Ditambahkan</span></div><div><strong style="color: var(--fg);">${found.partNumber}</strong></div><div style="color: var(--fg-muted); font-size: 0.7rem;">${found.description}</div><div class="flex gap-3 mt-1"><span class="text-xs">Avail: <strong style="color: var(--accent);">${found.available}</strong></span><span class="text-xs">Fisik: <strong style="color: var(--info);">${found.fisik}</strong></span></div></div>`;
                 highlightRow(found.partNumber);
-                showToast(`Ditemukan: ${found.partNumber} → Fisik ditambahkan (+1) menjadi ${found.fisik}`, 'success');
+                showToast(`Ditemukan: ${found.partNumber} → Fisik (+1) = ${found.fisik}`, 'success');
             } else {
                 lastScannedPartNumber = code; document.getElementById('btnConfirmQty').disabled = false;
-                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1.5"><div class="flex items-center gap-2"><span class="badge badge-extra"><i class="fas fa-question-circle"></i> Tidak Ditemukan</span></div><div><strong style="color: var(--warning);">${code}</strong></div><div style="color: var(--fg-muted);">Part number tidak ada di data sistem</div><div class="text-xs mt-1" style="color: var(--fg-muted);">Tekan "Set Manual" untuk menambahkan sebagai barang tambahan</div></div>`;
+                document.getElementById('lastScannedInfo').innerHTML = `<div class="flex flex-col gap-1"><div class="flex items-center gap-2"><span class="badge badge-extra"><i class="fas fa-question-circle"></i> Baru</span></div><div><strong style="color: var(--warning);">${code}</strong></div><div style="color: var(--fg-muted); font-size: 0.7rem;">Tidak ada di sistem. Tekan "Set Manual" untuk menambahkan.</div></div>`;
                 document.getElementById('qtyInput').value = 1;
-                showToast(`Barcode "${code}" tidak ditemukan di data`, 'warning');
+                showToast(`Barcode "${code}" tidak ditemukan`, 'warning');
             }
         }
 
-        function updateItemFisik(item, newFisikVal) {
-            item.fisik = newFisikVal;
-            const isSet = item.fisik !== '-';
-            const selisih = isSet ? item.available - item.fisik : 0;
-            
-            if (!isSet) { item.status = 'pending'; item.remarks = 'Menunggu input fisik'; } 
-            else { item.status = selisih === 0 ? 'match' : selisih > 0 ? 'deficit' : 'surplus'; item.remarks = selisih === 0 ? 'Sesuai' : selisih > 0 ? `Kurang ${selisih}` : `Lebih +${Math.abs(selisih)}`; }
-            item.scanned = true;
-        }
-
+        function updateItemFisik(item, newFisikVal) { item.fisik = newFisikVal; const isSet = item.fisik !== '-'; const selisih = isSet ? item.available - item.fisik : 0; if (!isSet) { item.status = 'pending'; item.remarks = 'Menunggu input fisik'; } else { item.status = selisih === 0 ? 'match' : selisih > 0 ? 'deficit' : 'surplus'; item.remarks = selisih === 0 ? 'Sesuai' : selisih > 0 ? `Kurang ${selisih}` : `Lebih +${Math.abs(selisih)}`; } item.scanned = true; }
         function adjustQty(delta) { const input = document.getElementById('qtyInput'); let val = parseInt(input.value) || 0; input.value = Math.max(0, val + delta); }
 
-        function confirmActualQty() {
-            const qty = parseInt(document.getElementById('qtyInput').value) || 0; const code = lastScannedPartNumber;
-            if (!code) { showToast('Tidak ada barcode yang dipilih', 'warning'); return; }
-            const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase());
-            if (found) {
-                updateItemFisik(found, qty);
-                showToast(`Diperbarui Manual: ${found.partNumber} → Fisik = ${qty}`, 'success');
-            } else {
-                const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai barcode', systemQty: 0, actualQty: 0, available: 0, fisik: qty, status: 'extra', remarks: 'Barang tambahan (pindai barcode)', scanned: true };
-                updateItemFisik(newItem, qty); mergedData.push(newItem); showToast(`Ditambahkan: ${code} sebagai barang tambahan, Fisik = ${qty}`, 'info');
-            }
-            renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false;
-            document.getElementById('manualBarcode').value = ''; lastScannedPartNumber = ''; document.getElementById('btnConfirmQty').disabled = true; filterTable();
-        }
+        function confirmActualQty() { const qty = parseInt(document.getElementById('qtyInput').value) || 0; const code = lastScannedPartNumber; if (!code) { showToast('Tidak ada barcode yang dipilih', 'warning'); return; } const found = mergedData.find(item => item.partNumber.toLowerCase() === code.toLowerCase()); if (found) { updateItemFisik(found, qty); showToast(`Diperbarui: ${found.partNumber} → Fisik = ${qty}`, 'success'); } else { const newItem = { no: mergedData.length + 1, partNumber: code, description: 'Barang hasil pindai', systemQty: 0, actualQty: 0, available: 0, fisik: qty, status: 'extra', remarks: 'Barang tambahan', scanned: true }; updateItemFisik(newItem, qty); mergedData.push(newItem); showToast(`Ditambahkan: ${code}, Fisik = ${qty}`, 'info'); } renderTable(mergedData); updateStats(); document.getElementById('btnExport').disabled = false; document.getElementById('manualBarcode').value = ''; lastScannedPartNumber = ''; document.getElementById('btnConfirmQty').disabled = true; filterTable(); }
 
         function highlightRow(partNumber) { document.querySelectorAll('.highlight-row').forEach(el => el.classList.remove('highlight-row')); const rows = document.querySelectorAll('#tableBody tr'); rows.forEach(row => { const pnCell = row.cells[1]; if (pnCell && pnCell.textContent.trim().toLowerCase() === partNumber.toLowerCase()) { row.classList.add('highlight-row'); row.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }); }
-        function addScanHistory(code) { if (scanHistoryList.length > 0 && scanHistoryList[0] === code) return; scanHistoryList.unshift(code); if (scanHistoryList.length > 20) scanHistoryList.pop(); document.getElementById('scanHistory').innerHTML = scanHistoryList.map(c => `<span class="text-xs px-2 py-1 rounded cursor-pointer" style="background: var(--bg); border: 1px solid var(--border-accent); color: var(--fg);" onclick="processBarcode('${c}')">${c}</span>`).join(''); }
+        function addScanHistory(code) { if (scanHistoryList.length > 0 && scanHistoryList[0] === code) return; scanHistoryList.unshift(code); if (scanHistoryList.length > 20) scanHistoryList.pop(); document.getElementById('scanHistory').innerHTML = scanHistoryList.map(c => `<span class="text-xs px-2 py-0.5 rounded cursor-pointer" style="background: var(--bg); border: 1px solid var(--border-accent); color: var(--fg);" onclick="processBarcode('${c}')">${c}</span>`).join(''); }
         function clearScanHistory() { scanHistoryList = []; document.getElementById('scanHistory').innerHTML = '<span class="text-xs italic">Kosong</span>'; }
 
-        async function fetchFromSheet() { if (!apiUrl) { showToast('Silakan atur API URL di Pengaturan', 'warning'); toggleConfig(); return; } const btn = document.getElementById('btnFetch'); const origHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Mengambil...'; try { const response = await fetch(apiUrl); if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json(); if (Array.isArray(data) && data.length > 1) { sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => { const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: sysQty, fisik: '-', status: 'pending', remarks: 'Menunggu input fisik', source: 'sheet', scanned: false }; }); updateConnectionStatus(true); showToast(`Berhasil memuat ${sheetData.length} data dari Google Sheet`, 'success'); if (mergedData.length === 0) mergedData = [...sheetData]; renderTable(mergedData); updateStats(); checkCompareReady(); } else { throw new Error('Format data tidak valid'); } } catch (error) { console.error('Fetch error:', error); updateConnectionStatus(false); showToast(`Gagal mengambil data: ${error.message}`, 'error'); } finally { btn.disabled = false; btn.innerHTML = origHTML; } }
+        async function fetchFromSheet() { if (!apiUrl) { showToast('Silakan atur API URL di Pengaturan', 'warning'); toggleConfig(); return; } const btn = document.getElementById('btnFetch'); const origHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Mengambil...'; try { const response = await fetch(apiUrl); if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json(); if (Array.isArray(data) && data.length > 1) { sheetData = data.slice(1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => { const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: sysQty, fisik: '-', status: 'pending', remarks: 'Menunggu input fisik', source: 'sheet', scanned: false }; }); updateConnectionStatus(true); showToast(`Berhasil memuat ${sheetData.length} data`, 'success'); if (mergedData.length === 0) mergedData = [...sheetData]; renderTable(mergedData); updateStats(); checkCompareReady(); } else { throw new Error('Format data tidak valid'); } } catch (error) { console.error('Fetch error:', error); updateConnectionStatus(false); showToast(`Gagal mengambil data: ${error.message}`, 'error'); } finally { btn.disabled = false; btn.innerHTML = origHTML; } }
         function handleFileUpload(event) { const file = event.target.files[0]; if (file) processFile(file); }
         function processFile(file) { const ext = file.name.split('.').pop().toLowerCase(); if (!['xlsx', 'xls', 'csv'].includes(ext)) { showToast('Format file tidak didukung', 'error'); return; } const reader = new FileReader(); reader.onload = (e) => { try { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const firstSheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }); if (jsonData.length < 2) { showToast('File kosong', 'warning'); return; } let headerIdx = 0; for (let i = 0; i < Math.min(jsonData.length, 5); i++) { const row = jsonData[i].map(c => String(c || '').toLowerCase()); if (row.some(c => c.includes('part') || c.includes('part_number') || c.includes('partnumber'))) { headerIdx = i; break; } } excelData = jsonData.slice(headerIdx + 1).filter(row => row.some(cell => cell !== '' && cell !== null && cell !== undefined)).map((row, idx) => { const sysQty = parseFloat(row[2]) || 0; const actQty = parseFloat(row[3]) || 0; return { no: idx + 1, partNumber: String(row[0] || '').trim(), description: String(row[1] || '').trim(), systemQty: sysQty, actualQty: actQty, available: sysQty, fisik: '-', status: 'pending', remarks: 'Menunggu input fisik', source: 'excel', scanned: false }; }); showToast(`Berhasil memuat ${excelData.length} data dari ${file.name}`, 'success'); if (mergedData.length === 0) mergedData = [...excelData]; renderTable(mergedData); updateStats(); checkCompareReady(); } catch (err) { console.error('Parse error:', err); showToast('Gagal membaca file: ' + err.message, 'error'); } }; reader.readAsArrayBuffer(file); }
 
@@ -240,15 +261,11 @@
             const filtered = data.filter(item => { const matchSearch = !searchVal || item.partNumber.toLowerCase().includes(searchVal) || item.description.toLowerCase().includes(searchVal) || String(item.fisik).toLowerCase().includes(searchVal); const matchStatus = statusVal === 'all' || (statusVal === 'scanned' ? item.scanned : item.status === statusVal); return matchSearch && matchStatus; });
             document.getElementById('visibleCount').textContent = filtered.length; document.getElementById('totalCount').textContent = data.length;
             const statusLabel = { pending: '<i class="fas fa-clock"></i> Menunggu', match: '<i class="fas fa-check-circle"></i> Sesuai', deficit: '<i class="fas fa-arrow-down"></i> Kurang', surplus: '<i class="fas fa-arrow-up"></i> Lebih', missing: '<i class="fas fa-minus-circle"></i> Hilang', extra: '<i class="fas fa-plus-circle"></i> Tambahan' };
-            
             tbody.innerHTML = filtered.map(item => {
-                const isFisikSet = item.fisik !== '-';
-                const selisih = isFisikSet ? item.available - item.fisik : '-';
+                const isFisikSet = item.fisik !== '-'; const selisih = isFisikSet ? item.available - item.fisik : '-';
                 const selisihClass = !isFisikSet ? 'color: var(--fg-muted)' : selisih > 0 ? 'color: #ff5252' : selisih < 0 ? 'color: #00e676' : 'color: var(--fg-muted)';
-                const selisihPrefix = selisih > 0 ? '-' : selisih < 0 ? '+' : '';
-                const selisihValue = isFisikSet ? `${selisihPrefix}${Math.abs(selisih)}` : '-';
-                const badgeClass = `badge badge-${item.status || 'pending'}`;
-                const scanBadge = item.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : '';
+                const selisihPrefix = selisih > 0 ? '-' : selisih < 0 ? '+' : ''; const selisihValue = isFisikSet ? `${selisihPrefix}${Math.abs(selisih)}` : '-';
+                const badgeClass = `badge badge-${item.status || 'pending'}`; const scanBadge = item.scanned ? ' <span class="badge badge-scanned" style="font-size:0.6rem;"><i class="fas fa-barcode"></i></span>' : '';
                 const fisikDisplay = !isFisikSet ? '<span style="color: var(--fg-muted); opacity: 0.4;">-</span>' : `<span style="color: var(--info); font-weight: 600;">${item.fisik}</span>`;
                 return `<tr data-pn="${item.partNumber.toLowerCase()}"><td class="text-center" style="color: var(--fg-muted);">${item.no}</td><td style="color: var(--fg); font-weight: 500;">${item.partNumber}${scanBadge}</td><td style="color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem;">${item.description}</td><td class="text-center" style="color: var(--fg-muted);">${item.systemQty}</td><td class="text-center" style="color: var(--fg-muted);">${item.actualQty}</td><td class="text-center" style="color: var(--fg); font-weight: 500;">${item.available}</td><td class="text-center">${fisikDisplay}</td><td class="text-center" style="${selisihClass}; font-weight: 600;">${selisihValue}</td><td class="text-center"><span class="${badgeClass}">${statusLabel[item.status] || item.status}</span></td></tr>`;
             }).join('');
@@ -257,10 +274,8 @@
         function filterTable() { renderTable(mergedData); }
         function updateStats() { const total = mergedData.length; const match = mergedData.filter(d => d.status === 'match').length; const deficit = mergedData.filter(d => d.status === 'deficit').length; const surplus = mergedData.filter(d => d.status === 'surplus').length; const missing = mergedData.filter(d => d.status === 'missing').length; const extra = mergedData.filter(d => d.status === 'extra').length; animateNumber('statTotal', total); animateNumber('statMatch', match); animateNumber('statDeficit', deficit); animateNumber('statSurplus', surplus); animateNumber('statMissing', missing); animateNumber('statExtra', extra); }
         function animateNumber(elementId, target) { const el = document.getElementById(elementId); const current = parseInt(el.textContent) || 0; const diff = target - current; if (diff === 0) return; const steps = 20; const increment = diff / steps; let step = 0; const timer = setInterval(() => { step++; if (step >= steps) { el.textContent = target; clearInterval(timer); } else { el.textContent = Math.round(current + increment * step); } }, 20); }
-        
         function exportResult() { if (mergedData.length === 0) { showToast('Tidak ada data untuk diekspor', 'warning'); return; } const statusMap = { pending: 'Menunggu', match: 'Sesuai', deficit: 'Kurang', surplus: 'Lebih', missing: 'Hilang', extra: 'Tambahan' }; const exportData = mergedData.map(item => { const isFisikSet = item.fisik !== '-'; const selisih = isFisikSet ? item.available - item.fisik : ''; return { 'NO': item.no, 'PART NUMBER': item.partNumber, 'DESKRIPSI': item.description, 'QTY SISTEM': item.systemQty, 'QTY AKTUAL': item.actualQty, 'AVAILABLE': item.available, 'FISIK': isFisikSet ? item.fisik : '', 'SELIH': selisih, 'STATUS': statusMap[item.status] || item.status, 'DI-SCAN': item.scanned ? 'YA' : 'TIDAK' }; }); const ws = XLSX.utils.json_to_sheet(exportData); ws['!cols'] = [ { wch: 5 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 } ]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Hasil Stock Opname'); const date = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Hasil_Stock_Opname_${date}.xlsx`); showToast('File berhasil diekspor', 'success'); }
-        
-        function clearAll() { sheetData = []; excelData = []; mergedData = []; document.getElementById('searchInput').value = ''; document.getElementById('statusFilter').value = 'all'; document.getElementById('fileInput').value = ''; document.getElementById('manualBarcode').value = ''; document.getElementById('qtyInput').value = 1; document.getElementById('btnCompare').disabled = true; document.getElementById('btnExport').disabled = true; document.getElementById('btnConfirmQty').disabled = true; document.getElementById('lastScannedInfo').innerHTML = '<span style="color: var(--fg-muted);">Belum ada barcode di-scan</span>'; lastScannedPartNumber = ''; clearScanHistory(); stopScanner(); renderTable([]); updateStats(); showToast('Semua data telah dihapus', 'info'); }
+        function clearAll() { sheetData = []; excelData = []; mergedData = []; document.getElementById('searchInput').value = ''; document.getElementById('statusFilter').value = 'all'; document.getElementById('fileInput').value = ''; document.getElementById('manualBarcode').value = ''; document.getElementById('qtyInput').value = 1; document.getElementById('btnCompare').disabled = true; document.getElementById('btnExport').disabled = true; document.getElementById('btnConfirmQty').disabled = true; document.getElementById('lastScannedInfo').innerHTML = '<span style="color: var(--fg-muted);">Belum ada barcode di-scan</span>'; lastScannedPartNumber = ''; clearScanHistory(); if(isPanelOpen) toggleScannerPanel(); renderTable([]); updateStats(); showToast('Semua data telah dihapus', 'info'); }
         document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'f') { const searchInput = document.getElementById('searchInput'); if (document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); } } });
     </script>
 </body>
