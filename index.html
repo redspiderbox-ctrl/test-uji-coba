@@ -4,15 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Opname</title>
-    <!-- Tailwind CSS -->
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- ZXing Barcode Scanner -->
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         :root {
@@ -29,11 +24,8 @@
             --danger-dim: rgba(255, 77, 106, 0.12);
             --warning: #ffb547;
             --warning-dim: rgba(255, 181, 71, 0.12);
-            --success: #00d4aa;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: 'Space Grotesk', sans-serif;
             background: var(--bg-primary);
@@ -41,8 +33,6 @@
             min-height: 100vh;
             overflow-x: hidden;
         }
-
-        /* Background Atmosphere */
         body::before {
             content: '';
             position: fixed;
@@ -67,13 +57,11 @@
             z-index: 0;
             animation: floatBlob 15s ease-in-out infinite reverse;
         }
-
         @keyframes floatBlob {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(30px, -40px) scale(1.05); }
             66% { transform: translate(-20px, 20px) scale(0.95); }
         }
-
         .mono { font-family: 'JetBrains Mono', monospace; }
 
         /* Scanner Overlay */
@@ -89,7 +77,6 @@
             backdrop-filter: blur(8px);
         }
         .scanner-overlay.active { display: flex; }
-
         .scanner-frame {
             width: 320px;
             height: 320px;
@@ -102,12 +89,8 @@
             height: 100%;
             object-fit: cover;
         }
-
-        /* Sudut frame scanner */
-        .scanner-frame::before,
-        .scanner-frame::after,
-        .scanner-corners::before,
-        .scanner-corners::after {
+        .scanner-frame::before, .scanner-frame::after,
+        .scanner-corners::before, .scanner-corners::after {
             content: '';
             position: absolute;
             width: 40px;
@@ -136,8 +119,6 @@
             border-width: 0 3px 3px 0;
             border-radius: 0 0 8px 0;
         }
-
-        /* Garis scan bergerak */
         .scan-line {
             position: absolute;
             left: 12px;
@@ -153,7 +134,7 @@
             50% { top: calc(100% - 15px); }
         }
 
-        /* Card */
+        /* Card, Input, Button, dll */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -161,11 +142,7 @@
             padding: 24px;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .card:hover {
-            border-color: rgba(0, 212, 170, 0.25);
-        }
-
-        /* Input */
+        .card:hover { border-color: rgba(0, 212, 170, 0.25); }
         .input-field {
             background: var(--bg-primary);
             border: 1px solid var(--border);
@@ -183,8 +160,6 @@
             box-shadow: 0 0 0 3px var(--accent-dim);
         }
         .input-field::placeholder { color: var(--text-secondary); opacity: 0.6; }
-
-        /* Tombol */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -199,43 +174,15 @@
             transition: all 0.25s;
             font-family: 'Space Grotesk', sans-serif;
         }
-        .btn-primary {
-            background: var(--accent);
-            color: #0f1117;
-        }
-        .btn-primary:hover {
-            box-shadow: 0 4px 20px var(--accent-glow);
-            transform: translateY(-1px);
-        }
+        .btn-primary { background: var(--accent); color: #0f1117; }
+        .btn-primary:hover { box-shadow: 0 4px 20px var(--accent-glow); transform: translateY(-1px); }
         .btn-primary:active { transform: translateY(0); }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .btn-outline:hover {
-            background: var(--accent-dim);
-        }
-        .btn-danger {
-            background: var(--danger-dim);
-            color: var(--danger);
-            border: 1px solid rgba(255, 77, 106, 0.2);
-        }
-        .btn-danger:hover {
-            background: rgba(255, 77, 106, 0.2);
-        }
-        .btn-ghost {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-        .btn-ghost:hover {
-            color: var(--text-primary);
-            border-color: var(--text-secondary);
-        }
-
-        /* Badge */
+        .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+        .btn-outline:hover { background: var(--accent-dim); }
+        .btn-danger { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255, 77, 106, 0.2); }
+        .btn-danger:hover { background: rgba(255, 77, 106, 0.2); }
+        .btn-ghost { background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-ghost:hover { color: var(--text-primary); border-color: var(--text-secondary); }
         .badge {
             display: inline-flex;
             align-items: center;
@@ -255,10 +202,11 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
+            min-width: 900px;
         }
         .data-table thead th {
             background: var(--bg-primary);
-            padding: 12px 16px;
+            padding: 12px 14px;
             text-align: left;
             font-size: 11px;
             font-weight: 600;
@@ -269,18 +217,21 @@
             position: sticky;
             top: 0;
             z-index: 2;
+            white-space: nowrap;
         }
-        .data-table tbody tr {
-            transition: background 0.2s;
-        }
-        .data-table tbody tr:hover {
-            background: rgba(0, 212, 170, 0.04);
-        }
+        .data-table thead th.text-right { text-align: right; }
+        .data-table thead th.text-center { text-align: center; }
+        .data-table tbody tr { transition: background 0.2s; }
+        .data-table tbody tr:hover { background: rgba(0, 212, 170, 0.04); }
+        .data-table tbody tr.row-highlight { background: rgba(0, 212, 170, 0.08); }
         .data-table tbody td {
-            padding: 14px 16px;
+            padding: 12px 14px;
             border-bottom: 1px solid var(--border);
-            font-size: 14px;
+            font-size: 13px;
+            white-space: nowrap;
         }
+        .data-table tbody td.text-right { text-align: right; }
+        .data-table tbody td.text-center { text-align: center; }
 
         /* Toast */
         .toast-container {
@@ -304,31 +255,13 @@
             min-width: 280px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.4);
         }
-        .toast-success {
-            background: linear-gradient(135deg, #1a2e28, #1a2d2a);
-            border: 1px solid rgba(0, 212, 170, 0.3);
-            color: var(--accent);
-        }
-        .toast-error {
-            background: linear-gradient(135deg, #2e1a20, #2d1a1e);
-            border: 1px solid rgba(255, 77, 106, 0.3);
-            color: var(--danger);
-        }
-        .toast-info {
-            background: linear-gradient(135deg, #1a1d2e, #1a1e2d);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #818cf8;
-        }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(60px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes toastOut {
-            from { opacity: 1; transform: translateX(0); }
-            to { opacity: 0; transform: translateX(60px); }
-        }
+        .toast-success { background: linear-gradient(135deg, #1a2e28, #1a2d2a); border: 1px solid rgba(0, 212, 170, 0.3); color: var(--accent); }
+        .toast-error { background: linear-gradient(135deg, #2e1a20, #2d1a1e); border: 1px solid rgba(255, 77, 106, 0.3); color: var(--danger); }
+        .toast-info { background: linear-gradient(135deg, #1a1d2e, #1a1e2d); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(60px); } }
 
-        /* Statistik angka animasi */
+        /* Statistik */
         .stat-number {
             font-size: 36px;
             font-weight: 700;
@@ -340,12 +273,11 @@
         }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-        /* Pulse dot */
         .pulse-dot {
             width: 8px;
             height: 8px;
@@ -358,7 +290,6 @@
             50% { box-shadow: 0 0 0 8px transparent; }
         }
 
-        /* Modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -379,38 +310,15 @@
             width: 90%;
             animation: modalIn 0.3s ease-out;
         }
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-        /* Tabel scroll container */
         .table-scroll {
-            max-height: 420px;
-            overflow-y: auto;
+            max-height: 520px;
+            overflow: auto;
             border-radius: 12px;
             border: 1px solid var(--border);
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .scanner-frame { width: 260px; height: 260px; }
-            .stat-number { font-size: 28px; }
-            .data-table tbody td, .data-table thead th { padding: 10px 10px; font-size: 12px; }
-        }
-
-        /* Koneksi status bar */
-        .status-bar {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 8px 0;
-            font-size: 12px;
-        }
-
-        /* Input group dengan ikon */
-        .input-group {
-            position: relative;
-        }
+        .input-group { position: relative; }
         .input-group .input-icon {
             position: absolute;
             left: 14px;
@@ -419,16 +327,20 @@
             color: var(--text-secondary);
             pointer-events: none;
         }
-        .input-group .input-field {
-            padding-left: 42px;
-        }
+        .input-group .input-field { padding-left: 42px; }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Selisih warna */
+        .diff-zero { color: var(--accent); }
+        .diff-plus { color: var(--warning); }
+        .diff-minus { color: var(--danger); }
+        .diff-none { color: var(--text-secondary); }
+
+        @media (max-width: 768px) {
+            .scanner-frame { width: 260px; height: 260px; }
+            .stat-number { font-size: 28px; }
         }
     </style>
 </head>
@@ -483,19 +395,19 @@
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="pulse-dot" id="statusDot"></div>
+            <div class="pulse-dot" id="statusDot" style="background: var(--text-secondary);"></div>
             <span style="font-size: 12px; color: var(--text-secondary);" id="statusText">Belum terhubung</span>
         </div>
     </header>
 
     <!-- Status Bar Koneksi -->
-    <div class="status-bar" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <div style="background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 8px 0; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
         <i data-lucide="link" style="width:12px;height:12px;color:var(--text-secondary);"></i>
         <span style="color: var(--text-secondary);">Google Sheet:</span>
-        <span class="mono" style="color: var(--text-secondary); font-size: 11px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="sheetUrlDisplay">Tidak ada URL</span>
+        <span class="mono" style="color: var(--text-secondary); font-size: 11px; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="sheetUrlDisplay">Tidak ada URL</span>
     </div>
 
-    <main style="max-width: 1100px; margin: 0 auto; padding: 24px;">
+    <main style="max-width: 1200px; margin: 0 auto; padding: 24px;">
 
         <!-- Konfigurasi API -->
         <section class="card fade-in" style="margin-bottom: 24px;">
@@ -504,10 +416,9 @@
                 <h2 style="font-size: 15px; font-weight: 700;">Konfigurasi Google Sheet API</h2>
             </div>
             <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.6;">
-                Paste URL Google Sheet API kamu di bawah ini. Format:
-                <code class="mono" style="background: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 12px; color: var(--accent);">
-                    https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0
-                </code>
+                Paste URL Google Sheet kamu di bawah ini. Pastikan sheet sudah di-set 
+                <strong style="color:var(--text-primary);">Share → Anyone with the link → Viewer</strong>.
+                Kolom yang dibutuhkan: <code class="mono" style="background:var(--bg-primary);padding:2px 8px;border-radius:4px;font-size:12px;color:var(--accent);">No, Part, Deskripsi Part, QTY, QTY Alloc, Available, Fisk, Selisih</code>
             </p>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <div class="input-group" style="flex: 1; min-width: 280px;">
@@ -523,17 +434,17 @@
         </section>
 
         <!-- Statistik -->
-        <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;" class="fade-in">
+        <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;" class="fade-in">
             <div class="card" style="padding: 20px;">
-                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Item</p>
+                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Part</p>
                 <div class="stat-number" id="statTotal">0</div>
             </div>
             <div class="card" style="padding: 20px;">
-                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Sudah Diinput</p>
+                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Sudah Fisk</p>
                 <div class="stat-number" id="statInput">0</div>
             </div>
             <div class="card" style="padding: 20px;">
-                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Belum Diinput</p>
+                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Belum Fisk</p>
                 <div class="stat-number" id="statRemaining" style="background: linear-gradient(135deg, var(--warning), #ffd166); -webkit-background-clip: text; background-clip: text;">0</div>
             </div>
             <div class="card" style="padding: 20px;">
@@ -550,7 +461,7 @@
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <i data-lucide="scan-barcode" style="width:18px;height:18px;color:var(--accent);"></i>
-                    <h2 style="font-size: 15px; font-weight: 700;">Input Stok</h2>
+                    <h2 style="font-size: 15px; font-weight: 700;">Input Stok Fisik</h2>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <button class="btn btn-outline" onclick="startScanner()" style="padding: 10px 18px; font-size: 13px;">
@@ -562,14 +473,13 @@
                 </div>
             </div>
 
-            <!-- Form Input Manual -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;" id="inputForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
                 <div>
-                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Barcode / Kode</label>
-                    <input type="text" class="input-field" id="inputBarcode" placeholder="Scan atau ketik kode barcode..." onkeydown="if(event.key==='Enter') searchBarcode()">
+                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Part Number / Barcode</label>
+                    <input type="text" class="input-field" id="inputBarcode" placeholder="Scan atau ketik kode part..." onkeydown="if(event.key==='Enter') searchBarcode()">
                 </div>
                 <div>
-                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Jumlah Stok Fisik</label>
+                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Jumlah Fisk (Fisik)</label>
                     <input type="number" class="input-field" id="inputQty" placeholder="0" min="0" onkeydown="if(event.key==='Enter') submitStock()">
                 </div>
                 <button class="btn btn-primary" onclick="submitStock()" style="height: 46px; padding: 0 28px;">
@@ -579,22 +489,26 @@
 
             <!-- Info item ditemukan -->
             <div id="foundItem" style="display: none; margin-top: 16px; padding: 16px; background: var(--accent-dim); border: 1px solid rgba(0,212,170,0.2); border-radius: 12px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
                     <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent);"></i>
-                    <span style="font-size: 13px; font-weight: 600; color: var(--accent);">Item Ditemukan</span>
+                    <span style="font-size: 13px; font-weight: 600; color: var(--accent);">Part Ditemukan</span>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 13px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; font-size: 13px;">
                     <div>
-                        <span style="color: var(--text-secondary);">Nama Item</span>
+                        <span style="color: var(--text-secondary);">Deskripsi</span>
                         <p style="font-weight: 600; margin-top: 2px;" id="foundName">-</p>
                     </div>
                     <div>
-                        <span style="color: var(--text-secondary);">Stok Sistem</span>
-                        <p class="mono" style="font-weight: 600; margin-top: 2px;" id="foundSystem">-</p>
+                        <span style="color: var(--text-secondary);">QTY</span>
+                        <p class="mono" style="font-weight: 600; margin-top: 2px;" id="foundQTY">-</p>
                     </div>
                     <div>
-                        <span style="color: var(--text-secondary);">Satuan</span>
-                        <p style="font-weight: 600; margin-top: 2px;" id="foundUnit">-</p>
+                        <span style="color: var(--text-secondary);">QTY Alloc</span>
+                        <p class="mono" style="font-weight: 600; margin-top: 2px;" id="foundAlloc">-</p>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">Available</span>
+                        <p class="mono" style="font-weight: 600; margin-top: 2px;" id="foundAvail">-</p>
                     </div>
                 </div>
             </div>
@@ -603,7 +517,7 @@
             <div id="notFoundItem" style="display: none; margin-top: 16px; padding: 16px; background: var(--danger-dim); border: 1px solid rgba(255,77,106,0.2); border-radius: 12px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="alert-circle" style="width:16px;height:16px;color:var(--danger);"></i>
-                    <span style="font-size: 13px; font-weight: 600; color: var(--danger);">Item tidak ditemukan di database</span>
+                    <span style="font-size: 13px; font-weight: 600; color: var(--danger);">Part tidak ditemukan di database</span>
                 </div>
             </div>
         </section>
@@ -616,14 +530,14 @@
                     <h2 style="font-size: 15px; font-weight: 700;">Data Stock Opname</h2>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <div class="input-group" style="width: 220px;">
+                    <div class="input-group" style="width: 200px;">
                         <i data-lucide="search" class="input-icon" style="width:14px;height:14px;"></i>
-                        <input type="text" class="input-field" id="searchTable" placeholder="Cari item..." style="padding-left: 36px; font-size: 13px;" oninput="filterTable()">
+                        <input type="text" class="input-field" id="searchTable" placeholder="Cari part..." style="padding-left: 36px; font-size: 13px;" oninput="filterTable()">
                     </div>
                     <select class="input-field" id="filterStatus" style="width: 140px; font-size: 13px; cursor: pointer;" onchange="filterTable()">
                         <option value="all">Semua</option>
-                        <option value="done">Sudah Input</option>
-                        <option value="pending">Belum Input</option>
+                        <option value="done">Sudah Fisk</option>
+                        <option value="pending">Belum Fisk</option>
                     </select>
                 </div>
             </div>
@@ -633,18 +547,19 @@
                     <thead>
                         <tr>
                             <th style="width:50px;">No</th>
-                            <th>Barcode</th>
-                            <th>Nama Item</th>
-                            <th style="text-align:right;">Stok Sistem</th>
-                            <th style="text-align:right;">Stok Fisik</th>
-                            <th style="text-align:right;">Selisih</th>
-                            <th style="text-align:center;">Status</th>
+                            <th>Part</th>
+                            <th>Deskripsi Part</th>
+                            <th class="text-right">QTY</th>
+                            <th class="text-right">QTY Alloc</th>
+                            <th class="text-right">Available</th>
+                            <th class="text-right">Fisk</th>
+                            <th class="text-right">Selisih</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                                <i data-lucide="database" style="width:40px;height:40px;margin: 0 auto 12px;display:block;opacity:0.3;"></i>
+                            <td colspan="8" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                <i data-lucide="database" style="width:40px;height:40px;margin:0 auto 12px;display:block;opacity:0.3;"></i>
                                 Hubungkan Google Sheet terlebih dahulu untuk memuat data
                             </td>
                         </tr>
@@ -653,7 +568,6 @@
             </div>
         </section>
 
-        <!-- Footer -->
         <footer style="text-align: center; padding: 32px 0 16px; color: var(--text-secondary); font-size: 12px;">
             <p>Stock Opname System &mdash; Terintegrasi dengan Google Sheet</p>
         </footer>
@@ -664,80 +578,19 @@
     // ============================================
     // Variabel Global
     // ============================================
-    let sheetData = [];           // Data dari Google Sheet
-    let stockOpname = {};         // Data stok fisik yang sudah diinput { barcode: qty }
-    let connectedSheetId = null;  // ID sheet yang terhubung
-    let codeReader = null;        // Instance ZXing barcode reader
-    let isScanning = false;       // Status scanner
-    let selectedBarcode = null;   // Barcode yang sedang dipilih untuk input
+    let sheetData = [];
+    let stockOpname = {};
+    let connectedSheetId = null;
+    let codeReader = null;
+    let isScanning = false;
+    let selectedBarcode = null;
 
-    // Inisialisasi ikon Lucide
     lucide.createIcons();
 
     // ============================================
-    // Konfigurasi - PASTE API URL DI SINI
-    // ============================================
-    /*
-     * CARA MENGGUNAKAN:
-     * 1. Buka Google Sheet kamu
-     * 2. Klik menu "Extensions" > "Apps Script"
-     * 3. Paste kode Apps Script berikut:
-     *
-     * function doGet(e) {
-     *   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(e.parameter.sheet || "Sheet1");
-     *   var data = sheet.getDataRange().getValues();
-     *   var headers = data[0];
-     *   var rows = [];
-     *   for (var i = 1; i < data.length; i++) {
-     *     var row = {};
-     *     for (var j = 0; j < headers.length; j++) {
-     *       row[headers[j]] = data[i][j];
-     *     }
-     *     rows.push(row);
-     *   }
-     *   return ContentService.createTextOutput(JSON.stringify(rows))
-     *     .setMimeType(ContentService.MimeType.JSON);
-     * }
-     *
-     * function doPost(e) {
-     *   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(e.parameter.sheet || "Sheet1");
-     *   var data = JSON.parse(e.postData.contents);
-     *   var headers = sheet.getDataRange().getValues()[0];
-     *   var colIndex = headers.indexOf("Stok Fisik");
-     *   var barcodeCol = headers.indexOf("Barcode");
-     *   if (colIndex === -1 || barcodeCol === -1) {
-     *     return ContentService.createTextOutput(JSON.stringify({error: "Kolom tidak ditemukan"}))
-     *       .setMimeType(ContentService.MimeType.JSON);
-     *   }
-     *   var allData = sheet.getDataRange().getValues();
-     *   for (var i = 1; i < allData.length; i++) {
-     *     if (String(allData[i][barcodeCol]) === String(data.barcode)) {
-     *       sheet.getRange(i + 1, colIndex + 1).setValue(data.qty);
-     *       break;
-     *     }
-     *   }
-     *   return ContentService.createTextOutput(JSON.stringify({success: true}))
-     *     .setMimeType(ContentService.MimeType.JSON);
-     * }
-     *
-     * 4. Klik "Deploy" > "New Deployment"
-     * 5. Pilih type "Web app"
-     * 6. Set "Execute as" = Me, "Who has access" = Anyone
-     * 7. Klik "Deploy" dan copy URL-nya
-     * 8. Paste URL tersebut di input konfigurasi di atas
-     *
-     * ATAU gunakan URL langsung jika sudah di-deploy.
-     * Kolom yang dibutuhkan: Barcode, Nama Item, Stok Sistem, Satuan, Stok Fisik
-     */
-
-    // Default URL (ganti dengan URL deployment Apps Script kamu)
-    let API_BASE_URL = "";
-
-    // ============================================
-    // Fungsi Koneksi Google Sheet
+    // Koneksi Google Sheet
     // ============================================
     function extractSheetId(url) {
-        // Ekstrak ID dari URL Google Sheet
         const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
         return match ? match[1] : null;
     }
@@ -748,24 +601,18 @@
             showToast('Masukkan URL Google Sheet terlebih dahulu', 'error');
             return;
         }
-
         const sheetId = extractSheetId(url);
         if (!sheetId) {
             showToast('Format URL tidak valid. Pastikan URL benar.', 'error');
             return;
         }
-
         connectedSheetId = sheetId;
-        API_BASE_URL = url;
-
-        // Tampilkan URL di status bar
         document.getElementById('sheetUrlDisplay').textContent = url;
         document.getElementById('statusDot').style.background = 'var(--warning)';
+        document.getElementById('statusDot').classList.remove('pulse-dot');
         document.getElementById('statusText').textContent = 'Menghubungkan...';
-
-        showToast('Mencoba menghubungkan ke Google Sheet...', 'info');
-
-        // Coba load data
+        localStorage.setItem('stockOpname_sheetUrl', url);
+        showToast('Menghubungkan ke Google Sheet...', 'info');
         loadSheetData();
     }
 
@@ -774,11 +621,12 @@
             showToast('Hubungkan Google Sheet terlebih dahulu', 'error');
             return;
         }
-
         try {
-            // Gunakan public CSV endpoint sebagai fallback
-            // Format: https://docs.google.com/spreadsheets/d/{ID}/export?format=csv&gid=0
-            const csvUrl = `https://docs.google.com/spreadsheets/d/${connectedSheetId}/export?format=csv&gid=0`;
+            // Ambil GID dari URL
+            const urlInput = document.getElementById('sheetUrlInput').value.trim();
+            const gidMatch = urlInput.match(/gid=(\d+)/);
+            const gid = gidMatch ? gidMatch[1] : '0';
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${connectedSheetId}/export?format=csv&gid=${gid}`;
             const response = await fetch(csvUrl);
             const text = await response.text();
 
@@ -786,14 +634,12 @@
                 throw new Error('Sheet tidak publik atau tidak ditemukan');
             }
 
-            // Parse CSV
             sheetData = parseCSV(text);
-
             if (sheetData.length === 0) {
                 throw new Error('Data kosong');
             }
 
-            // Normalisasi key (lowercase, trim)
+            // Normalisasi key
             sheetData = sheetData.map(row => {
                 const normalized = {};
                 for (const key in row) {
@@ -802,23 +648,19 @@
                 return normalized;
             });
 
-            // Update status
             document.getElementById('statusDot').style.background = 'var(--accent)';
-            document.getElementById('statusText').textContent = 'Terhubung';
             document.getElementById('statusDot').classList.add('pulse-dot');
-
-            showToast(`Berhasil memuat ${sheetData.length} item`, 'success');
+            document.getElementById('statusText').textContent = 'Terhubung';
+            showToast(`Berhasil memuat ${sheetData.length} part`, 'success');
             renderTable();
             updateStats();
-
         } catch (error) {
             console.error('Error loading sheet:', error);
             document.getElementById('statusDot').style.background = 'var(--danger)';
+            document.getElementById('statusDot').classList.remove('pulse-dot');
             document.getElementById('statusText').textContent = 'Gagal terhubung';
-
-            // Tampilkan pesan error spesifik
-            if (error.message.includes('Sheet tidak publik')) {
-                showToast('Sheet tidak publik. Klik "Share" > "Anyone with the link" > "Viewer"', 'error');
+            if (error.message.includes('tidak publik')) {
+                showToast('Sheet tidak publik. Klik Share > Anyone with the link > Viewer', 'error');
             } else {
                 showToast('Gagal memuat data: ' + error.message, 'error');
             }
@@ -826,19 +668,17 @@
     }
 
     // ============================================
-    // Parser CSV Sederhana
+    // Parser CSV
     // ============================================
     function parseCSV(text) {
         const lines = [];
         let current = '';
         let inQuotes = false;
-
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
             if (char === '"') {
                 if (inQuotes && text[i + 1] === '"') {
-                    current += '"';
-                    i++;
+                    current += '"'; i++;
                 } else {
                     inQuotes = !inQuotes;
                 }
@@ -851,18 +691,14 @@
             }
         }
         if (current.trim()) lines.push(current);
-
         if (lines.length < 2) return [];
-
         const headers = parseCSVLine(lines[0]);
         const rows = [];
         for (let i = 1; i < lines.length; i++) {
             const values = parseCSVLine(lines[i]);
             if (values.length === 0 || (values.length === 1 && values[0] === '')) continue;
             const row = {};
-            headers.forEach((h, idx) => {
-                row[h.trim()] = (values[idx] || '').trim();
-            });
+            headers.forEach((h, idx) => { row[h.trim()] = (values[idx] || '').trim(); });
             rows.push(row);
         }
         return rows;
@@ -875,15 +711,10 @@
         for (let i = 0; i < line.length; i++) {
             const char = line[i];
             if (char === '"') {
-                if (inQuotes && line[i + 1] === '"') {
-                    current += '"';
-                    i++;
-                } else {
-                    inQuotes = !inQuotes;
-                }
+                if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+                else { inQuotes = !inQuotes; }
             } else if (char === ',' && !inQuotes) {
-                result.push(current);
-                current = '';
+                result.push(current); current = '';
             } else {
                 current += char;
             }
@@ -893,15 +724,15 @@
     }
 
     // ============================================
-    // Pencarian Barcode
+    // Pencarian Part
     // ============================================
     function searchBarcode() {
         const barcode = document.getElementById('inputBarcode').value.trim();
         if (!barcode) return;
 
         const item = sheetData.find(row => {
-            const rowBarcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            return rowBarcode === barcode;
+            const rowPart = String(row['part'] || row['kode'] || row['barcode'] || row['kode barang'] || '').trim();
+            return rowPart === barcode;
         });
 
         const foundDiv = document.getElementById('foundItem');
@@ -912,11 +743,11 @@
             foundDiv.style.display = 'block';
             notFoundDiv.style.display = 'none';
 
-            document.getElementById('foundName').textContent = item['nama item'] || item['nama'] || item['name'] || '-';
-            document.getElementById('foundSystem').textContent = item['stok sistem'] || item['stok'] || item['stock'] || '0';
-            document.getElementById('foundUnit').textContent = item['satuan'] || item['unit'] || '-';
+            document.getElementById('foundName').textContent = item['deskripsi part'] || item['deskripsi'] || item['nama'] || '-';
+            document.getElementById('foundQTY').textContent = item['qty'] || item['stok sistem'] || '0';
+            document.getElementById('foundAlloc').textContent = item['qty alloc'] || item['qty alloc.'] || item['alokasi'] || '0';
+            document.getElementById('foundAvail').textContent = item['available'] || item['tersedia'] || '0';
 
-            // Fokus ke input qty
             document.getElementById('inputQty').focus();
         } else {
             selectedBarcode = null;
@@ -926,67 +757,49 @@
     }
 
     // ============================================
-    // Submit Stok
+    // Submit Stok Fisik
     // ============================================
     function submitStock() {
         const barcode = document.getElementById('inputBarcode').value.trim();
         const qty = document.getElementById('inputQty').value.trim();
 
-        if (!barcode) {
-            showToast('Masukkan kode barcode terlebih dahulu', 'error');
-            return;
-        }
-        if (!qty || isNaN(qty) || parseInt(qty) < 0) {
-            showToast('Masukkan jumlah stok yang valid', 'error');
-            return;
-        }
+        if (!barcode) { showToast('Masukkan kode part terlebih dahulu', 'error'); return; }
+        if (!qty || isNaN(qty) || parseInt(qty) < 0) { showToast('Masukkan jumlah fisk yang valid', 'error'); return; }
 
-        // Cari item di data
         const item = sheetData.find(row => {
-            const rowBarcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            return rowBarcode === barcode;
+            const rowPart = String(row['part'] || row['kode'] || row['barcode'] || row['kode barang'] || '').trim();
+            return rowPart === barcode;
         });
 
-        if (!item) {
-            showToast('Barcode tidak ditemukan di database', 'error');
-            return;
-        }
+        if (!item) { showToast('Part tidak ditemukan di database', 'error'); return; }
 
-        // Simpan stok fisik
         stockOpname[barcode] = parseInt(qty);
-
-        // Coba kirim ke Google Sheet via Apps Script (jika URL deployment ada)
         updateSheetCell(barcode, parseInt(qty));
 
-        showToast(`Stok "${item['nama item'] || item['nama'] || 'Item'}" berhasil disimpan: ${qty}`, 'success');
+        const partName = item['deskripsi part'] || item['deskripsi'] || item['nama'] || 'Part';
+        showToast(`Fisk "${partName}" disimpan: ${qty}`, 'success');
 
-        // Reset form
         document.getElementById('inputBarcode').value = '';
         document.getElementById('inputQty').value = '';
         document.getElementById('foundItem').style.display = 'none';
         document.getElementById('notFoundItem').style.display = 'none';
         selectedBarcode = null;
 
-        // Update tabel dan statistik
         renderTable();
         updateStats();
-
-        // Fokus kembali ke input barcode
         document.getElementById('inputBarcode').focus();
     }
 
-    // ============================================
-    // Update ke Google Sheet (via Apps Script Web App)
-    // ============================================
     async function updateSheetCell(barcode, qty) {
-        // Jika menggunakan Apps Script deployment URL
-        if (API_BASE_URL && API_BASE_URL.includes('script.google.com')) {
+        // Jika ada Apps Script deployment URL, kirim data
+        const url = document.getElementById('sheetUrlInput').value.trim();
+        if (url && url.includes('script.google.com')) {
             try {
-                await fetch(API_BASE_URL, {
+                await fetch(url, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ barcode: barcode, qty: qty })
+                    body: JSON.stringify({ part: barcode, fisk: qty })
                 });
             } catch (e) {
                 console.log('Update ke sheet gagal (data tersimpan lokal):', e);
@@ -995,13 +808,13 @@
     }
 
     // ============================================
-    // Render Tabel
+    // Render Tabel dengan Header Baru
     // ============================================
     function renderTable() {
         const tbody = document.getElementById('tableBody');
 
         if (sheetData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:60px 20px;color:var(--text-secondary);">
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:60px 20px;color:var(--text-secondary);">
                 <i data-lucide="database" style="width:40px;height:40px;margin:0 auto 12px;display:block;opacity:0.3;"></i>
                 Tidak ada data untuk ditampilkan
             </td></tr>`;
@@ -1011,35 +824,46 @@
 
         let html = '';
         sheetData.forEach((row, index) => {
-            const barcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            const name = row['nama item'] || row['nama'] || row['name'] || '-';
-            const systemStock = parseFloat(row['stok sistem'] || row['stok'] || row['stock'] || 0);
-            const unit = row['satuan'] || row['unit'] || '';
-            const physicalStock = stockOpname[barcode] !== undefined ? stockOpname[barcode] : null;
-            const diff = physicalStock !== null ? physicalStock - systemStock : null;
+            const part = String(row['part'] || row['kode'] || row['barcode'] || row['kode barang'] || '').trim();
+            const desc = row['deskripsi part'] || row['deskripsi'] || row['nama'] || '-';
+            const no = row['no'] || (index + 1);
+            const qty = parseFloat(row['qty'] || row['stok sistem'] || 0);
+            const qtyAlloc = parseFloat(row['qty alloc'] || row['qty alloc.'] || row['alokasi'] || 0);
+            const available = parseFloat(row['available'] || row['tersedia'] || 0);
+            const fisk = stockOpname[part] !== undefined ? stockOpname[part] : null;
+            const selisih = fisk !== null ? fisk - qty : null;
 
-            const isDone = physicalStock !== null;
+            // Class warna selisih
+            let diffClass = 'diff-none';
+            if (selisih !== null) {
+                if (selisih === 0) diffClass = 'diff-zero';
+                else if (selisih > 0) diffClass = 'diff-plus';
+                else diffClass = 'diff-minus';
+            }
+
+            // Format selisih
+            const diffText = selisih === null ? '-' : (selisih === 0 ? '0' : (selisih > 0 ? '+' : '') + selisih);
+
+            // Status baris
+            const isDone = fisk !== null;
             const statusBadge = isDone
-                ? (diff === 0 ? '<span class="badge badge-success">Sesuai</span>'
-                    : diff > 0 ? '<span class="badge badge-warning">Lebih</span>'
+                ? (selisih === 0 ? '<span class="badge badge-success">Sesuai</span>'
+                    : selisih > 0 ? '<span class="badge badge-warning">Lebih</span>'
                     : '<span class="badge badge-danger">Kurang</span>')
                 : '<span class="badge" style="background:var(--bg-primary);color:var(--text-secondary);">Pending</span>';
 
-            const diffColor = diff === null ? 'var(--text-secondary)'
-                : diff === 0 ? 'var(--accent)'
-                : diff > 0 ? 'var(--warning)' : 'var(--danger)';
-            const diffText = diff === null ? '-'
-                : diff === 0 ? '0'
-                : (diff > 0 ? '+' : '') + diff;
+            // Highlight baris yang baru diinput
+            const rowClass = isDone ? 'row-highlight' : '';
 
-            html += `<tr data-barcode="${barcode}" data-status="${isDone ? 'done' : 'pending'}" data-name="${name.toLowerCase()}">
-                <td style="color:var(--text-secondary); font-size:13px;">${index + 1}</td>
-                <td><code class="mono" style="font-size:12px; background:var(--bg-primary); padding:3px 8px; border-radius:4px;">${barcode || '-'}</code></td>
-                <td style="font-weight:500;">${name}</td>
-                <td style="text-align:right;" class="mono">${systemStock} <span style="color:var(--text-secondary);font-size:11px;">${unit}</span></td>
-                <td style="text-align:right;" class="mono" style="font-weight:600;">${physicalStock !== null ? physicalStock + ' <span style="color:var(--text-secondary);font-size:11px;">' + unit + '</span>' : '<span style="color:var(--text-secondary);">-</span>'}</td>
-                <td style="text-align:right;" class="mono" style="color:${diffColor}; font-weight:600;">${diffText}</td>
-                <td style="text-align:center;">${statusBadge}</td>
+            html += `<tr class="${rowClass}" data-part="${part}" data-status="${isDone ? 'done' : 'pending'}" data-name="${desc.toLowerCase()} ${part.toLowerCase()}">
+                <td style="color:var(--text-secondary); font-size:13px;">${no}</td>
+                <td><code class="mono" style="font-size:12px; background:var(--bg-primary); padding:3px 8px; border-radius:4px;">${part || '-'}</code></td>
+                <td style="font-weight:500; max-width:250px; overflow:hidden; text-overflow:ellipsis;" title="${desc}">${desc}</td>
+                <td class="text-right mono">${qty}</td>
+                <td class="text-right mono">${qtyAlloc}</td>
+                <td class="text-right mono">${available}</td>
+                <td class="text-right mono" style="font-weight:600;">${fisk !== null ? fisk : '<span style="color:var(--text-secondary);">-</span>'}</td>
+                <td class="text-right mono ${diffClass}" style="font-weight:700;">${diffText}</td>
             </tr>`;
         });
 
@@ -1053,16 +877,13 @@
     function filterTable() {
         const search = document.getElementById('searchTable').value.toLowerCase();
         const status = document.getElementById('filterStatus').value;
-
-        const rows = document.querySelectorAll('#tableBody tr[data-barcode]');
+        const rows = document.querySelectorAll('#tableBody tr[data-part]');
         rows.forEach(row => {
             const name = row.getAttribute('data-name') || '';
-            const barcode = row.getAttribute('data-barcode') || '';
+            const part = row.getAttribute('data-part') || '';
             const rowStatus = row.getAttribute('data-status') || '';
-
-            const matchSearch = name.includes(search) || barcode.includes(search);
+            const matchSearch = name.includes(search) || part.includes(search);
             const matchStatus = status === 'all' || rowStatus === status;
-
             row.style.display = (matchSearch && matchStatus) ? '' : 'none';
         });
     }
@@ -1073,16 +894,13 @@
     function updateStats() {
         const total = sheetData.length;
         let inputCount = 0;
-
         sheetData.forEach(row => {
-            const barcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            if (stockOpname[barcode] !== undefined) inputCount++;
+            const part = String(row['part'] || row['kode'] || row['barcode'] || row['kode barang'] || '').trim();
+            if (stockOpname[part] !== undefined) inputCount++;
         });
-
         const remaining = total - inputCount;
         const progress = total > 0 ? Math.round((inputCount / total) * 100) : 0;
 
-        // Animasi angka
         animateNumber('statTotal', total);
         animateNumber('statInput', inputCount);
         animateNumber('statRemaining', remaining);
@@ -1094,38 +912,31 @@
         const el = document.getElementById(elementId);
         const current = parseInt(el.textContent) || 0;
         const diff = target - current;
+        if (diff === 0) return;
         const steps = 20;
-        const stepTime = 30;
         let step = 0;
-
         const interval = setInterval(() => {
             step++;
-            const value = Math.round(current + (diff * (step / steps)));
-            el.textContent = value;
-            if (step >= steps) {
-                el.textContent = target;
-                clearInterval(interval);
-            }
-        }, stepTime);
+            el.textContent = Math.round(current + (diff * (step / steps)));
+            if (step >= steps) { el.textContent = target; clearInterval(interval); }
+        }, 30);
     }
 
     // ============================================
-    // Barcode Scanner (ZXing - Sensitif)
+    // Barcode Scanner (ZXing Sensitif)
     // ============================================
     async function startScanner() {
         const overlay = document.getElementById('scannerOverlay');
         const video = document.getElementById('scannerVideo');
-
         overlay.classList.add('active');
         document.getElementById('scanResult').textContent = 'Mengaktifkan kamera...';
         isScanning = true;
 
         try {
-            // Konfigurasi ZXing dengan pengaturan sensitif
             codeReader = new ZXing.BrowserMultiFormatReader(undefined, {
-                delayBetweenScanSuccess: 500,      // Jeda antar scan sukses (ms)
-                delayBetweenScanAttempts: 30,      // Jeda antar percobaan scan (ms) - SENSITIF
-                tryHarder: true,                    // Mode sensitif
+                delayBetweenScanSuccess: 500,
+                delayBetweenScanAttempts: 30,
+                tryHarder: true,
                 possibleFormats: [
                     ZXing.BarcodeFormat.CODE_128,
                     ZXing.BarcodeFormat.CODE_39,
@@ -1140,14 +951,11 @@
                 ]
             });
 
-            // Pilih kamera belakang (lebih baik untuk barcode)
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const backCamera = devices.find(d => d.kind === 'videoinput' && d.label.toLowerCase().includes('back'))
-                || devices.find(d => d.kind === 'videoinput' && d.label.toLowerCase().includes('rear'))
-                || devices.find(d => d.kind === 'videoinput');
-
             const videoInputDevices = await codeReader.listVideoInputDevices();
-            const selectedDevice = videoInputDevices.length > 1 ? videoInputDevices[videoInputDevices.length - 1] : videoInputDevices[0];
+            // Pilih kamera belakang
+            const selectedDevice = videoInputDevices.length > 1
+                ? videoInputDevices[videoInputDevices.length - 1]
+                : videoInputDevices[0];
 
             document.getElementById('scanResult').textContent = 'Kamera aktif - Arahkan ke barcode...';
 
@@ -1158,24 +966,16 @@
                     if (result) {
                         const text = result.getText();
                         document.getElementById('scanResult').textContent = 'Terdeteksi: ' + text;
-
-                        // Masukkan hasil scan ke input
                         document.getElementById('inputBarcode').value = text;
-
-                        // Tutup scanner dan langsung cari
                         stopScanner();
                         searchBarcode();
-
-                        // Vibrate jika didukung
                         if (navigator.vibrate) navigator.vibrate(100);
                     }
                     if (err && !(err instanceof ZXing.NotFoundException)) {
-                        // Abaik NotFoundException (normal saat tidak ada barcode)
-                        console.log('Scan error:', err);
+                        // Abaikan NotFoundException
                     }
                 }
             );
-
         } catch (error) {
             console.error('Scanner error:', error);
             document.getElementById('scanResult').textContent = 'Error: ' + error.message;
@@ -1186,10 +986,7 @@
 
     function stopScanner() {
         isScanning = false;
-        if (codeReader) {
-            codeReader.reset();
-            codeReader = null;
-        }
+        if (codeReader) { codeReader.reset(); codeReader = null; }
         const video = document.getElementById('scannerVideo');
         if (video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
@@ -1199,24 +996,16 @@
     }
 
     // ============================================
-    // Toast Notification
+    // Toast
     // ============================================
     function showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-
-        const icons = {
-            success: 'check-circle',
-            error: 'alert-triangle',
-            info: 'info'
-        };
-
+        const icons = { success: 'check-circle', error: 'alert-triangle', info: 'info' };
         toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" style="width:18px;height:18px;flex-shrink:0;"></i><span>${message}</span>`;
         container.appendChild(toast);
         lucide.createIcons();
-
-        // Auto remove
         setTimeout(() => {
             toast.style.animation = 'toastOut 0.3s ease-in forwards';
             setTimeout(() => toast.remove(), 300);
@@ -1230,12 +1019,8 @@
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalMessage').textContent = message;
         document.getElementById('confirmModal').classList.add('active');
-        document.getElementById('modalConfirmBtn').onclick = () => {
-            closeModal();
-            if (onConfirm) onConfirm();
-        };
+        document.getElementById('modalConfirmBtn').onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
     }
-
     function closeModal() {
         document.getElementById('confirmModal').classList.remove('active');
     }
@@ -1244,12 +1029,10 @@
     // Keyboard Shortcut
     // ============================================
     document.addEventListener('keydown', (e) => {
-        // Escape tutup scanner
         if (e.key === 'Escape') {
             if (isScanning) stopScanner();
             if (document.getElementById('confirmModal').classList.contains('active')) closeModal();
         }
-        // Ctrl+Shift+S buka scanner
         if (e.ctrlKey && e.shiftKey && e.key === 'S') {
             e.preventDefault();
             startScanner();
@@ -1257,15 +1040,14 @@
     });
 
     // ============================================
-    // Inisialisasi - Cek URL yang sudah diisi
+    // Inisialisasi
     // ============================================
     window.addEventListener('DOMContentLoaded', () => {
         const savedUrl = localStorage.getItem('stockOpname_sheetUrl');
         if (savedUrl) {
             document.getElementById('sheetUrlInput').value = savedUrl;
+            document.getElementById('sheetUrlDisplay').textContent = savedUrl;
         }
-
-        // Simpan URL saat diubah
         document.getElementById('sheetUrlInput').addEventListener('change', (e) => {
             localStorage.setItem('stockOpname_sheetUrl', e.target.value);
         });
