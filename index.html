@@ -3,38 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Opname - Realtime Sync</title>
+    <title>Stock Opname - Auto Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
-        :root {
-            --bg-primary: #0c0e14;
-            --bg-secondary: #141721;
-            --bg-card: #1b1f2e;
-            --border: #272d42;
-            --text-primary: #e4e7f0;
-            --text-secondary: #6e7590;
-            --accent: #00e5a0;
-            --accent-dim: rgba(0,229,160,0.1);
-            --accent-glow: rgba(0,229,160,0.25);
-            --danger: #ff4d6a;
-            --danger-dim: rgba(255,77,106,0.1);
-            --warning: #ffb547;
-            --warning-dim: rgba(255,181,71,0.1);
-            --blue: #6380f0;
-            --blue-dim: rgba(99,128,240,0.1);
-        }
+        :root{--bg:#0c0e14;--bg2:#141721;--card:#1b1f2e;--border:#272d42;--t1:#e4e7f0;--t2:#6e7590;--accent:#00e5a0;--accent-d:rgba(0,229,160,.1);--accent-g:rgba(0,229,160,.25);--danger:#ff4d6a;--danger-d:rgba(255,77,106,.1);--warn:#ffb547;--warn-d:rgba(255,181,71,.1);--blue:#6380f0;--blue-d:rgba(99,128,240,.1);}
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Space Grotesk',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
+        body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;}
         .mono{font-family:'JetBrains Mono',monospace;}
-        body::before{content:'';position:fixed;top:-20%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;z-index:0;animation:bF 14s ease-in-out infinite;}
-        body::after{content:'';position:fixed;bottom:-15%;left:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(99,128,240,0.12) 0%,transparent 70%);pointer-events:none;z-index:0;animation:bF 18s ease-in-out infinite reverse;}
-        @keyframes bF{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(25px,-30px) scale(1.04);}}
+        body::before{content:'';position:fixed;top:-20%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,var(--accent-g) 0%,transparent 70%);pointer-events:none;z-index:0;animation:bf 14s ease-in-out infinite;}
+        body::after{content:'';position:fixed;bottom:-15%;left:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(99,128,240,.12) 0%,transparent 70%);pointer-events:none;z-index:0;animation:bf 18s ease-in-out infinite reverse;}
+        @keyframes bf{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(25px,-30px) scale(1.04);}}
 
-        .scanner-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(10px);}
+        .scanner-overlay{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(10px);}
         .scanner-overlay.active{display:flex;}
         .scanner-frame{width:300px;height:300px;position:relative;border-radius:18px;overflow:hidden;background:#000;}
         .scanner-frame video{width:100%;height:100%;object-fit:cover;}
@@ -43,212 +27,194 @@
         .scanner-frame::after{top:6px;right:6px;border-width:3px 3px 0 0;border-radius:0 6px 0 0;}
         .scanner-corners::before{bottom:6px;left:6px;border-width:0 0 3px 3px;border-radius:0 0 0 6px;}
         .scanner-corners::after{bottom:6px;right:6px;border-width:0 3px 3px 0;border-radius:0 0 6px 0;}
-        .scan-line{position:absolute;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 20px var(--accent-glow);animation:scanM 1.8s ease-in-out infinite;z-index:10;}
-        @keyframes scanM{0%,100%{top:12px;}50%{top:calc(100% - 12px);}}
+        .scan-line{position:absolute;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 20px var(--accent-g);animation:sm 1.8s ease-in-out infinite;z-index:10;}
+        @keyframes sm{0%,100%{top:12px;}50%{top:calc(100% - 12px);}}
 
-        .card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;transition:border-color .3s;}
-        .card:hover{border-color:rgba(0,229,160,0.15);}
-        .input-field{background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:13px;width:100%;transition:border-color .3s,box-shadow .3s;outline:none;}
-        .input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
-        .input-field::placeholder{color:var(--text-secondary);opacity:.5;}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;transition:border-color .3s;}
+        .card:hover{border-color:rgba(0,229,160,.15);}
+        .input-field{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;width:100%;transition:border-color .3s,box-shadow .3s;outline:none;}
+        .input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-d);}
+        .input-field::placeholder{color:var(--t2);opacity:.5;}
 
         .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;border:none;cursor:pointer;transition:all .2s;font-family:'Space Grotesk',sans-serif;}
         .btn-primary{background:var(--accent);color:#0c0e14;}
-        .btn-primary:hover{box-shadow:0 4px 20px var(--accent-glow);transform:translateY(-1px);}
+        .btn-primary:hover{box-shadow:0 4px 20px var(--accent-g);transform:translateY(-1px);}
         .btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent);}
-        .btn-outline:hover{background:var(--accent-dim);}
-        .btn-danger{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(255,77,106,0.2);}
-        .btn-ghost{background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border);}
-        .btn-ghost:hover{color:var(--text-primary);border-color:var(--text-secondary);}
+        .btn-outline:hover{background:var(--accent-d);}
+        .btn-danger{background:var(--danger-d);color:#fff;border:1px solid rgba(255,77,106,.3);}
+        .btn-ghost{background:var(--bg2);color:var(--t2);border:1px solid var(--border);}
+        .btn-ghost:hover{color:var(--t1);border-color:var(--t2);}
 
         .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:16px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
-        .badge-success{background:var(--accent-dim);color:var(--accent);}
-        .badge-warning{background:var(--warning-dim);color:var(--warning);}
-        .badge-danger{background:var(--danger-dim);color:var(--danger);}
-        .badge-pending{background:var(--bg-primary);color:var(--text-secondary);}
-        .badge-live{background:rgba(0,229,160,0.15);color:var(--accent);animation:livePulse 2s infinite;}
-        @keyframes livePulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+        .badge-ok{background:var(--accent-d);color:var(--accent);}
+        .badge-warn{background:var(--warn-d);color:var(--warn);}
+        .badge-err{background:var(--danger-d);color:var(--danger);}
+        .badge-off{background:var(--bg);color:var(--t2);}
 
         .data-table{width:100%;border-collapse:separate;border-spacing:0;min-width:880px;}
-        .data-table thead th{background:var(--bg-primary);padding:10px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:2;white-space:nowrap;}
+        .data-table thead th{background:var(--bg);padding:10px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t2);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:2;white-space:nowrap;}
         .th-r{text-align:right !important;}
         .data-table tbody tr{transition:background .15s;}
-        .data-table tbody tr:hover{background:rgba(0,229,160,0.03);}
-        .data-table tbody tr.row-done{background:rgba(0,229,160,0.05);}
-        .data-table tbody tr.row-flash{animation:rowFlash .7s ease-out;}
-        @keyframes rowFlash{0%{background:rgba(0,229,160,0.4);transform:scale(1.005);}100%{background:rgba(0,229,160,0.05);transform:scale(1);}}
-        .data-table tbody tr.row-synced{animation:rowSync .5s ease-out;}
-        @keyframes rowSync{0%{background:rgba(99,128,240,0.2);}100%{background:rgba(0,229,160,0.05);}}
+        .data-table tbody tr:hover{background:rgba(0,229,160,.03);}
+        .data-table tbody tr.row-done{background:rgba(0,229,160,.05);}
+        .data-table tbody tr.row-flash{animation:rf .7s ease-out;}
+        @keyframes rf{0%{background:rgba(0,229,160,.4);transform:scale(1.005);}100%{background:rgba(0,229,160,.05);transform:scale(1);}}
+        .data-table tbody tr.row-sync-update{animation:rsu .5s ease-out;}
+        @keyframes rsu{0%{background:rgba(99,128,240,.2);}100%{background:rgba(0,229,160,.05);}}
         .data-table tbody td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap;}
         .td-r{text-align:right;}
-        .diff-zero{color:var(--accent);}.diff-plus{color:var(--warning);}.diff-minus{color:var(--danger);}.diff-none{color:var(--text-secondary);}
-
-        .scan-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-dim);color:var(--accent);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;animation:chipPop .3s ease-out;}
-        @keyframes chipPop{0%{transform:scale(0);opacity:0;}100%{transform:scale(1);opacity:1;}}
+        .diff-zero{color:var(--accent);}.diff-plus{color:var(--warn);}.diff-minus{color:var(--danger);}.diff-none{color:var(--t2);}
+        .scan-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-d);color:var(--accent);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;animation:cp .3s ease-out;}
+        @keyframes cp{0%{transform:scale(0);opacity:0;}100%{transform:scale(1);opacity:1;}}
 
         .toast-container{position:fixed;top:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
-        .toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;animation:tIn .3s ease-out;min-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.5);pointer-events:auto;}
+        .toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;animation:tI .3s ease-out;min-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.5);pointer-events:auto;}
         .toast-success{background:linear-gradient(135deg,#122a24,#132d28);border:1px solid rgba(0,229,160,.3);color:var(--accent);}
         .toast-error{background:linear-gradient(135deg,#2a1218,#2d131a);border:1px solid rgba(255,77,106,.3);color:var(--danger);}
         .toast-info{background:linear-gradient(135deg,#12182a,#131c2d);border:1px solid rgba(99,128,240,.3);color:var(--blue);}
-        @keyframes tIn{from{opacity:0;transform:translateX(50px);}to{opacity:1;transform:translateX(0);}}
-        @keyframes tOut{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(50px);}}
+        @keyframes tI{from{opacity:0;transform:translateX(50px);}to{opacity:1;transform:translateX(0);}}
+        @keyframes tO{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(50px);}}
 
         .stat-num{font-size:32px;font-weight:700;line-height:1;}
-        .stat-num.green{background:linear-gradient(135deg,var(--accent),#00f5c8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-        .stat-num.yellow{background:linear-gradient(135deg,var(--warning),#ffd166);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-        .stat-num.blue{background:linear-gradient(135deg,var(--blue),#8ba3ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .stat-num.g{background:linear-gradient(135deg,var(--accent),#00f5c8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .stat-num.y{background:linear-gradient(135deg,var(--warn),#ffd166);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .stat-num.b{background:linear-gradient(135deg,var(--blue),#8ba3ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-        .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
-        @keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--accent-glow);}50%{box-shadow:0 0 0 8px transparent;}}
+        .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pd 2s infinite;}
+        @keyframes pd{0%,100%{box-shadow:0 0 0 0 var(--accent-g);}50%{box-shadow:0 0 0 8px transparent;}}
 
         .table-scroll{max-height:480px;overflow:auto;border-radius:10px;border:1px solid var(--border);}
         .input-group{position:relative;}
-        .input-group .input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-secondary);pointer-events:none;}
+        .input-group .input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t2);pointer-events:none;}
         .input-group .input-field{padding-left:38px;}
 
-        .sync-indicator{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;}
-        .sync-ok{background:var(--accent-dim);color:var(--accent);}
-        .sync-loading{background:var(--blue-dim);color:var(--blue);}
-        .sync-fail{background:var(--danger-dim);color:var(--danger);}
-        .sync-spinner{width:12px;height:12px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .6s linear infinite;}
-        @keyframes spin{to{transform:rotate(360deg);}}
+        .sync-ind{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;}
+        .sync-ok{background:var(--accent-d);color:var(--accent);}
+        .sync-load{background:var(--blue-d);color:var(--blue);}
+        .sync-fail{background:var(--danger-d);color:var(--danger);}
+        .sync-spin{width:12px;height:12px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:sp .6s linear infinite;}
+        @keyframes sp{to{transform:rotate(360deg);}}
 
-        .last-scan-box{background:var(--bg-primary);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-top:14px;transition:all .3s;}
-        .last-scan-box.has-data{border-color:rgba(0,229,160,0.3);}
+        .last-scan-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-top:14px;transition:all .3s;}
+        .last-scan-box.has-data{border-color:rgba(0,229,160,.3);}
 
-        .scan-history{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:0;transition:all .3s;}
+        .scan-history{display:flex;flex-wrap:wrap;gap:6px;min-height:0;transition:all .3s;}
         .scan-history:empty{display:none;}
-        .scan-chip-history{display:inline-flex;align-items:center;gap:4px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid transparent;animation:chipPop .3s ease-out;}
-        .scan-chip-history:hover{border-color:var(--accent);background:rgba(0,229,160,0.15);}
-        .scan-chip-history .chip-count{background:var(--accent);color:#0c0e14;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;margin-left:2px;}
+        .sh-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-d);color:var(--accent);font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid transparent;animation:cp .3s ease-out;}
+        .sh-chip:hover{border-color:var(--accent);background:rgba(0,229,160,.15);}
+        .sh-chip .cc{background:var(--accent);color:#0c0e14;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;margin-left:2px;}
 
-        /* Auto-sync timer bar */
-        .sync-bar{height:2px;background:var(--bg-primary);border-radius:1px;overflow:hidden;margin-top:8px;}
-        .sync-bar-fill{height:100%;background:var(--blue);border-radius:1px;width:0%;transition:width 0.1s linear;}
+        /* Sync ticker di header */
+        .sync-ticker{font-size:10px;color:var(--t2);display:flex;align-items:center;gap:4px;}
+        .sync-ticker .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pd 2s infinite;}
 
         ::-webkit-scrollbar{width:5px;height:5px;}
-        ::-webkit-scrollbar-track{background:var(--bg-primary);}
+        ::-webkit-scrollbar-track{background:var(--bg);}
         ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
         @media(max-width:768px){.scanner-frame{width:250px;height:250px;}.stat-num{font-size:24px;}}
-        .fade-in{animation:fadeIn .4s ease-out;}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+        .fade-in{animation:fi .4s ease-out;}
+        @keyframes fi{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
     </style>
 </head>
 <body>
 
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Scanner Overlay -->
+<!-- Scanner -->
 <div class="scanner-overlay" id="scannerOverlay">
     <div style="text-align:center;margin-bottom:18px;">
         <p style="color:var(--accent);font-weight:700;font-size:15px;letter-spacing:1.5px;">SCANNING</p>
-        <p style="color:var(--text-secondary);font-size:12px;margin-top:4px;">Arahkan kamera ke barcode / QR</p>
+        <p style="color:var(--t2);font-size:12px;margin-top:4px;">Arahkan kamera ke barcode / QR</p>
     </div>
     <div class="scanner-frame"><video id="scannerVideo" playsinline></video><div class="scanner-corners"></div><div class="scan-line"></div></div>
     <div style="margin-top:20px;display:flex;align-items:center;gap:20px;">
-        <div style="text-align:center;"><p style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Terhitung</p><p class="mono" style="font-size:28px;font-weight:700;color:var(--accent);margin-top:2px;" id="liveScanCount">0</p></div>
+        <div style="text-align:center;"><p style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;">Terhitung</p><p class="mono" style="font-size:28px;font-weight:700;color:var(--accent);margin-top:2px;" id="liveScanCount">0</p></div>
         <div style="width:1px;height:40px;background:var(--border);"></div>
-        <div style="text-align:center;"><p style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Terakhir</p><p class="mono" style="font-size:13px;color:var(--text-primary);margin-top:6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="liveLastScan">-</p></div>
+        <div style="text-align:center;"><p style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;">Terakhir</p><p class="mono" style="font-size:13px;color:var(--t1);margin-top:6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="liveLastScan">-</p></div>
     </div>
     <button class="btn btn-danger" onclick="stopScanner()" style="margin-top:20px;"><i data-lucide="x" style="width:15px;height:15px;"></i> Tutup Scanner</button>
 </div>
 
 <div style="position:relative;z-index:1;">
     <!-- Header -->
-    <header style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(12,14,20,0.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;">
+    <header style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(12,14,20,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;">
         <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:36px;height:36px;border-radius:9px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;"><i data-lucide="package-check" style="width:18px;height:18px;color:var(--accent);"></i></div>
+            <div style="width:36px;height:36px;border-radius:9px;background:var(--accent-d);display:flex;align-items:center;justify-content:center;"><i data-lucide="package-check" style="width:18px;height:18px;color:var(--accent);"></i></div>
             <div>
                 <h1 style="font-size:16px;font-weight:700;letter-spacing:-.3px;">Stock Opname</h1>
-                <p style="font-size:10px;color:var(--text-secondary);margin-top:1px;">Realtime Auto-Sync</p>
+                <div class="sync-ticker" id="syncTicker"><span>Auto-sync: OFF</span></div>
             </div>
-            <span class="badge badge-live" id="liveBadge" style="display:none;">LIVE</span>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-            <div class="sync-indicator sync-loading" id="syncIndicator"><span>-</span></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="sync-ind" id="syncIndicator"><span>-</span></div>
             <div style="display:flex;align-items:center;gap:6px;">
-                <div id="statusDot" style="width:7px;height:7px;border-radius:50%;background:var(--text-secondary);"></div>
-                <span style="font-size:11px;color:var(--text-secondary);" id="statusText">Offline</span>
+                <div id="statusDot" style="width:7px;height:7px;border-radius:50%;background:var(--t2);"></div>
+                <span style="font-size:11px;color:var(--t2);" id="statusText">Offline</span>
             </div>
         </div>
     </header>
 
     <main style="max-width:1200px;margin:0 auto;padding:20px;">
-
-        <!-- Konfigurasi (Collapsible) -->
+        <!-- Konfigurasi (collapsible) -->
         <section class="card fade-in" style="margin-bottom:20px;">
             <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleConfig()">
                 <i data-lucide="settings" style="width:16px;height:16px;color:var(--accent);"></i>
                 <h2 style="font-size:14px;font-weight:700;">Konfigurasi</h2>
-                <span class="badge badge-pending" style="margin-left:8px;">2 URL</span>
-                <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--text-secondary);margin-left:auto;transition:transform .3s;" id="configChevron"></i>
+                <span class="badge badge-off" style="margin-left:8px;" id="configBadge">Perlu Setup</span>
+                <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--t2);margin-left:auto;transition:transform .3s;" id="configChevron"></i>
             </div>
             <div id="configBody" style="display:none;margin-top:16px;">
                 <div style="margin-bottom:12px;">
-                    <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">1. URL Google Sheet (Baca Data)</label>
+                    <label style="font-size:11px;color:var(--t2);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">1. URL Google Sheet (Baca Data Otomatis setiap 3 detik)</label>
                     <div style="display:flex;gap:8px;">
-                        <div class="input-group" style="flex:1;"><i data-lucide="file-spreadsheet" class="input-icon" style="width:14px;height:14px;"></i><input type="text" class="input-field" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/..." value="https://docs.google.com/spreadsheets/d/1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY/edit?gid=0#gid=0"></div>
-                        <button class="btn btn-primary" onclick="connectAndAutoSync()" style="white-space:nowrap;"><i data-lucide="zap" style="width:14px;height:14px;"></i> Hubungkan & Live</button>
+                        <div class="input-group" style="flex:1;"><i data-lucide="file-spreadsheet" class="input-icon" style="width:14px;height:14px;"></i>
+                            <input type="text" class="input-field" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/..." value="https://docs.google.com/spreadsheets/d/1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY/edit?gid=0#gid=0">
+                        </div>
                     </div>
                 </div>
                 <div>
-                    <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">2. URL Apps Script Web App (Tulis Data)</label>
+                    <label style="font-size:11px;color:var(--t2);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">2. URL Apps Script Web App (Tulis Data Langsung)</label>
                     <div style="display:flex;gap:8px;">
-                        <div class="input-group" style="flex:1;"><i data-lucide="send" class="input-icon" style="width:14px;height:14px;"></i><input type="text" class="input-field" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec"></div>
-                        <button class="btn btn-ghost" onclick="testScriptConnection()" style="white-space:nowrap;"><i data-lucide="wifi" style="width:14px;height:14px;"></i> Test</button>
+                        <div class="input-group" style="flex:1;"><i data-lucide="send" class="input-icon" style="width:14px;height:14px;"></i>
+                            <input type="text" class="input-field" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+                        </div>
+                        <button class="btn btn-ghost" onclick="saveAndStart()" style="white-space:nowrap;"><i data-lucide="play" style="width:14px;height:14px;"></i> Mulai Auto-Sync</button>
                     </div>
-                    <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;line-height:1.5;"><i data-lucide="info" style="width:11px;height:11px;display:inline;vertical-align:-1px;"></i> Buka F12 > Console untuk instruksi setup Apps Script.</p>
-                </div>
-                <!-- Auto-sync info -->
-                <div style="margin-top:14px;padding:12px 16px;background:var(--blue-dim);border:1px solid rgba(99,128,240,0.2);border-radius:10px;display:flex;align-items:center;gap:10px;">
-                    <i data-lucide="radio" style="width:16px;height:16px;color:var(--blue);flex-shrink:0;"></i>
-                    <div>
-                        <p style="font-size:12px;font-weight:600;color:var(--blue);">Auto-Sync Aktif</p>
-                        <p style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Data akan otomatis ditarik dari Google Sheet setiap <strong style="color:var(--text-primary);">5 detik</strong> tanpa perlu klik tombol apapun. Perubahan di Sheet langsung terlihat di sini.</p>
-                    </div>
+                    <p style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.5;"><i data-lucide="info" style="width:11px;height:11px;display:inline;vertical-align:-1px;"></i> Buka F12 > Console untuk instruksi Apps Script.</p>
                 </div>
             </div>
         </section>
 
         <!-- Statistik -->
-        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;" class="fade-in">
-            <div class="card" style="padding:16px;"><p style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Part</p><div class="stat-num green" id="statTotal">0</div></div>
-            <div class="card" style="padding:16px;"><p style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Sudah Fisk</p><div class="stat-num green" id="statInput">0</div></div>
-            <div class="card" style="padding:16px;"><p style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Belum Fisk</p><div class="stat-num yellow" id="statRemaining">0</div></div>
-            <div class="card" style="padding:16px;">
-                <p style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Progress</p>
-                <div class="stat-num blue" id="statProgress">0%</div>
-                <div style="margin-top:8px;height:4px;background:var(--bg-primary);border-radius:2px;overflow:hidden;"><div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--blue));border-radius:2px;transition:width .4s ease;"></div></div>
-            </div>
+        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;" class="fade-in">
+            <div class="card" style="padding:14px;"><p style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Total Part</p><div class="stat-num g" id="statTotal">0</div></div>
+            <div class="card" style="padding:14px;"><p style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Sudah Fisk</p><div class="stat-num g" id="statInput">0</div></div>
+            <div class="card" style="padding:14px;"><p style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Belum Fisk</p><div class="stat-num y" id="statRemaining">0</div></div>
+            <div class="card" style="padding:14px;"><p style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Progress</p><div class="stat-num b" id="statProgress">0%</div><div style="margin-top:8px;height:4px;background:var(--bg);border-radius:2px;overflow:hidden;"><div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--blue));border-radius:2px;transition:width .4s ease;"></div></div></div>
         </section>
 
         <!-- Scanner + Input -->
         <section class="card fade-in" style="margin-bottom:20px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
                 <div style="display:flex;align-items:center;gap:8px;"><i data-lucide="scan-barcode" style="width:16px;height:16px;color:var(--accent);"></i><h2 style="font-size:14px;font-weight:700;">Scan & Hitung Otomatis</h2></div>
-                <div style="display:flex;gap:8px;">
-                    <button class="btn btn-primary" onclick="startScanner()" style="padding:10px 20px;"><i data-lucide="camera" style="width:15px;height:15px;"></i> Mulai Scan</button>
-                </div>
+                <button class="btn btn-primary" onclick="startScanner()"><i data-lucide="camera" style="width:15px;height:15px;"></i> Mulai Scan</button>
             </div>
-            <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;">Scan = <strong style="color:var(--accent);">langsung +1</strong> + <strong style="color:var(--blue);">auto-sync ke Sheet</strong>. Data dari Sheet juga otomatis masuk ke sini setiap 5 detik.</p>
+            <p style="font-size:12px;color:var(--t2);margin-bottom:14px;line-height:1.5;">Scan = <strong style="color:var(--accent);">+1 langsung</strong> + <strong style="color:var(--blue);">otomatis sync ke Sheet</strong>. Data sheet juga otomatis terbaca setiap 3 detik.</p>
             <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;">
-                <div><label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;font-weight:500;">Part Number (Manual)</label><input type="text" class="input-field" id="inputBarcode" placeholder="Ketik kode part..." onkeydown="if(event.key==='Enter')manualIncrement()"></div>
-                <div><label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;font-weight:500;">Jumlah (kosongkan = +1)</label><input type="number" class="input-field" id="inputQty" placeholder="1" min="1" value="1"></div>
+                <div><label style="font-size:11px;color:var(--t2);display:block;margin-bottom:4px;font-weight:500;">Part Number (Manual)</label><input type="text" class="input-field" id="inputBarcode" placeholder="Ketik kode part..." onkeydown="if(event.key==='Enter')manualIncrement()"></div>
+                <div><label style="font-size:11px;color:var(--t2);display:block;margin-bottom:4px;font-weight:500;">Jumlah (kosongkan = +1)</label><input type="number" class="input-field" id="inputQty" placeholder="1" min="1" value="1"></div>
                 <button class="btn btn-outline" onclick="manualIncrement()" style="height:42px;padding:0 22px;"><i data-lucide="plus" style="width:15px;height:15px;"></i> Tambah</button>
             </div>
             <div class="last-scan-box" id="lastScanBox">
-                <div style="width:36px;height:36px;border-radius:8px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="barcode" style="width:18px;height:18px;color:var(--text-secondary);"></i></div>
-                <div style="flex:1;min-width:0;"><p style="font-size:11px;color:var(--text-secondary);">Scan Terakhir</p><p style="font-size:13px;font-weight:600;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="lastScanPart">Belum ada scan</p></div>
-                <div style="text-align:right;flex-shrink:0;"><p style="font-size:11px;color:var(--text-secondary);">Total Scan</p><p class="mono" style="font-size:18px;font-weight:700;color:var(--accent);margin-top:1px;" id="totalScanCount">0</p></div>
+                <div style="width:36px;height:36px;border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="barcode" style="width:18px;height:18px;color:var(--t2);"></i></div>
+                <div style="flex:1;min-width:0;"><p style="font-size:11px;color:var(--t2);">Scan Terakhir</p><p style="font-size:13px;font-weight:600;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="lastScanPart">Belum ada scan</p></div>
+                <div style="text-align:right;flex-shrink:0;"><p style="font-size:11px;color:var(--t2);">Total Scan</p><p class="mono" style="font-size:18px;font-weight:700;color:var(--accent);margin-top:1px;" id="totalScanCount">0</p></div>
             </div>
-            <!-- Sync timer bar -->
-            <div class="sync-bar" id="syncBar" style="display:none;"><div class="sync-bar-fill" id="syncBarFill"></div></div>
         </section>
 
         <!-- Tabel -->
         <section class="card fade-in">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:10px;">
                 <div style="display:flex;align-items:center;gap:8px;"><i data-lucide="table" style="width:16px;height:16px;color:var(--accent);"></i><h2 style="font-size:14px;font-weight:700;">Data Stock Opname</h2></div>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <div class="input-group" style="width:180px;"><i data-lucide="search" class="input-icon" style="width:13px;height:13px;"></i><input type="text" class="input-field" id="searchTable" placeholder="Cari part..." style="padding-left:34px;font-size:12px;" oninput="filterTable()"></div>
@@ -257,13 +223,12 @@
             </div>
             <div class="scan-history" id="scanHistory"></div>
             <div class="table-scroll" style="margin-top:10px;">
-                <table class="data-table">
-                    <thead><tr><th style="width:45px;">No</th><th>Part</th><th>Deskripsi Part</th><th class="th-r">QTY</th><th class="th-r">QTY Alloc</th><th class="th-r">Available</th><th class="th-r">Fisk</th><th class="th-r">Selisih</th></tr></thead>
-                    <tbody id="tableBody"><tr><td colspan="8" style="text-align:center;padding:50px 20px;color:var(--text-secondary);"><i data-lucide="database" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:.25;"></i>Hubungkan Google Sheet untuk memuat data</td></tr></tbody>
-                </table>
+                <table class="data-table"><thead><tr>
+                    <th style="width:45px;">No</th><th>Part</th><th>Deskripsi Part</th><th class="th-r">QTY</th><th class="th-r">QTY Alloc</th><th class="th-r">Available</th><th class="th-r">Fisk</th><th class="th-r">Selisih</th>
+                </tr></thead><tbody id="tableBody"><tr><td colspan="8" style="text-align:center;padding:50px 20px;color:var(--t2);"><i data-lucide="database" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:.25;"></i>Setup konfigurasi & mulai auto-sync</td></tr></tbody></table>
             </div>
         </section>
-        <footer style="text-align:center;padding:28px 0 14px;color:var(--text-secondary);font-size:11px;"><p>Stock Opname &mdash; Realtime 2-Way Auto-Sync</p></footer>
+        <footer style="text-align:center;padding:28px 0 14px;color:var(--t2);font-size:11px;"><p>Stock Opname — Auto-sync 2 arah tanpa tombol</p></footer>
     </main>
 </div>
 
@@ -282,478 +247,392 @@ let isSyncing = false;
 let scanHistoryMap = {};
 let sortedPartOrder = [];
 let audioCtx = null;
-let autoSyncInterval = null;
-let syncBarInterval = null;
-let syncBarProgress = 0;
-const SYNC_INTERVAL_MS = 5000; // 5 detik
-let isFirstLoad = true;
-let lastSyncErrorCount = 0;
+let autoSyncInterval = null;      // Interval polling
+let AUTO_SYNC_MS = 3000;           // Polling setiap 3 detik
+let isAutoSyncActive = false;
+let lastSyncTime = null;
+let syncCount = 0;
 
 lucide.createIcons();
 
 // ============================================
-// AUDIO BEEP
-// ============================================
-function playBeep() {
-    try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const t = audioCtx.currentTime;
-        const o1 = audioCtx.createOscillator(); const g1 = audioCtx.createGain();
-        o1.connect(g1); g1.connect(audioCtx.destination);
-        o1.type = 'sine'; o1.frequency.setValueAtTime(2400, t);
-        g1.gain.setValueAtTime(0.3, t); g1.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-        o1.start(t); o1.stop(t + 0.12);
-        const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
-        o2.connect(g2); g2.connect(audioCtx.destination);
-        o2.type = 'sine'; o2.frequency.setValueAtTime(3200, t + 0.08);
-        g2.gain.setValueAtTime(0.25, t + 0.08); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-        o2.start(t + 0.08); o2.stop(t + 0.2);
-    } catch (e) {}
-}
-function playErrorBeep() {
-    try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const t = audioCtx.currentTime;
-        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.type = 'square'; o.frequency.setValueAtTime(200, t);
-        g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-        o.start(t); o.stop(t + 0.3);
-    } catch (e) {}
-}
-
-// ============================================
-// INSTRUKSI APPS SCRIPT (CONSOLE)
+// INSTRUKSI APPS SCRIPT (console)
 // ============================================
 console.log(`
-═══════════════════════════════════════════════════
-  SETUP APPS SCRIPT UNTUK AUTO-SYNC TULIS
-═══════════════════════════════════════════════════
-1. Buka Google Sheet > Extensions > Apps Script
-2. Paste kode ini:
+═══════════════════════════════════════════════
+  SETUP APPS SCRIPT UNTUK AUTO-SYNC
+═══════════════════════════════════════════════
+Buka Google Sheet > Extensions > Apps Script
+Paste kode ini:
 
-function doPost(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheets()[0];
-  var data = JSON.parse(e.postData.contents);
-  var headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
-  var pc=-1,fc=-1;
-  for(var h=0;h<headers.length;h++){
-    var hl=String(headers[h]).trim().toLowerCase();
-    if(hl==='part'||hl==='kode'||hl==='barcode')pc=h;
-    if(hl==='fisk')fc=h;
-  }
-  if(pc===-1||fc===-1)return ContentService.createTextOutput(JSON.stringify({error:"Kolom Part/Fisk tidak ditemukan"})).setMimeType(ContentService.MimeType.JSON);
+function doPost(e){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sheet=ss.getSheets()[0];
+  var data=JSON.parse(e.postData.contents);
+  var h=sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  var pc=fc(h,["Part","part","PART","Kode","kode","Barcode","barcode"]);
+  var fk=fc(h,["Fisk","fisk","FISK","Stok Fisik","stok fisik"]);
+  if(pc===-1||fk===-1)return ContentService.createTextOutput(JSON.stringify({error:"Kolom tidak ditemukan: "+h.join(",")})).setMimeType(ContentService.MimeType.JSON);
   var lr=sheet.getLastRow();
   var ap=sheet.getRange(2,pc+1,lr-1,1).getValues();
-  var af=sheet.getRange(2,fc+1,lr-1,1).getValues();
+  var af=sheet.getRange(2,fk+1,lr-1,1).getValues();
   for(var i=0;i<ap.length;i++){
     if(String(ap[i][0]).trim()===String(data.part).trim()){
-      var cur=parseInt(af[i][0])||0;
-      var nv=cur+(data.increment||1);
+      var c=parseInt(af[i][0])||0;
+      var nv=c+(data.increment||1);
       if(data.set!==undefined)nv=data.set;
-      sheet.getRange(i+2,fc+1).setValue(nv);
+      sheet.getRange(i+2,fk+1).setValue(nv);
       return ContentService.createTextOutput(JSON.stringify({success:true,part:data.part,fisk:nv})).setMimeType(ContentService.MimeType.JSON);
     }
   }
-  return ContentService.createTextOutput(JSON.stringify({success:false})).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify({success:false,part:data.part})).setMimeType(ContentService.MimeType.JSON);
 }
+function doGet(e){
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sheet=ss.getSheets()[0];
+  var d=sheet.getDataRange().getValues();
+  var h=d[0];var r=[];
+  for(var i=1;i<d.length;i++){var row={};for(var j=0;j<h.length;j++)row[h[j]]=d[i][j];r.push(row);}
+  return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON);
+}
+function fc(h,n){for(var a=0;a<n.length;a++)for(var b=0;b<h.length;b++)if(String(h[b]).trim().toLowerCase()===n[a].toLowerCase())return b;return -1;}
 
-3. Deploy > New Deployment > Web app > Me > Anyone
-4. Copy URL, paste di kolom "URL Apps Script Web App"
-═══════════════════════════════════════════════════
+Deploy > New Deployment > Web app > Me > Anyone
+Copy URL, paste di kolom Apps Script Web App
+Klik "Mulai Auto-Sync"
+═══════════════════════════════════════════════
 `);
 
 // ============================================
-// KONFIGURASI UI
+// BEEP
 // ============================================
-function toggleConfig() {
-    const body = document.getElementById('configBody');
-    const chevron = document.getElementById('configChevron');
-    const isOpen = body.style.display !== 'none';
-    body.style.display = isOpen ? 'none' : 'block';
-    chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+function playBeep(){
+    try{
+        if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+        if(audioCtx.state==='suspended')audioCtx.resume();
+        const o1=audioCtx.createOscillator(),g1=audioCtx.createGain();
+        o1.connect(g1);g1.connect(audioCtx.destination);o1.type='sine';
+        o1.frequency.setValueAtTime(2400,audioCtx.currentTime);
+        g1.gain.setValueAtTime(.3,audioCtx.currentTime);
+        g1.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.12);
+        o1.start(audioCtx.currentTime);o1.stop(audioCtx.currentTime+.12);
+        const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+        o2.connect(g2);g2.connect(audioCtx.destination);o2.type='sine';
+        o2.frequency.setValueAtTime(3200,audioCtx.currentTime+.08);
+        g2.gain.setValueAtTime(.25,audioCtx.currentTime+.08);
+        g2.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.2);
+        o2.start(audioCtx.currentTime+.08);o2.stop(audioCtx.currentTime+.2);
+    }catch(e){}
+}
+function playErrBeep(){
+    try{
+        if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+        if(audioCtx.state==='suspended')audioCtx.resume();
+        const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+        o.connect(g);g.connect(audioCtx.destination);o.type='square';
+        o.frequency.setValueAtTime(200,audioCtx.currentTime);
+        g.gain.setValueAtTime(.2,audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.3);
+        o.start(audioCtx.currentTime);o.stop(audioCtx.currentTime+.3);
+    }catch(e){}
 }
 
-function extractSheetId(url) {
-    const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-    return m ? m[1] : null;
+// ============================================
+// TOGGLE KONFIGURASI
+// ============================================
+function toggleConfig(){
+    const b=document.getElementById('configBody');
+    const c=document.getElementById('configChevron');
+    if(b.style.display==='none'){b.style.display='block';c.style.transform='rotate(180deg)';}
+    else{b.style.display='none';c.style.transform='rotate(0)';}
 }
 
-function setSyncStatus(status, text) {
-    const el = document.getElementById('syncIndicator');
-    el.className = 'sync-indicator';
-    if (status === 'ok') { el.classList.add('sync-ok'); el.innerHTML = `<i data-lucide="check-circle" style="width:12px;height:12px;"></i><span>${text||'Synced'}</span>`; }
-    else if (status === 'loading') { el.classList.add('sync-loading'); el.innerHTML = `<div class="sync-spinner"></div><span>${text||'Syncing...'}</span>`; }
-    else if (status === 'fail') { el.classList.add('sync-fail'); el.innerHTML = `<i data-lucide="alert-triangle" style="width:12px;height:12px;"></i><span>${text||'Error'}</span>`; }
-    else { el.innerHTML = `<span>${text||'-'}</span>`; }
+// ============================================
+// STATUS INDICATORS
+// ============================================
+function setSyncStatus(s,t){
+    const el=document.getElementById('syncIndicator');
+    el.className='sync-ind';
+    if(s==='ok'){el.classList.add('sync-ok');el.innerHTML=`<i data-lucide="check-circle" style="width:12px;height:12px;"></i><span>${t||'Synced'}</span>`;}
+    else if(s==='load'){el.classList.add('sync-load');el.innerHTML=`<div class="sync-spin"></div><span>${t||'...'}</span>`;}
+    else if(s==='fail'){el.classList.add('sync-fail');el.innerHTML=`<i data-lucide="alert-triangle" style="width:12px;height:12px;"></i><span>${t||'Fail'}</span>`;}
+    else{el.innerHTML=`<span>${t||'-'}</span>`;}
     lucide.createIcons();
 }
 
-// ============================================
-// HUBUNGKAN & MULAI AUTO-SYNC
-// ============================================
-function connectAndAutoSync() {
-    const url = document.getElementById('sheetUrlInput').value.trim();
-    if (!url) { showToast('Masukkan URL Google Sheet', 'error'); return; }
-    const id = extractSheetId(url);
-    if (!id) { showToast('Format URL tidak valid', 'error'); return; }
-    connectedSheetId = id;
-    localStorage.setItem('so_sheetUrl', url);
-    localStorage.setItem('so_scriptUrl', document.getElementById('scriptUrlInput').value.trim());
-
-    // Mulai auto-sync
-    startAutoSync();
+function updateSyncTicker(){
+    const el=document.getElementById('syncTicker');
+    if(!isAutoSyncActive){el.innerHTML='<span>Auto-sync: OFF</span>';return;}
+    const ago=lastSyncTime?Math.round((Date.now()-lastSyncTime)/1000):'--';
+    el.innerHTML=`<span class="dot"></span><span>Auto-sync ON · ${syncCount}x · ${ago}s lalu</span>`;
 }
 
-function startAutoSync() {
-    // Hentikan interval lama jika ada
-    if (autoSyncInterval) clearInterval(autoSyncInterval);
-    if (syncBarInterval) clearInterval(syncBarInterval);
+// ============================================
+// SIMPAN & MULAI AUTO-SYNC
+// ============================================
+function saveAndStart(){
+    const sUrl=document.getElementById('sheetUrlInput').value.trim();
+    const scUrl=document.getElementById('scriptUrlInput').value.trim();
+    if(!sUrl){showToast('Masukkan URL Google Sheet','error');return;}
+    const id=extractSheetId(sUrl);
+    if(!id){showToast('URL Sheet tidak valid','error');return;}
+    connectedSheetId=id;
+    localStorage.setItem('so_sheetUrl',sUrl);
+    localStorage.setItem('so_scriptUrl',scUrl);
 
-    // Tampilkan indikator live
-    document.getElementById('liveBadge').style.display = 'inline-flex';
-    document.getElementById('syncBar').style.display = 'block';
-
-    // Load pertama kali
-    fetchSheetData(true);
-
-    // Set interval auto-sync setiap 5 detik
-    syncBarProgress = 0;
-    autoSyncInterval = setInterval(() => {
-        fetchSheetData(false);
-    }, SYNC_INTERVAL_MS);
-
-    // Animasi progress bar sync
-    syncBarInterval = setInterval(() => {
-        syncBarProgress += (100 / (SYNC_INTERVAL_MS / 50));
-        if (syncBarProgress > 100) syncBarProgress = 0;
-        document.getElementById('syncBarFill').style.width = syncBarProgress + '%';
-    }, 50);
-
-    showToast('Auto-sync aktif! Data refresh setiap 5 detik.', 'info');
-}
-
-function stopAutoSync() {
-    if (autoSyncInterval) { clearInterval(autoSyncInterval); autoSyncInterval = null; }
-    if (syncBarInterval) { clearInterval(syncBarInterval); syncBarInterval = null; }
-    document.getElementById('liveBadge').style.display = 'none';
-    document.getElementById('syncBar').style.display = 'none';
-    document.getElementById('statusDot').style.background = 'var(--text-secondary)';
+    document.getElementById('configBadge').className='badge badge-ok';
+    document.getElementById('configBadge').textContent='Aktif';
+    document.getElementById('statusDot').style.background='var(--warn)';
     document.getElementById('statusDot').classList.remove('pulse-dot');
-    document.getElementById('statusText').textContent = 'Offline';
-    setSyncStatus('fail', 'Stopped');
+    document.getElementById('statusText').textContent='Menghubungkan...';
+    setSyncStatus('load','Connecting...');
+
+    // Load pertama kali, lalu mulai interval
+    fetchSheetData().then(()=>{
+        startAutoSync();
+        showToast('Auto-sync aktif! Data tersinkron setiap 3 detik.','success');
+    }).catch(e=>{
+        setSyncStatus('fail','Error');
+        document.getElementById('statusText').textContent='Error';
+        showToast('Gagal: '+e.message,'error');
+    });
 }
 
 // ============================================
-// FETCH DATA DARI SHEET (DIPANGGIL OLEH AUTO-SYNC)
+// AUTO-SYNC ENGINE
 // ============================================
-async function fetchSheetData(isInitial) {
-    if (!connectedSheetId) return;
+function startAutoSync(){
+    if(autoSyncInterval)clearInterval(autoSyncInterval);
+    isAutoSyncActive=true;
+    lastSyncTime=Date.now();
+    syncCount=0;
+    updateSyncTicker();
 
-    if (!isInitial) {
-        setSyncStatus('loading', 'Syncing...');
-        syncBarProgress = 0; // Reset bar
-    } else {
-        document.getElementById('statusDot').style.background = 'var(--warning)';
-        document.getElementById('statusDot').classList.remove('pulse-dot');
-        document.getElementById('statusText').textContent = 'Loading...';
-        setSyncStatus('loading', 'Loading...');
-    }
-
-    try {
-        const urlInput = document.getElementById('sheetUrlInput').value.trim();
-        const gidMatch = urlInput.match(/gid=(\d+)/);
-        const gid = gidMatch ? gidMatch[1] : '0';
-        // Tambah timestamp untuk bypass cache browser
-        const csvUrl = `https://docs.google.com/spreadsheets/d/${connectedSheetId}/export?format=csv&gid=${gid}&_t=${Date.now()}`;
-        const res = await fetch(csvUrl);
-        const text = await res.text();
-
-        if (!text || text.includes('<!DOCTYPE')) throw new Error('Sheet tidak publik');
-
-        const newData = parseCSV(text).map(row => {
-            const n = {};
-            for (const k in row) n[k.toLowerCase().trim()] = row[k];
-            return n;
+    // Polling setiap 3 detik
+    autoSyncInterval=setInterval(()=>{
+        if(!isAutoSyncActive)return;
+        fetchSheetData().then(()=>{
+            syncCount++;
+            lastSyncTime=Date.now();
+            updateSyncTicker();
+        }).catch(e=>{
+            console.error('Auto-sync error:',e);
+            setSyncStatus('fail','Error');
         });
+    },AUTO_SYNC_MS);
 
-        if (newData.length === 0) throw new Error('Data kosong');
+    // Update ticker setiap detik
+    setInterval(updateSyncTicker,1000);
+}
 
-        // SMART MERGE: gabungkan data sheet dengan data scan lokal
-        mergeSheetData(newData, isInitial);
-
-        lastSyncErrorCount = 0;
-
-        document.getElementById('statusDot').style.background = 'var(--accent)';
-        document.getElementById('statusDot').classList.add('pulse-dot');
-        document.getElementById('statusText').textContent = `Live (${sheetData.length})`;
-        if (!isInitial) {
-            setSyncStatus('ok', 'Synced');
-        }
-
-    } catch (e) {
-        console.error('Auto-sync error:', e);
-        lastSyncErrorCount++;
-        document.getElementById('statusDot').style.background = 'var(--danger)';
-        document.getElementById('statusDot').classList.remove('pulse-dot');
-        document.getElementById('statusText').textContent = 'Error';
-        setSyncStatus('fail', 'Error');
-
-        // Jika error berturut-turut 3x, hentikan auto-sync
-        if (lastSyncErrorCount >= 3) {
-            stopAutoSync();
-            showToast('Auto-sync dihentikan setelah 3x gagal berturut-turut.', 'error');
-        } else if (!isInitial) {
-            // Jangan spam toast error setiap 5 detik
-        } else {
-            if (e.message.includes('tidak publik')) showToast('Sheet tidak publik! Share > Anyone > Viewer', 'error');
-            else showToast('Gagal: ' + e.message, 'error');
-        }
-    }
+function stopAutoSync(){
+    isAutoSyncActive=false;
+    if(autoSyncInterval){clearInterval(autoSyncInterval);autoSyncInterval=null;}
+    updateSyncTicker();
 }
 
 // ============================================
-// SMART MERGE - Gabungkan Sheet & Lokal
+// FETCH DATA DARI SHEET (INTI SYNC BACA)
 // ============================================
-function mergeSheetData(newSheetData, isInitial) {
-    if (isInitial) {
-        // Load pertama: ambil semua data termasuk Fisk dari sheet
-        sheetData = newSheetData;
-        sheetData.forEach(row => {
-            const part = String(row['part'] || row['kode'] || row['barcode'] || '').trim();
-            const sheetFisk = parseFloat(row['fisk'] || 0);
-            if (part && sheetFisk > 0) {
-                stockOpname[part] = sheetFisk;
-            }
-        });
-    } else {
-        // Sync berkala: smart merge
-        const oldPartSet = new Set(sheetData.map(r => String(r['part'] || r['kode'] || r['barcode'] || '').trim()));
+async function fetchSheetData(){
+    if(!connectedSheetId)return;
+    const urlInput=document.getElementById('sheetUrlInput').value.trim();
+    const gidMatch=urlInput.match(/gid=(\d+)/);
+    const gid=gidMatch?gidMatch[1]:'0';
+    const csvUrl=`https://docs.google.com/spreadsheets/d/${connectedSheetId}/export?format=csv&gid=${gid}&_t=${Date.now()}`;
 
-        sheetData = newSheetData;
+    setSyncStatus('load','Reading...');
+    const res=await fetch(csvUrl);
+    const text=await res.text);
+    if(!text||text.includes('<!DOCTYPE'))throw new Error('Sheet tidak publik');
 
-        // Untuk setiap baris baru dari sheet
-        sheetData.forEach(row => {
-            const part = String(row['part'] || r['kode'] || row['barcode'] || '').trim();
-            const sheetFisk = parseFloat(row['fisk'] || 0);
+    const newData=parseCSV(text).map(row=>{const n={};for(const k in row)n[k.toLowerCase().trim()]=row[k];return n;});
+    if(newData.length===0)throw new Error('Data kosong');
 
-            if (!part) return;
-
-            if (!oldPartSet.has(part)) {
-                // Baris baru di sheet (ditambahkan orang lain)
-                if (sheetFisk > 0) stockOpname[part] = sheetFisk;
-            } else {
-                // Baris yang sudah ada: ambil Fisk dari sheet sebagai sumber kebenaran
-                // TAPI hanya update jika nilainya berbeda dari lokal DAN bukan dari scan kita sendiri
-                if (sheetFisk > 0) {
-                    // Jika sheet Fisk lebih besar dari lokal, berarti ada perubahan dari sheet
-                    if (sheetFisk !== stockOpname[part]) {
-                        // Highlight baris yang berubah dari sheet
-                        stockOpname[part] = sheetFisk;
-                    }
+    // Cek perubahan fisk dari sheet → update lokal
+    let hasFiskChange=false;
+    newData.forEach(row=>{
+        const part=String(row['part']||row['kode']||row['barcode']||'').trim();
+        const sheetFisk=parseFloat(row['fisk']||0);
+        if(part){
+            if(sheetFisk>0){
+                if(stockOpname[part]===undefined||stockOpname[part]!==sheetFisk){
+                    stockOpname[part]=sheetFisk;
+                    hasFiskChange=true;
                 }
             }
-        });
-    }
+        }
+    });
 
-    renderTable();
+    sheetData=newData;
+
+    document.getElementById('statusDot').style.background='var(--accent)';
+    document.getElementById('statusDot').classList.add('pulse-dot');
+    document.getElementById('statusText').textContent=`Online (${sheetData.length})`;
+    setSyncStatus('ok','Synced');
+
+    renderTable(hasFiskChange);
     updateStats();
+}
+
+// ============================================
+// TULIS KE SHEET (INSTANT)
+// ============================================
+async function syncToSheet(partNumber,increment){
+    const scriptUrl=document.getElementById('scriptUrlInput').value.trim();
+    if(!scriptUrl){setSyncStatus('fail','No Script URL');return;}
+    syncQueue.push({part:partNumber,increment:increment});
+    processSyncQueue(scriptUrl);
+}
+
+async function processSyncQueue(scriptUrl){
+    if(isSyncing||syncQueue.length===0)return;
+    isSyncing=true;
+    setSyncStatus('load','Writing...');
+    while(syncQueue.length>0){
+        const item=syncQueue.shift();
+        try{
+            await fetch(scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({part:item.part,increment:item.increment})});
+        }catch(e){
+            try{await new Promise(r=>setTimeout(r,500));await fetch(scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({part:item.part,increment:item.increment})});}
+            catch(e2){setSyncStatus('fail','Write Fail');syncQueue.unshift(item);break;}
+        }
+    }
+    isSyncing=false;
+    if(syncQueue.length===0)setSyncStatus('ok','Synced');
 }
 
 // ============================================
 // PROSES SCAN
 // ============================================
-function processScan(partNumber) {
-    partNumber = String(partNumber).trim();
-    if (!partNumber) return;
+function processScan(partNumber){
+    partNumber=String(partNumber).trim();
+    if(!partNumber)return;
+    const item=sheetData.find(row=>{const p=String(row['part']||row['kode']||row['barcode']||'').trim();return p===partNumber;});
+    if(!item){playErrBeep();showToast(`"${partNumber}" tidak ditemukan!`,'error');return;}
 
-    const item = sheetData.find(row => {
-        const p = String(row['part'] || row['kode'] || row['barcode'] || '').trim();
-        return p === partNumber;
-    });
-
-    if (!item) { playErrorBeep(); showToast(`"${partNumber}" tidak ditemukan!`, 'error'); return; }
-
-    // Hitung +1
-    if (stockOpname[partNumber] === undefined) {
-        stockOpname[partNumber] = (parseFloat(item['fisk']) || 0) + 1;
-    } else {
-        stockOpname[partNumber] += 1;
-    }
+    if(stockOpname[partNumber]===undefined)stockOpname[partNumber]=(parseFloat(item['fisk'])||0)+1;
+    else stockOpname[partNumber]+=1;
     totalScans++;
 
-    // Update riwayat
-    if (!scanHistoryMap[partNumber]) scanHistoryMap[partNumber] = 0;
+    if(!scanHistoryMap[partNumber])scanHistoryMap[partNumber]=0;
     scanHistoryMap[partNumber]++;
-    sortedPartOrder = sortedPartOrder.filter(p => p !== partNumber);
+    sortedPartOrder=sortedPartOrder.filter(p=>p!==partNumber);
     sortedPartOrder.unshift(partNumber);
 
     playBeep();
-
-    const desc = item['deskripsi part'] || item['deskripsi'] || item['nama'] || '-';
-    document.getElementById('lastScanPart').textContent = `${partNumber} — ${desc}`;
-    document.getElementById('totalScanCount').textContent = totalScans;
+    const desc=item['deskripsi part']||item['deskripsi']||item['nama']||'-';
+    document.getElementById('lastScanPart').textContent=`${partNumber} — ${desc}`;
+    document.getElementById('totalScanCount').textContent=totalScans;
     document.getElementById('lastScanBox').classList.add('has-data');
-    document.getElementById('liveScanCount').textContent = totalScans;
-    document.getElementById('liveLastScan').textContent = partNumber;
+    document.getElementById('liveScanCount').textContent=totalScans;
+    document.getElementById('liveLastScan').textContent=partNumber;
 
     renderScanHistory();
-    renderTable();
+    renderTable(false);
     updateStats();
-    syncToSheet(partNumber, 1);
-
-    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-    showToast(`+1 ${partNumber} → Fisk: ${stockOpname[partNumber]}`, 'success');
+    syncToSheet(partNumber,1);
+    if(navigator.vibrate)navigator.vibrate([50,30,50]);
+    showToast(`+1 ${partNumber} → Fisk: ${stockOpname[partNumber]}`,'success');
 }
 
-function manualIncrement() {
-    const part = document.getElementById('inputBarcode').value.trim();
-    if (!part) { showToast('Masukkan kode part', 'error'); return; }
-    const qtyVal = parseInt(document.getElementById('inputQty').value) || 1;
-    const item = sheetData.find(row => { const p = String(row['part']||row['kode']||row['barcode']||'').trim(); return p===part; });
-    if (!item) { playErrorBeep(); showToast(`"${part}" tidak ditemukan!`, 'error'); return; }
-    if (stockOpname[part] === undefined) stockOpname[part] = (parseFloat(item['fisk'])||0) + qtyVal;
-    else stockOpname[part] += qtyVal;
-    totalScans += qtyVal;
-    if (!scanHistoryMap[part]) scanHistoryMap[part] = 0;
-    scanHistoryMap[part] += qtyVal;
-    sortedPartOrder = sortedPartOrder.filter(p => p !== part);
+function manualIncrement(){
+    const part=document.getElementById('inputBarcode').value.trim();
+    if(!part){showToast('Masukkan kode part','error');return;}
+    const qtyVal=parseInt(document.getElementById('inputQty').value)||1;
+    const item=sheetData.find(row=>{const p=String(row['part']||row['kode']||row['barcode']||'').trim();return p===part;});
+    if(!item){playErrBeep();showToast(`"${part}" tidak ditemukan!`,'error');return;}
+    if(stockOpname[part]===undefined)stockOpname[part]=(parseFloat(item['fisk'])||0)+qtyVal;
+    else stockOpname[part]+=qtyVal;
+    totalScans+=qtyVal;
+    if(!scanHistoryMap[part])scanHistoryMap[part]=0;
+    scanHistoryMap[part]+=qtyVal;
+    sortedPartOrder=sortedPartOrder.filter(p=>p!==part);
     sortedPartOrder.unshift(part);
     playBeep();
-    const desc = item['deskripsi part']||item['deskripsi']||item['nama']||'-';
-    document.getElementById('lastScanPart').textContent = `${part} — ${desc}`;
-    document.getElementById('totalScanCount').textContent = totalScans;
+    const desc=item['deskripsi part']||item['deskripsi']||item['nama']||'-';
+    document.getElementById('lastScanPart').textContent=`${part} — ${desc}`;
+    document.getElementById('totalScanCount').textContent=totalScans;
     document.getElementById('lastScanBox').classList.add('has-data');
-    renderScanHistory(); renderTable(); updateStats();
-    syncToSheet(part, qtyVal);
-    document.getElementById('inputBarcode').value = '';
-    showToast(`+${qtyVal} ${part} → Fisk: ${stockOpname[part]}`, 'success');
+    renderScanHistory();
+    renderTable(false);
+    updateStats();
+    syncToSheet(part,qtyVal);
+    document.getElementById('inputBarcode').value='';
+    showToast(`+${qtyVal} ${part} → Fisk: ${stockOpname[part]}`,'success');
     document.getElementById('inputBarcode').focus();
 }
 
 // ============================================
-// SCAN HISTORY CHIPS
+// RENDER
 // ============================================
-function renderScanHistory() {
-    const c = document.getElementById('scanHistory');
-    if (sortedPartOrder.length === 0) { c.innerHTML = ''; return; }
-    let h = `<span style="font-size:11px;color:var(--text-secondary);font-weight:600;display:flex;align-items:center;gap:4px;margin-right:4px;"><i data-lucide="history" style="width:12px;height:12px;"></i>Terakhir:</span>`;
-    sortedPartOrder.slice(0, 10).forEach(part => {
-        h += `<span class="scan-chip-history" onclick="focusPart('${part.replace(/'/g, "\\'")}')">${part}<span class="chip-count">${scanHistoryMap[part]||0}x</span></span>`;
+function renderScanHistory(){
+    const c=document.getElementById('scanHistory');
+    if(!sortedPartOrder.length){c.innerHTML='';return;}
+    let h=`<span style="font-size:11px;color:var(--t2);font-weight:600;display:flex;align-items:center;gap:4px;margin-right:4px;"><i data-lucide="history" style="width:12px;height:12px;"></i>Terakhir:</span>`;
+    sortedPartOrder.slice(0,10).forEach(p=>{
+        const cnt=scanHistoryMap[p]||0;
+        h+=`<span class="sh-chip" onclick="focusPart('${p.replace(/'/g,"\\'")}')">${p}<span class="cc">${cnt}x</span></span>`;
     });
-    if (sortedPartOrder.length > 10) h += `<span style="font-size:11px;color:var(--text-secondary);padding:4px 6px;">+${sortedPartOrder.length-10}</span>`;
-    c.innerHTML = h;
-    lucide.createIcons();
+    if(sortedPartOrder.length>10)h+=`<span style="font-size:11px;color:var(--t2);padding:4px 6px;">+${sortedPartOrder.length-10}</span>`;
+    c.innerHTML=h;lucide.createIcons();
 }
 
-function focusPart(part) {
-    document.getElementById('searchTable').value = part;
+function focusPart(part){
+    document.getElementById('searchTable').value=part;
     filterTable();
-    setTimeout(() => { const r = document.getElementById('row-'+CSS.escape(part)); if(r) r.scrollIntoView({behavior:'smooth',block:'center'}); }, 50);
+    setTimeout(()=>{const r=document.getElementById('row-'+CSS.escape(part));if(r)r.scrollIntoView({behavior:'smooth',block:'center'});},50);
 }
 
-// ============================================
-// SYNC KE SHEET (TULIS)
-// ============================================
-async function syncToSheet(partNumber, increment) {
-    const scriptUrl = document.getElementById('scriptUrlInput').value.trim();
-    if (!scriptUrl) { setSyncStatus('fail', 'No Script URL'); return; }
-    syncQueue.push({ part: partNumber, increment: increment });
-    processSyncQueue(scriptUrl);
-}
+function renderTable(fromSync){
+    const tbody=document.getElementById('tableBody');
+    if(!sheetData.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:50px 20px;color:var(--t2);"><i data-lucide="database" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:.25;"></i>Tidak ada data</td></tr>`;lucide.createIcons();return;}
 
-async function processSyncQueue(scriptUrl) {
-    if (isSyncing || syncQueue.length === 0) return;
-    isSyncing = true;
-    setSyncStatus('loading', 'Sending...');
-    while (syncQueue.length > 0) {
-        const item = syncQueue.shift();
-        try {
-            await fetch(scriptUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:item.part,increment:item.increment}) });
-        } catch (e) {
-            try { await new Promise(r=>setTimeout(r,500)); await fetch(scriptUrl, {method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({part:item.part,increment:item.increment})}); }
-            catch(e2) { setSyncStatus('fail','Send Failed'); syncQueue.unshift(item); break; }
-        }
-    }
-    isSyncing = false;
-    if (syncQueue.length === 0) setSyncStatus('ok', 'Synced');
-}
-
-async function testScriptConnection() {
-    const url = document.getElementById('scriptUrlInput').value.trim();
-    if (!url) { showToast('Masukkan URL Apps Script', 'error'); return; }
-    localStorage.setItem('so_scriptUrl', url);
-    setSyncStatus('loading', 'Testing...');
-    try {
-        await fetch(url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:'__TEST__',increment:0}) });
-        setSyncStatus('ok', 'Ready');
-        showToast('Apps Script terhubung!', 'success');
-    } catch (e) { setSyncStatus('fail','Failed'); showToast('Gagal: '+e.message,'error'); }
-}
-
-// ============================================
-// RENDER TABEL
-// ============================================
-function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    if (sheetData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:50px 20px;color:var(--text-secondary);"><i data-lucide="database" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:.25;"></i>Tidak ada data</td></tr>`;
-        lucide.createIcons(); return;
-    }
-
-    const sortedData = [...sheetData].sort((a, b) => {
-        const pA = String(a['part']||a['kode']||a['barcode']||'').trim();
-        const pB = String(b['part']||b['kode']||b['barcode']||'').trim();
-        const iA = sortedPartOrder.indexOf(pA);
-        const iB = sortedPartOrder.indexOf(pB);
-        if (iA===-1&&iB===-1) return 0;
-        if (iA===-1) return 1;
-        if (iB===-1) return -1;
-        return iA-iB;
+    const sorted=[...sheetData].sort((a,b)=>{
+        const pA=String(a['part']||a['kode']||a['barcode']||'').trim();
+        const pB=String(b['part']||b['kode']||b['barcode']||'').trim();
+        const iA=sortedPartOrder.indexOf(pA),iB=sortedPartOrder.indexOf(pB);
+        if(iA===-1&&iB===-1)return 0;if(iA===-1)return 1;if(iB===-1)return -1;return iA-iB;
     });
 
-    let html = '';
-    sortedData.forEach((row, i) => {
-        const part = String(row['part']||row['kode']||row['barcode']||'').trim();
-        const desc = row['deskripsi part']||row['deskripsi']||row['nama']||'-';
-        const no = row['no'] || (sheetData.indexOf(row)+1);
-        const qty = parseFloat(row['qty']||0);
-        const qtyAlloc = parseFloat(row['qty alloc']||row['qty alloc.']||0);
-        const available = parseFloat(row['available']||0);
-        const fisk = stockOpname[part]!==undefined ? stockOpname[part] : null;
-        const selisih = fisk!==null ? fisk-qty : null;
-        let dc='diff-none'; if(selisih!==null) dc=selisih===0?'diff-zero':selisih>0?'diff-plus':'diff-minus';
+    let html='';
+    sorted.forEach(row=>{
+        const part=String(row['part']||row['kode']||row['barcode']||'').trim();
+        const desc=row['deskripsi part']||row['deskripsi']||row['nama']||'-';
+        const no=row['no']||(sheetData.indexOf(row)+1);
+        const qty=parseFloat(row['qty']||0);
+        const qtyAlloc=parseFloat(row['qty alloc']||row['qty alloc.']||0);
+        const available=parseFloat(row['available']||0);
+        const fisk=stockOpname[part]!==undefined?stockOpname[part]:null;
+        const selisih=fisk!==null?fisk-qty:null;
+        let dc='diff-none';if(selisih!==null)dc=selisih===0?'diff-zero':selisih>0?'diff-plus':'diff-minus';
         const dt=selisih===null?'-':(selisih===0?'0':(selisih>0?'+':'')+selisih);
         const isDone=fisk!==null;
-        const scanCount=scanHistoryMap[part]||0;
-        html += `<tr class="${isDone?'row-done':''}" id="row-${CSS.escape(part)}" data-part="${part}" data-status="${isDone?'done':'pending'}" data-name="${desc.toLowerCase()} ${part.toLowerCase()}">
-            <td style="color:var(--text-secondary);font-size:12px;">${no}</td>
-            <td><code class="mono" style="font-size:11px;background:var(--bg-primary);padding:2px 7px;border-radius:4px;">${part||'-'}</code>${scanCount>0?`<span class="scan-chip">${scanCount}x</span>`:''}</td>
+        const sc=scanHistoryMap[part]||0;
+        const rowClass=fromSync?'row-sync-update':(isDone?'row-done':'');
+
+        html+=`<tr class="${rowClass}" id="row-${CSS.escape(part)}" data-part="${part}" data-status="${isDone?'done':'pending'}" data-name="${desc.toLowerCase()} ${part.toLowerCase()}">
+            <td style="color:var(--t2);font-size:12px;">${no}</td>
+            <td><code class="mono" style="font-size:11px;background:var(--bg);padding:2px 7px;border-radius:4px;">${part||'-'}</code>${sc>0?`<span class="scan-chip">${sc}x</span>`:''}</td>
             <td style="font-weight:500;max-width:220px;overflow:hidden;text-overflow:ellipsis;" title="${desc}">${desc}</td>
             <td class="td-r mono">${qty}</td>
             <td class="td-r mono">${qtyAlloc}</td>
             <td class="td-r mono">${available}</td>
-            <td class="td-r mono" style="font-weight:700;color:${fisk!==null?'var(--accent)':'var(--text-secondary)'};">${fisk!==null?fisk:'-'}</td>
+            <td class="td-r mono" style="font-weight:700;color:${fisk!==null?'var(--accent)':'var(--t2)'};">${fisk!==null?fisk:'-'}</td>
             <td class="td-r mono ${dc}" style="font-weight:700;">${dt}</td>
         </tr>`;
     });
-    tbody.innerHTML = html;
-    lucide.createIcons();
-    if (sortedPartOrder.length > 0) flashRow(sortedPartOrder[0]);
+    tbody.innerHTML=html;lucide.createIcons();
+
+    if(!fromSync&&sortedPartOrder.length>0)flashRow(sortedPartOrder[0]);
 }
 
-function flashRow(part) {
-    const row = document.getElementById('row-'+CSS.escape(part));
-    if (row) { row.classList.remove('row-flash'); void row.offsetWidth; row.classList.add('row-flash'); row.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+function flashRow(part){
+    const r=document.getElementById('row-'+CSS.escape(part));
+    if(r){r.classList.remove('row-flash');void r.offsetWidth;r.classList.add('row-flash');r.scrollIntoView({behavior:'smooth',block:'nearest'});}
 }
 
-// ============================================
-// FILTER & STATISTIK
-// ============================================
-function filterTable() {
+function filterTable(){
     const s=document.getElementById('searchTable').value.toLowerCase();
     const st=document.getElementById('filterStatus').value;
     document.querySelectorAll('#tableBody tr[data-part]').forEach(r=>{
@@ -764,7 +643,7 @@ function filterTable() {
     });
 }
 
-function updateStats() {
+function updateStats(){
     const total=sheetData.length;let done=0;
     sheetData.forEach(r=>{const p=String(r['part']||r['kode']||r['barcode']||'').trim();if(stockOpname[p]!==undefined&&stockOpname[p]>0)done++;});
     const rem=total-done;const pct=total>0?Math.round((done/total)*100):0;
@@ -772,30 +651,27 @@ function updateStats() {
     document.getElementById('statProgress').textContent=pct+'%';
     document.getElementById('progressBar').style.width=pct+'%';
 }
-function animNum(id,target){const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;const d=target-cur;if(d===0)return;let step=0;const iv=setInterval(()=>{step++;el.textContent=Math.round(cur+d*(step/15));if(step>=15){el.textContent=target;clearInterval(iv);}},25);}
+function animNum(id,target){const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;const d=target-cur;if(!d)return;let step=0;const iv=setInterval(()=>{step++;el.textContent=Math.round(cur+d*(step/15));if(step>=15){el.textContent=target;clearInterval(iv);}},25);}
 
 // ============================================
-// BARCODE SCANNER
+// SCANNER
 // ============================================
-async function startScanner() {
-    if (sheetData.length===0) { showToast('Hubungkan Google Sheet dulu!','error'); return; }
+async function startScanner(){
+    if(!sheetData.length){showToast('Mulai auto-sync dulu!','error');return;}
     document.getElementById('scannerOverlay').classList.add('active');
-    isScanning = true;
-    if (audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-    try {
-        codeReader = new ZXing.BrowserMultiFormatReader(undefined, {
-            delayBetweenScanSuccess:300, delayBetweenScanAttempts:20, tryHarder:true,
+    isScanning=true;
+    if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+    try{
+        codeReader=new ZXing.BrowserMultiFormatReader(undefined,{
+            delayBetweenScanSuccess:300,delayBetweenScanAttempts:20,tryHarder:true,
             possibleFormats:[ZXing.BarcodeFormat.CODE_128,ZXing.BarcodeFormat.CODE_39,ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E,ZXing.BarcodeFormat.ITF,ZXing.BarcodeFormat.CODE_93,ZXing.BarcodeFormat.QR_CODE,ZXing.BarcodeFormat.DATA_MATRIX]
         });
         const devices=await codeReader.listVideoInputDevices();
-        const selected=devices.length>1?devices[devices.length-1]:devices[0];
-        codeReader.decodeFromVideoDevice(selected.deviceId,document.getElementById('scannerVideo'),(result,err)=>{
-            if(result&&isScanning) processScan(result.getText());
-        });
-    } catch(e) { console.error(e); showToast('Gagal kamera: '+e.message,'error'); stopScanner(); }
+        const sel=devices.length>1?devices[devices.length-1]:devices[0];
+        codeReader.decodeFromVideoDevice(sel.deviceId,document.getElementById('scannerVideo'),(result)=>{if(result&&isScanning)processScan(result.getText());});
+    }catch(e){console.error(e);showToast('Gagal kamera: '+e.message,'error');stopScanner();}
 }
-
-function stopScanner() {
+function stopScanner(){
     isScanning=false;
     if(codeReader){codeReader.reset();codeReader=null;}
     const v=document.getElementById('scannerVideo');
@@ -806,42 +682,64 @@ function stopScanner() {
 // ============================================
 // CSV PARSER
 // ============================================
-function parseCSV(text){const lines=[];let cur='';let inQ=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(inQ&&text[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if((c==='\n'||c==='\r')&&!inQ){if(cur.trim())lines.push(cur);cur='';if(c==='\r'&&text[i+1]==='\n')i++;}else cur+=c;}if(cur.trim())lines.push(cur);if(lines.length<2)return[];const hdrs=csvLine(lines[0]);const rows=[];for(let i=1;i<lines.length;i++){const vals=csvLine(lines[i]);if(vals.length===0||(vals.length===1&&vals[0]===''))continue;const row={};hdrs.forEach((h,j)=>{row[h.trim()]=(vals[j]||'').trim();});rows.push(row);}return rows;}
-function csvLine(line){const r=[];let cur='';let inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(c===','&&!inQ){r.push(cur);cur='';}else cur+=c;}r.push(cur);return r;}
+function parseCSV(text){
+    const lines=[];let cur='';let inQ=false;
+    for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(inQ&&text[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if((c==='\n'||c==='\r')&&!inQ){if(cur.trim())lines.push(cur);cur='';if(c==='\r'&&text[i+1]==='\n')i++;}else cur+=c;}
+    if(cur.trim())lines.push(cur);if(lines.length<2)return[];
+    const hdrs=csvL(lines[0]);const rows=[];
+    for(let i=1;i<lines.length;i++){const v=csvL(lines[i]);if(!v.length||(v.length===1&&v[0]===''))continue;const r={};hdrs.forEach((h,j)=>{r[h.trim()]=(v[j]||'').trim();});rows.push(r);}return rows;
+}
+function csvL(line){const r=[];let cur='';let inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(c===','&&!inQ){r.push(cur);cur='';}else cur+=c;}r.push(cur);return r;}
 
 // ============================================
 // TOAST
 // ============================================
-function showToast(msg,type='info'){const c=document.getElementById('toastContainer');const t=document.createElement('div');t.className=`toast toast-${type}`;const icons={success:'check-circle',error:'alert-triangle',info:'info'};t.innerHTML=`<i data-lucide="${icons[type]||'info'}" style="width:16px;height:16px;flex-shrink:0;"></i><span>${msg}</span>`;c.appendChild(t);lucide.createIcons();setTimeout(()=>{t.style.animation='tOut .3s ease-in forwards';setTimeout(()=>t.remove(),300);},2200);}
+function showToast(msg,type='info'){
+    const c=document.getElementById('toastContainer');const t=document.createElement('div');
+    t.className=`toast toast-${type}`;const icons={success:'check-circle',error:'alert-triangle',info:'info'};
+    t.innerHTML=`<i data-lucide="${icons[type]||'info'}" style="width:16px;height:16px;flex-shrink:0;"></i><span>${msg}</span>`;
+    c.appendChild(t);lucide.createIcons();
+    setTimeout(()=>{t.style.animation='tO .3s ease-in forwards';setTimeout(()=>t.remove(),300);},2200);
+}
 
 // ============================================
-// KEYBOARD & INIT
+// EXTRACT SHEET ID
+// ============================================
+function extractSheetId(url){const m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);return m?m[1]:null;}
+
+// ============================================
+// KEYBOARD
 // ============================================
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isScanning)stopScanner();if(e.ctrlKey&&e.shiftKey&&e.key==='S'){e.preventDefault();startScanner();}});
 
+// ============================================
+// INIT
+// ============================================
 window.addEventListener('DOMContentLoaded',()=>{
     const sUrl=localStorage.getItem('so_sheetUrl');
     const scUrl=localStorage.getItem('so_scriptUrl');
     if(sUrl)document.getElementById('sheetUrlInput').value=sUrl;
     if(scUrl)document.getElementById('scriptUrlInput').value=scUrl;
-    document.getElementById('sheetUrlInput').addEventListener('change',e=>localStorage.setItem('so_sheetUrl',e.target.value));
-    document.getElementById('scriptUrlInput').addEventListener('change',e=>localStorage.setItem('so_scriptUrl',e.target.value));
 
-    // Inisialisasi audio
-    document.body.addEventListener('click',()=>{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();},{once:true});
-
-    // Auto-start sync jika URL sudah tersimpan
-    if(sUrl){
-        const id=extractSheetId(sUrl);
-        if(id){
-            connectedSheetId=id;
+    // Auto-resume jika sudah pernah setup
+    if(sUrl&&extractSheetId(sUrl)){
+        connectedSheetId=extractSheetId(sUrl);
+        document.getElementById('configBadge').className='badge badge-ok';
+        document.getElementById('configBadge').textContent='Aktif';
+        document.getElementById('statusDot').style.background='var(--warn)';
+        document.getElementById('statusText').textContent='Connecting...';
+        setSyncStatus('load','Connecting...');
+        fetchSheetData().then(()=>{
             startAutoSync();
-        }
+        }).catch(e=>{
+            document.getElementById('statusDot').style.background='var(--danger)';
+            document.getElementById('statusText').textContent='Error';
+            setSyncStatus('fail','Error');
+        });
     }
-});
 
-// Bersihkan saat halaman ditutup
-window.addEventListener('beforeunload',()=>{stopAutoSync();});
+    document.body.addEventListener('click',()=>{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();},{once:true});
+});
 </script>
 </body>
 </html>
