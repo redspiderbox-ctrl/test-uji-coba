@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Opname - Live Sync</title>
+    <title>Stock Opname - Auto Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
@@ -75,10 +75,7 @@
         .data-table tbody tr:hover{background:rgba(0,229,160,0.03);}
         .data-table tbody tr.row-done{background:rgba(0,229,160,0.05);}
         .data-table tbody tr.row-flash{animation:rowFlash .7s ease-out;}
-        @keyframes rowFlash{
-            0%{background:rgba(0,229,160,0.4);transform:scale(1.005);}
-            100%{background:rgba(0,229,160,0.05);transform:scale(1);}
-        }
+        @keyframes rowFlash{0%{background:rgba(0,229,160,0.4);transform:scale(1.005);}100%{background:rgba(0,229,160,0.05);transform:scale(1);}}
         .data-table tbody td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;white-space:nowrap;}
         .td-r{text-align:right;}
         .diff-zero{color:var(--accent);}
@@ -86,7 +83,6 @@
         .diff-minus{color:var(--danger);}
         .diff-none{color:var(--text-secondary);}
 
-        /* Chip scan terbaru di baris */
         .scan-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-dim);color:var(--accent);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;animation:chipPop .3s ease-out;}
         @keyframes chipPop{0%{transform:scale(0);opacity:0;}100%{transform:scale(1);opacity:1;}}
 
@@ -121,18 +117,20 @@
         .last-scan-box{background:var(--bg-primary);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-top:14px;transition:all .3s;}
         .last-scan-box.has-data{border-color:rgba(0,229,160,0.3);}
 
-        /* Scan history chips di bawah search */
         .scan-history{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:0;transition:all .3s;}
         .scan-history:empty{display:none;}
         .scan-chip-history{display:inline-flex;align-items:center;gap:4px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid transparent;animation:chipPop .3s ease-out;}
         .scan-chip-history:hover{border-color:var(--accent);background:rgba(0,229,160,0.15);}
         .scan-chip-history .chip-count{background:var(--accent);color:#0c0e14;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;margin-left:2px;}
 
+        /* Auto sync pulse di header */
+        .auto-sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--accent-dim);color:var(--accent);}
+        .auto-sync-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
+
         ::-webkit-scrollbar{width:5px;height:5px;}
         ::-webkit-scrollbar-track{background:var(--bg-primary);}
         ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
         ::-webkit-scrollbar-thumb:hover{background:var(--text-secondary);}
-
         @media(max-width:768px){.scanner-frame{width:250px;height:250px;}.stat-num{font-size:24px;}}
         .fade-in{animation:fadeIn .4s ease-out;}
         @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
@@ -178,14 +176,18 @@
             </div>
             <div>
                 <h1 style="font-size:16px;font-weight:700;letter-spacing:-.3px;">Stock Opname</h1>
-                <p style="font-size:10px;color:var(--text-secondary);margin-top:1px;">Live Sync dengan Google Sheet</p>
+                <p style="font-size:10px;color:var(--text-secondary);margin-top:1px;">Auto Sync dengan Google Sheet</p>
             </div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="auto-sync-badge" id="autoSyncBadge" style="display:none;">
+                <div class="dot"></div>
+                <span id="autoSyncTimer">Auto-sync: 5s</span>
+            </div>
             <div class="sync-indicator sync-loading" id="syncIndicator"><span>-</span></div>
             <div style="display:flex;align-items:center;gap:6px;">
                 <div id="statusDot" style="width:7px;height:7px;border-radius:50%;background:var(--text-secondary);"></div>
-                <span style="font-size:11px;color:var(--text-secondary);" id="statusText">Offline</span>
+                <span style="font-size:11px;color:var(--text-secondary);" id="statusText">Memulai...</span>
             </div>
         </div>
     </header>
@@ -200,7 +202,7 @@
                 <span class="badge badge-pending" style="margin-left:8px;">2 URL</span>
                 <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--text-secondary);margin-left:auto;"></i>
             </div>
-            <div>
+            <div id="configBody">
                 <div style="margin-bottom:12px;">
                     <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">1. URL Google Sheet (Baca Data)</label>
                     <div style="display:flex;gap:8px;">
@@ -208,7 +210,6 @@
                             <i data-lucide="file-spreadsheet" class="input-icon" style="width:14px;height:14px;"></i>
                             <input type="text" class="input-field" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/..." value="https://docs.google.com/spreadsheets/d/1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY/edit?gid=0#gid=0">
                         </div>
-                        <button class="btn btn-ghost" onclick="connectSheet()" style="white-space:nowrap;"><i data-lucide="download" style="width:14px;height:14px;"></i> Ambil Data</button>
                     </div>
                 </div>
                 <div>
@@ -218,11 +219,10 @@
                             <i data-lucide="send" class="input-icon" style="width:14px;height:14px;"></i>
                             <input type="text" class="input-field" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
                         </div>
-                        <button class="btn btn-ghost" onclick="testScriptConnection()" style="white-space:nowrap;"><i data-lucide="wifi" style="width:14px;height:14px;"></i> Test</button>
                     </div>
                     <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;line-height:1.5;">
                         <i data-lucide="info" style="width:11px;height:11px;display:inline;vertical-align:-1px;"></i>
-                        Buka F12 > Console untuk melihat instruksi setup Apps Script.
+                        Buka <strong style="color:var(--text-primary);">F12 > Console</strong> untuk instruksi setup Apps Script. URL disimpan otomatis di browser.
                     </p>
                 </div>
             </div>
@@ -260,11 +260,10 @@
                 </div>
                 <div style="display:flex;gap:8px;">
                     <button class="btn btn-primary" onclick="startScanner()" style="padding:10px 20px;"><i data-lucide="camera" style="width:15px;height:15px;"></i> Mulai Scan</button>
-                    <button class="btn btn-ghost" onclick="loadSheetData()" style="padding:10px 16px;"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i></button>
                 </div>
             </div>
             <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;">
-                Scan barcode = <strong style="color:var(--accent);">langsung +1</strong> + <strong style="color:var(--blue);">auto-sync ke Sheet</strong>. Tidak perlu tekan tombol apapun.
+                Scan = <strong style="color:var(--accent);">langsung +1 + beep</strong> + <strong style="color:var(--blue);">auto-sync ke Sheet tanpa klik</strong>. Data web & sheet selalu sama.
             </p>
             <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;">
                 <div>
@@ -311,7 +310,6 @@
                     </select>
                 </div>
             </div>
-            <!-- Riwayat scan (chips) -->
             <div class="scan-history" id="scanHistory"></div>
             <div class="table-scroll" style="margin-top:10px;">
                 <table class="data-table">
@@ -329,8 +327,8 @@
                     </thead>
                     <tbody id="tableBody">
                         <tr><td colspan="8" style="text-align:center;padding:50px 20px;color:var(--text-secondary);">
-                            <i data-lucide="database" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:.25;"></i>
-                            Hubungkan Google Sheet untuk memuat data
+                            <i data-lucide="loader" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:.25;animation:spin 1s linear infinite;"></i>
+                            Menghubungkan otomatis...
                         </td></tr>
                     </tbody>
                 </table>
@@ -338,7 +336,7 @@
         </section>
 
         <footer style="text-align:center;padding:28px 0 14px;color:var(--text-secondary);font-size:11px;">
-            <p>Stock Opname &mdash; Scan langsung hitung + beep + auto-sync</p>
+            <p>Stock Opname &mdash; Auto-sync tanpa klik tombol</p>
         </footer>
     </main>
 </div>
@@ -355,107 +353,97 @@ let isScanning = false;
 let totalScans = 0;
 let syncQueue = [];
 let isSyncing = false;
-let scanHistoryMap = {}; // { partNumber: count }
-let sortedPartOrder = []; // Urutan part yang sudah di-scan (paling baru di atas)
+let scanHistoryMap = {};
+let sortedPartOrder = [];
 let audioCtx = null;
+
+// Auto-sync
+let autoSyncInterval = null;
+const AUTO_SYNC_SECONDS = 5; // interval sync otomatis
+let countdownTimer = null;
+let countdownValue = AUTO_SYNC_SECONDS;
+let lastSyncHash = ''; // untuk deteksi perubahan data
 
 lucide.createIcons();
 
 // ============================================
-// BUNYI BEEP (Web Audio API)
+// BUNYI BEEP
 // ============================================
 function playBeep() {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        // Beep pertama (tinggi - konfirmasi)
-        const osc1 = audioCtx.createOscillator();
-        const gain1 = audioCtx.createGain();
-        osc1.connect(gain1);
-        gain1.connect(audioCtx.destination);
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(2400, audioCtx.currentTime);
-        gain1.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-        osc1.start(audioCtx.currentTime);
-        osc1.stop(audioCtx.currentTime + 0.12);
-
-        // Beep kedua (lebih tinggi - sukses)
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(3200, audioCtx.currentTime + 0.08);
-        gain2.gain.setValueAtTime(0.25, audioCtx.currentTime + 0.08);
-        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-        osc2.start(audioCtx.currentTime + 0.08);
-        osc2.stop(audioCtx.currentTime + 0.2);
-    } catch (e) {
-        // Fallback: tidak ada audio, tetap lanjut
-    }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const t = audioCtx.currentTime;
+        const o1 = audioCtx.createOscillator(); const g1 = audioCtx.createGain();
+        o1.connect(g1); g1.connect(audioCtx.destination);
+        o1.type = 'sine'; o1.frequency.setValueAtTime(2400, t);
+        g1.gain.setValueAtTime(0.3, t); g1.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        o1.start(t); o1.stop(t + 0.12);
+        const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
+        o2.connect(g2); g2.connect(audioCtx.destination);
+        o2.type = 'sine'; o2.frequency.setValueAtTime(3200, t + 0.08);
+        g2.gain.setValueAtTime(0.25, t + 0.08); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        o2.start(t + 0.08); o2.stop(t + 0.2);
+    } catch (e) {}
 }
 
 function playErrorBeep() {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-        osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 0.3);
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const t = audioCtx.currentTime;
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.type = 'square'; o.frequency.setValueAtTime(200, t);
+        g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        o.start(t); o.stop(t + 0.3);
     } catch (e) {}
 }
 
 // ============================================
-// INSTRUKSI APPS SCRIPT DI CONSOLE
+// INSTRUKSI APPS SCRIPT
 // ============================================
 console.log(`
 ═══════════════════════════════════════════════════
   INSTRUKSI SETUP APPS SCRIPT (UNTUK AUTO-SYNC)
 ═══════════════════════════════════════════════════
-
 1. Buka Google Sheet > Extensions > Apps Script
 2. Paste kode berikut:
 
 ═══════ APPS SCRIPT CODE ═══════
 function doPost(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheetName = e.parameter.sheet || "Sheet1";
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) sheet = ss.getSheets()[0];
-  var data = JSON.parse(e.postData.contents);
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var partCol = findCol(headers, ["Part","part","PART","Kode","kode","Barcode","barcode"]);
-  var fiskCol = findCol(headers, ["Fisk","fisk","FISK","Stok Fisik","stok fisik"]);
-  if (partCol===-1||fiskCol===-1) return ContentService.createTextOutput(JSON.stringify({error:"Kolom Part/Fisk tidak ditemukan. Headers: "+headers.join(", ")})).setMimeType(ContentService.MimeType.JSON);
-  var lastRow = sheet.getLastRow();
-  var allParts = sheet.getRange(2, partCol+1, lastRow-1, 1).getValues();
-  var allFisk = sheet.getRange(2, fiskCol+1, lastRow-1, 1).getValues();
-  var updated = false;
-  for (var i=0; i<allParts.length; i++) {
-    if (String(allParts[i][0]).trim()===String(data.part).trim()) {
-      var current = parseInt(allFisk[i][0])||0;
-      var newVal = current + (data.increment||1);
-      if (data.set!==undefined) newVal = data.set;
-      sheet.getRange(i+2, fiskCol+1).setValue(newVal);
-      updated = true; break;
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sheetName=e.parameter.sheet||"Sheet1";
+  var sheet=ss.getSheetByName(sheetName);
+  if(!sheet)sheet=ss.getSheets()[0];
+  var data=JSON.parse(e.postData.contents);
+  var headers=sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  var partCol=findCol(headers,["Part","part","PART","Kode","kode","Barcode","barcode"]);
+  var fiskCol=findCol(headers,["Fisk","fisk","FISK","Stok Fisik","stok fisik"]);
+  if(partCol===-1||fiskCol===-1)return ContentService.createTextOutput(JSON.stringify({error:"Kolom Part/Fisk tidak ditemukan"})).setMimeType(ContentService.MimeType.JSON);
+  var lastRow=sheet.getLastRow();
+  var allParts=sheet.getRange(2,partCol+1,lastRow-1,1).getValues();
+  var allFisk=sheet.getRange(2,fiskCol+1,lastRow-1,1).getValues();
+  var updated=false;
+  for(var i=0;i<allParts.length;i++){
+    if(String(allParts[i][0]).trim()===String(data.part).trim()){
+      var current=parseInt(allFisk[i][0])||0;
+      var newVal=current+(data.increment||1);
+      if(data.set!==undefined)newVal=data.set;
+      sheet.getRange(i+2,fiskCol+1).setValue(newVal);
+      updated=true;break;
     }
   }
   return ContentService.createTextOutput(JSON.stringify({success:updated,part:data.part})).setMimeType(ContentService.MimeType.JSON);
 }
-function doGet(e) {
-  var sheetName = e.parameter.sheet || "Sheet1";
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) sheet = ss.getSheets()[0];
-  var data = sheet.getDataRange().getValues();
-  var headers = data[0]; var rows = [];
-  for (var i=1; i<data.length; i++) { var row={}; for(var j=0;j<headers.length;j++) row[headers[j]]=data[i][j]; rows.push(row); }
+function doGet(e){
+  var sheetName=e.parameter.sheet||"Sheet1";
+  var ss=SpreadsheetApp.getActiveSpreadsheet();
+  var sheet=ss.getSheetByName(sheetName);
+  if(!sheet)sheet=ss.getSheets()[0];
+  var data=sheet.getDataRange().getValues();
+  var headers=data[0];var rows=[];
+  for(var i=1;i<data.length;i++){var row={};for(var j=0;j<headers.length;j++)row[headers[j]]=data[i][j];rows.push(row);}
   return ContentService.createTextOutput(JSON.stringify(rows)).setMimeType(ContentService.MimeType.JSON);
 }
 function findCol(headers,names){for(var n=0;n<names.length;n++)for(var h=0;h<headers.length;h++)if(String(headers[h]).trim().toLowerCase()===names[n].toLowerCase())return h;return -1;}
@@ -484,52 +472,108 @@ function setSyncStatus(status, text) {
     lucide.createIcons();
 }
 
-function connectSheet() {
-    const url = document.getElementById('sheetUrlInput').value.trim();
-    if (!url) { showToast('Masukkan URL Google Sheet', 'error'); return; }
-    const id = extractSheetId(url);
-    if (!id) { showToast('Format URL tidak valid', 'error'); return; }
-    connectedSheetId = id;
-    localStorage.setItem('so_sheetUrl', url);
-    loadSheetData();
+// Deteksi perubahan data (hash sederhana)
+function computeDataHash() {
+    return JSON.stringify(stockOpname);
 }
 
-async function loadSheetData() {
-    if (!connectedSheetId) { showToast('Hubungkan Google Sheet dulu', 'error'); return; }
+async function loadSheetData(isAutoSync = false) {
+    if (!connectedSheetId) {
+        if (!isAutoSync) showToast('Masukkan URL Google Sheet di konfigurasi', 'error');
+        return false;
+    }
     const urlInput = document.getElementById('sheetUrlInput').value.trim();
     const gidMatch = urlInput.match(/gid=(\d+)/);
     const gid = gidMatch ? gidMatch[1] : '0';
-    document.getElementById('statusDot').style.background = 'var(--warning)';
-    document.getElementById('statusDot').classList.remove('pulse-dot');
-    document.getElementById('statusText').textContent = 'Loading...';
-    setSyncStatus('loading', 'Loading...');
+
+    if (!isAutoSync) {
+        document.getElementById('statusDot').style.background = 'var(--warning)';
+        document.getElementById('statusDot').classList.remove('pulse-dot');
+        document.getElementById('statusText').textContent = 'Loading...';
+    }
+    setSyncStatus('loading', isAutoSync ? 'Auto...' : 'Loading...');
+
     try {
+        // Cache-buster agar selalu dapat data terbaru
         const csvUrl = `https://docs.google.com/spreadsheets/d/${connectedSheetId}/export?format=csv&gid=${gid}&_t=${Date.now()}`;
         const res = await fetch(csvUrl);
         const text = await res.text();
         if (!text || text.includes('<!DOCTYPE')) throw new Error('Sheet tidak publik');
-        sheetData = parseCSV(text).map(row => { const n = {}; for (const k in row) n[k.toLowerCase().trim()] = row[k]; return n; });
-        if (sheetData.length === 0) throw new Error('Data kosong');
-        // Sinkronkan fisk dari sheet ke lokal
-        sheetData.forEach(row => {
-            const part = String(row['part'] || row['kode'] || row['barcode'] || '').trim();
-            const sheetFisk = parseFloat(row['fisk'] || 0);
-            if (part && sheetFisk > 0) stockOpname[part] = sheetFisk;
+
+        const newData = parseCSV(text).map(row => {
+            const n = {};
+            for (const k in row) n[k.toLowerCase().trim()] = row[k];
+            return n;
         });
+        if (newData.length === 0) throw new Error('Data kosong');
+
+        // Bandingkan data lama vs baru untuk deteksi perubahan dari sheet
+        let hasSheetChanges = false;
+        if (sheetData.length > 0 && isAutoSync) {
+            newData.forEach(newRow => {
+                const part = String(newRow['part']||newRow['kode']||newRow['barcode']||'').trim();
+                const newFisk = parseFloat(newRow['fisk']||0);
+                const oldRow = sheetData.find(r => String(r['part']||r['kode']||r['barcode']||'').trim() === part);
+                if (oldRow) {
+                    const oldFisk = parseFloat(oldRow['fisk']||0);
+                    if (newFisk !== oldFisk && newFisk > 0) {
+                        // Ada perubahan Fisk dari sheet (mungkin dari perangkat lain)
+                        stockOpname[part] = newFisk;
+                        hasSheetChanges = true;
+                    }
+                }
+            });
+        }
+
+        sheetData = newData;
+
+        // Sinkronkan fisk dari sheet (hanya saat pertama kali load atau ada perubahan)
+        if (!isAutoSync || hasSheetChanges) {
+            sheetData.forEach(row => {
+                const part = String(row['part']||row['kode']||row['barcode']||'').trim();
+                const sheetFisk = parseFloat(row['fisk']||0);
+                // Hanya update lokal jika sheet punya nilai dan lokal belum punya
+                // ATAU jika ada perubahan dari sheet
+                if (part && sheetFisk > 0) {
+                    if (stockOpname[part] === undefined || hasSheetChanges) {
+                        stockOpname[part] = sheetFisk;
+                    }
+                }
+            });
+        }
+
+        const newHash = computeDataHash();
+        const dataChanged = newHash !== lastSyncHash;
+        lastSyncHash = newHash;
+
         document.getElementById('statusDot').style.background = 'var(--accent)';
         document.getElementById('statusDot').classList.add('pulse-dot');
         document.getElementById('statusText').textContent = `Online (${sheetData.length})`;
-        setSyncStatus('ok', 'Connected');
-        showToast(`Dimuat ${sheetData.length} part`, 'success');
-        renderTable();
-        updateStats();
+        setSyncStatus('ok', isAutoSync ? (dataChanged ? 'Updated' : 'Synced') : 'Connected');
+
+        if (hasSheetChanges && isAutoSync) {
+            showToast('Data diperbarui dari Google Sheet', 'info');
+        }
+
+        // Selalu render ulang jika ada perubahan
+        if (dataChanged || !isAutoSync || hasSheetChanges) {
+            renderTable();
+            updateStats();
+        }
+
+        return true;
     } catch (e) {
         console.error(e);
-        document.getElementById('statusDot').style.background = 'var(--danger)';
-        document.getElementById('statusText').textContent = 'Error';
+        if (!isAutoSync) {
+            document.getElementById('statusDot').style.background = 'var(--danger)';
+            document.getElementById('statusText').textContent = 'Error';
+        }
         setSyncStatus('fail', 'Error');
-        if (e.message.includes('tidak publik')) showToast('Sheet tidak publik! Share > Anyone > Viewer', 'error');
-        else showToast('Gagal: ' + e.message, 'error');
+        if (!isAutoSync) {
+            if (e.message.includes('tidak publik')) showToast('Sheet tidak publik! Share > Anyone > Viewer', 'error');
+            else showToast('Gagal: ' + e.message, 'error');
+        }
+        return false;
     }
 }
 
@@ -539,7 +583,7 @@ async function testScriptConnection() {
     localStorage.setItem('so_scriptUrl', url);
     setSyncStatus('loading', 'Testing...');
     try {
-        await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ part: '__TEST__', increment: 0 }) });
+        await fetch(url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:'__TEST__',increment:0}) });
         setSyncStatus('ok', 'Ready');
         showToast('Apps Script terhubung!', 'success');
     } catch (e) {
@@ -549,15 +593,52 @@ async function testScriptConnection() {
 }
 
 // ============================================
-// PROSES SCAN - INTI
+// AUTO-SYNC SYSTEM
+// ============================================
+function startAutoSync() {
+    stopAutoSync(); // bersihkan dulu
+    countdownValue = AUTO_SYNC_SECONDS;
+    document.getElementById('autoSyncBadge').style.display = 'inline-flex';
+    updateCountdownDisplay();
+
+    // Countdown timer (update setiap detik)
+    countdownTimer = setInterval(() => {
+        countdownValue--;
+        if (countdownValue <= 0) countdownValue = AUTO_SYNC_SECONDS;
+        updateCountdownDisplay();
+    }, 1000);
+
+    // Auto-sync interval
+    autoSyncInterval = setInterval(async () => {
+        if (connectedSheetId) {
+            await loadSheetData(true);
+            // Kirim antrian write yang tertunda
+            processSyncQueue(document.getElementById('scriptUrlInput').value.trim());
+        }
+        countdownValue = AUTO_SYNC_SECONDS;
+        updateCountdownDisplay();
+    }, AUTO_SYNC_SECONDS * 1000);
+}
+
+function stopAutoSync() {
+    if (autoSyncInterval) { clearInterval(autoSyncInterval); autoSyncInterval = null; }
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    document.getElementById('autoSyncBadge').style.display = 'none';
+}
+
+function updateCountdownDisplay() {
+    document.getElementById('autoSyncTimer').textContent = `Auto-sync: ${countdownValue}s`;
+}
+
+// ============================================
+// PROSES SCAN
 // ============================================
 function processScan(partNumber) {
     partNumber = String(partNumber).trim();
     if (!partNumber) return;
 
-    // Cari di data
     const item = sheetData.find(row => {
-        const p = String(row['part'] || row['kode'] || row['barcode'] || '').trim();
+        const p = String(row['part']||row['kode']||row['barcode']||'').trim();
         return p === partNumber;
     });
 
@@ -569,43 +650,36 @@ function processScan(partNumber) {
 
     // Hitung +1
     if (stockOpname[partNumber] === undefined) {
-        stockOpname[partNumber] = (parseFloat(item['fisk']) || 0) + 1;
+        stockOpname[partNumber] = (parseFloat(item['fisk'])||0) + 1;
     } else {
         stockOpname[partNumber] += 1;
     }
     totalScans++;
 
-    // Update riwayat scan
+    // Update riwayat
     if (!scanHistoryMap[partNumber]) scanHistoryMap[partNumber] = 0;
     scanHistoryMap[partNumber]++;
-
-    // Pindahkan part ini ke paling atas urutan
     sortedPartOrder = sortedPartOrder.filter(p => p !== partNumber);
     sortedPartOrder.unshift(partNumber);
 
-    // Bunyi beep
+    // Beep + vibrate
     playBeep();
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
 
-    // Update info terakhir
-    const desc = item['deskripsi part'] || item['deskripsi'] || item['nama'] || '-';
+    // Update UI
+    const desc = item['deskripsi part']||item['deskripsi']||item['nama']||'-';
     document.getElementById('lastScanPart').textContent = `${partNumber} — ${desc}`;
     document.getElementById('totalScanCount').textContent = totalScans;
     document.getElementById('lastScanBox').classList.add('has-data');
     document.getElementById('liveScanCount').textContent = totalScans;
     document.getElementById('liveLastScan').textContent = partNumber;
 
-    // Update chips riwayat scan
     renderScanHistory();
-
-    // Update tabel & statistik
     renderTable();
     updateStats();
 
-    // Kirim ke Google Sheet
+    // Kirim ke sheet (langsung, tanpa menunggu auto-sync)
     syncToSheet(partNumber, 1);
-
-    // Vibrate
-    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
 
     showToast(`+1 ${partNumber} → Fisk: ${stockOpname[partNumber]}`, 'success');
 }
@@ -614,7 +688,7 @@ function manualIncrement() {
     const part = document.getElementById('inputBarcode').value.trim();
     if (!part) { showToast('Masukkan kode part', 'error'); return; }
     const qtyVal = parseInt(document.getElementById('inputQty').value) || 1;
-    const item = sheetData.find(row => { const p = String(row['part']||row['kode']||row['barcode']||'').trim(); return p===part; });
+    const item = sheetData.find(row => { const p=String(row['part']||row['kode']||row['barcode']||'').trim(); return p===part; });
     if (!item) { playErrorBeep(); showToast(`"${part}" tidak ditemukan!`, 'error'); return; }
     if (stockOpname[part] === undefined) stockOpname[part] = (parseFloat(item['fisk'])||0) + qtyVal;
     else stockOpname[part] += qtyVal;
@@ -638,34 +712,24 @@ function manualIncrement() {
 }
 
 // ============================================
-// RENDER SCAN HISTORY CHIPS
+// SCAN HISTORY CHIPS
 // ============================================
 function renderScanHistory() {
-    const container = document.getElementById('scanHistory');
-    if (sortedPartOrder.length === 0) { container.innerHTML = ''; return; }
-
-    let html = `<span style="font-size:11px;color:var(--text-secondary);font-weight:600;display:flex;align-items:center;gap:4px;margin-right:4px;"><i data-lucide="history" style="width:12px;height:12px;"></i>Terakhir di-scan:</span>`;
-
-    // Tampilkan max 10 chip terbaru
-    const showParts = sortedPartOrder.slice(0, 10);
-    showParts.forEach(part => {
+    const c = document.getElementById('scanHistory');
+    if (sortedPartOrder.length === 0) { c.innerHTML = ''; return; }
+    let html = `<span style="font-size:11px;color:var(--text-secondary);font-weight:600;display:flex;align-items:center;gap:4px;margin-right:4px;"><i data-lucide="history" style="width:12px;height:12px;"></i>Terakhir:</span>`;
+    sortedPartOrder.slice(0, 10).forEach(part => {
         const count = scanHistoryMap[part] || 0;
-        html += `<span class="scan-chip-history" onclick="focusPart('${part.replace(/'/g, "\\'")}')">${part}<span class="chip-count">${count}x</span></span>`;
+        html += `<span class="scan-chip-history" onclick="focusPart('${part.replace(/'/g,"\\'")}')">${part}<span class="chip-count">${count}x</span></span>`;
     });
-
-    if (sortedPartOrder.length > 10) {
-        html += `<span style="font-size:11px;color:var(--text-secondary);padding:4px 6px;">+${sortedPartOrder.length - 10} lainnya</span>`;
-    }
-
-    container.innerHTML = html;
+    if (sortedPartOrder.length > 10) html += `<span style="font-size:11px;color:var(--text-secondary);padding:4px 6px;">+${sortedPartOrder.length-10} lainnya</span>`;
+    c.innerHTML = html;
     lucide.createIcons();
 }
 
-// Klik chip → fokus ke part di tabel
 function focusPart(part) {
     document.getElementById('searchTable').value = part;
     filterTable();
-    // Scroll ke baris
     setTimeout(() => {
         const row = document.getElementById('row-' + CSS.escape(part));
         if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -683,16 +747,16 @@ async function syncToSheet(partNumber, increment) {
 }
 
 async function processSyncQueue(scriptUrl) {
-    if (isSyncing || syncQueue.length === 0) return;
+    if (isSyncing || syncQueue.length === 0 || !scriptUrl) return;
     isSyncing = true;
-    setSyncStatus('loading', 'Syncing...');
+    setSyncStatus('loading', 'Writing...');
     while (syncQueue.length > 0) {
         const item = syncQueue.shift();
         try {
-            await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ part: item.part, increment: item.increment }) });
+            await fetch(scriptUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:item.part,increment:item.increment}) });
         } catch (e) {
             try { await new Promise(r=>setTimeout(r,500)); await fetch(scriptUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:item.part,increment:item.increment}) }); }
-            catch(e2) { setSyncStatus('fail','Sync Failed'); syncQueue.unshift(item); break; }
+            catch(e2) { setSyncStatus('fail','Write Failed'); syncQueue.unshift(item); break; }
         }
     }
     isSyncing = false;
@@ -700,7 +764,7 @@ async function processSyncQueue(scriptUrl) {
 }
 
 // ============================================
-// RENDER TABEL DENGAN URUTAN SCAN
+// RENDER TABEL
 // ============================================
 function renderTable() {
     const tbody = document.getElementById('tableBody');
@@ -709,13 +773,11 @@ function renderTable() {
         lucide.createIcons(); return;
     }
 
-    // Urutkan: yang sudah di-scan paling atas (berdasarkan sortedPartOrder)
     const sortedData = [...sheetData].sort((a, b) => {
         const pA = String(a['part']||a['kode']||a['barcode']||'').trim();
         const pB = String(b['part']||b['kode']||b['barcode']||'').trim();
         const idxA = sortedPartOrder.indexOf(pA);
         const idxB = sortedPartOrder.indexOf(pB);
-        // Yang ada di sortedPartOrder duluan
         if (idxA === -1 && idxB === -1) return 0;
         if (idxA === -1) return 1;
         if (idxB === -1) return -1;
@@ -723,7 +785,7 @@ function renderTable() {
     });
 
     let html = '';
-    sortedData.forEach((row, i) => {
+    sortedData.forEach((row) => {
         const part = String(row['part']||row['kode']||row['barcode']||'').trim();
         const desc = row['deskripsi part']||row['deskripsi']||row['nama']||'-';
         const no = row['no'] || (sheetData.indexOf(row) + 1);
@@ -737,11 +799,10 @@ function renderTable() {
         const dt = selisih===null?'-':(selisih===0?'0':(selisih>0?'+':'')+selisih);
         const isDone = fisk !== null;
         const scanCount = scanHistoryMap[part] || 0;
-        const isLatest = sortedPartOrder[0] === part;
 
         html += `<tr class="${isDone?'row-done':''}" id="row-${CSS.escape(part)}" data-part="${part}" data-status="${isDone?'done':'pending'}" data-name="${desc.toLowerCase()} ${part.toLowerCase()}">
             <td style="color:var(--text-secondary);font-size:12px;">${no}</td>
-            <td><code class="mono" style="font-size:11px;background:var(--bg-primary);padding:2px 7px;border-radius:4px;">${part||'-'}</code>${scanCount > 0 ? `<span class="scan-chip">${scanCount}x</span>` : ''}</td>
+            <td><code class="mono" style="font-size:11px;background:var(--bg-primary);padding:2px 7px;border-radius:4px;">${part||'-'}</code>${scanCount>0?`<span class="scan-chip">${scanCount}x</span>`:''}</td>
             <td style="font-weight:500;max-width:220px;overflow:hidden;text-overflow:ellipsis;" title="${desc}">${desc}</td>
             <td class="td-r mono">${qty}</td>
             <td class="td-r mono">${qtyAlloc}</td>
@@ -754,20 +815,12 @@ function renderTable() {
     tbody.innerHTML = html;
     lucide.createIcons();
 
-    // Flash baris terakhir yang di-scan
-    if (sortedPartOrder.length > 0) {
-        flashRow(sortedPartOrder[0]);
-    }
+    if (sortedPartOrder.length > 0) flashRow(sortedPartOrder[0]);
 }
 
 function flashRow(part) {
     const row = document.getElementById('row-' + CSS.escape(part));
-    if (row) {
-        row.classList.remove('row-flash');
-        void row.offsetWidth;
-        row.classList.add('row-flash');
-        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+    if (row) { row.classList.remove('row-flash'); void row.offsetWidth; row.classList.add('row-flash'); row.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
 }
 
 // ============================================
@@ -801,58 +854,39 @@ function updateStats() {
 }
 function animNum(id, target) {
     const el = document.getElementById(id);
-    const cur = parseInt(el.textContent)||0;
-    const d = target-cur;
-    if(d===0)return;
-    let step=0;const steps=15;
+    const cur = parseInt(el.textContent)||0; const d = target-cur;
+    if(d===0)return; let step=0;const steps=15;
     const iv=setInterval(()=>{step++;el.textContent=Math.round(cur+d*(step/steps));if(step>=steps){el.textContent=target;clearInterval(iv);}},25);
 }
 
 // ============================================
-// BARCODE SCANNER (ZXing SUPER SENSITIF)
+// BARCODE SCANNER
 // ============================================
 async function startScanner() {
-    if (sheetData.length === 0) { showToast('Load data Google Sheet dulu!', 'error'); return; }
-    const overlay = document.getElementById('scannerOverlay');
-    const video = document.getElementById('scannerVideo');
-    overlay.classList.add('active');
+    if (sheetData.length === 0) { showToast('Tunggu data selesai dimuat...', 'error'); return; }
+    document.getElementById('scannerOverlay').classList.add('active');
     isScanning = true;
-
-    // Resume audio context jika suspended (biasa di mobile)
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
     try {
         codeReader = new ZXing.BrowserMultiFormatReader(undefined, {
-            delayBetweenScanSuccess: 300,
-            delayBetweenScanAttempts: 20,
-            tryHarder: true,
-            possibleFormats: [
-                ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39,
-                ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
-                ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E,
-                ZXing.BarcodeFormat.ITF, ZXing.BarcodeFormat.CODE_93,
-                ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.DATA_MATRIX
-            ]
+            delayBetweenScanSuccess: 300, delayBetweenScanAttempts: 20, tryHarder: true,
+            possibleFormats: [ZXing.BarcodeFormat.CODE_128,ZXing.BarcodeFormat.CODE_39,ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E,ZXing.BarcodeFormat.ITF,ZXing.BarcodeFormat.CODE_93,ZXing.BarcodeFormat.QR_CODE,ZXing.BarcodeFormat.DATA_MATRIX]
         });
         const devices = await codeReader.listVideoInputDevices();
         const selected = devices.length > 1 ? devices[devices.length - 1] : devices[0];
-        codeReader.decodeFromVideoDevice(selected.deviceId, video, (result, err) => {
-            if (result && isScanning) {
-                processScan(result.getText());
-            }
+        codeReader.decodeFromVideoDevice(selected.deviceId, document.getElementById('scannerVideo'), (result, err) => {
+            if (result && isScanning) processScan(result.getText());
         });
     } catch (e) {
-        console.error(e);
-        showToast('Gagal aktifkan kamera: ' + e.message, 'error');
-        stopScanner();
+        console.error(e); showToast('Gagal kamera: ' + e.message, 'error'); stopScanner();
     }
 }
 
 function stopScanner() {
     isScanning = false;
     if (codeReader) { codeReader.reset(); codeReader = null; }
-    const video = document.getElementById('scannerVideo');
-    if (video.srcObject) { video.srcObject.getTracks().forEach(t=>t.stop()); video.srcObject = null; }
+    const v = document.getElementById('scannerVideo');
+    if (v.srcObject) { v.srcObject.getTracks().forEach(t=>t.stop()); v.srcObject = null; }
     document.getElementById('scannerOverlay').classList.remove('active');
 }
 
@@ -862,8 +896,7 @@ function stopScanner() {
 function parseCSV(text) {
     const lines=[];let cur='';let inQ=false;
     for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(inQ&&text[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if((c==='\n'||c==='\r')&&!inQ){if(cur.trim())lines.push(cur);cur='';if(c==='\r'&&text[i+1]==='\n')i++;}else cur+=c;}
-    if(cur.trim())lines.push(cur);
-    if(lines.length<2)return[];
+    if(cur.trim())lines.push(cur);if(lines.length<2)return[];
     const hdrs=csvLine(lines[0]);const rows=[];
     for(let i=1;i<lines.length;i++){const vals=csvLine(lines[i]);if(vals.length===0||(vals.length===1&&vals[0]===''))continue;const row={};hdrs.forEach((h,j)=>{row[h.trim()]=(vals[j]||'').trim();});rows.push(row);}
     return rows;
@@ -879,8 +912,7 @@ function showToast(msg, type='info') {
     t.className = `toast toast-${type}`;
     const icons = {success:'check-circle',error:'alert-triangle',info:'info'};
     t.innerHTML = `<i data-lucide="${icons[type]||'info'}" style="width:16px;height:16px;flex-shrink:0;"></i><span>${msg}</span>`;
-    c.appendChild(t);
-    lucide.createIcons();
+    c.appendChild(t); lucide.createIcons();
     setTimeout(()=>{t.style.animation='tOut .3s ease-in forwards';setTimeout(()=>t.remove(),300);},2200);
 }
 
@@ -888,26 +920,58 @@ function showToast(msg, type='info') {
 // KEYBOARD SHORTCUTS
 // ============================================
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { if (isScanning) stopScanner(); }
+    if (e.key === 'Escape' && isScanning) stopScanner();
     if (e.ctrlKey && e.shiftKey && e.key === 'S') { e.preventDefault(); startScanner(); }
 });
 
 // ============================================
-// INISIALISASI
+// INISIALISASI OTOMATIS (TANPA KLIK TOMBOL)
 // ============================================
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+    // 1. Muat URL yang tersimpan di localStorage
     const sUrl = localStorage.getItem('so_sheetUrl');
     const scUrl = localStorage.getItem('so_scriptUrl');
     if (sUrl) document.getElementById('sheetUrlInput').value = sUrl;
     if (scUrl) document.getElementById('scriptUrlInput').value = scUrl;
-    document.getElementById('sheetUrlInput').addEventListener('change', e => localStorage.setItem('so_sheetUrl', e.target.value));
-    document.getElementById('scriptUrlInput').addEventListener('change', e => localStorage.setItem('so_scriptUrl', e.target.value));
 
-    // Inisialisasi audio context saat first interaction
+    // 2. Simpan URL otomatis saat diubah
+    document.getElementById('sheetUrlInput').addEventListener('change', e => {
+        localStorage.setItem('so_sheetUrl', e.target.value);
+        // Jika URL berubah, coba hubungkan ulang
+        const id = extractSheetId(e.target.value);
+        if (id) { connectedSheetId = id; loadSheetData(false); }
+    });
+    document.getElementById('scriptUrlInput').addEventListener('change', e => {
+        localStorage.setItem('so_scriptUrl', e.target.value);
+    });
+
+    // 3. Inisialisasi audio context saat first interaction
     document.body.addEventListener('click', () => {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
     }, { once: true });
+
+    // 4. HUBUNGKAN OTOMATIS JIKA URL SUDAH ADA
+    if (sUrl) {
+        const id = extractSheetId(sUrl);
+        if (id) {
+            connectedSheetId = id;
+            const success = await loadSheetData(false);
+
+            // 5. JIKA BERHASIL, MULAI AUTO-SYNC
+            if (success) {
+                startAutoSync();
+                showToast('Terhubung otomatis, sync tiap 5 detik', 'success');
+            }
+        } else {
+            document.getElementById('statusText').textContent = 'URL tidak valid';
+            setSyncStatus('fail', 'Invalid URL');
+        }
+    } else {
+        // Belum ada URL tersimpan
+        document.getElementById('statusText').textContent = 'Belum dikonfigurasi';
+        setSyncStatus('fail', 'No URL');
+    }
 });
 </script>
 </body>
