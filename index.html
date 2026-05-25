@@ -3,629 +3,1273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Opname - Sparepart Management System</title>
-    <!-- Tailwind CSS untuk Styling Cepat -->
+    <title>Stock Opname</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome untuk Ikon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SweetAlert2 untuk Popup Alert yang bagus -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- SheetJS untuk Export ke Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- HTML5 QRCode Scanner untuk Kamera -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- ZXing Barcode Scanner -->
+    <script src="https://unpkg.com/@zxing/browser@latest"></script>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
-        /* Pengaturan Tema Gelap dan Background Grid (Mirip seperti gambar) */
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d27;
+            --bg-card: #222636;
+            --border: #2e3348;
+            --text-primary: #e8eaf0;
+            --text-secondary: #8b90a5;
+            --accent: #00d4aa;
+            --accent-dim: rgba(0, 212, 170, 0.12);
+            --accent-glow: rgba(0, 212, 170, 0.3);
+            --danger: #ff4d6a;
+            --danger-dim: rgba(255, 77, 106, 0.12);
+            --warning: #ffb547;
+            --warning-dim: rgba(255, 181, 71, 0.12);
+            --success: #00d4aa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background-color: #0d0d0f;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .panel-bg {
-            background-color: #1a1a1c;
-            border: 1px solid #2a2a2c;
+        /* Background Atmosphere */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -30%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: floatBlob 12s ease-in-out infinite;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -20%;
+            left: -15%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: floatBlob 15s ease-in-out infinite reverse;
         }
 
-        /* Styling Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0d0d0f; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #333; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555; 
+        @keyframes floatBlob {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -40px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
         }
 
-        /* Warna khusus dari gambar */
-        .text-brand-yellow { color: #fbc02d; }
-        .bg-brand-yellow { background-color: #fbc02d; }
-        .hover-bg-brand-yellow:hover { background-color: #f5b000; }
-        
-        .border-top-yellow { border-top: 2px solid #fbc02d; }
-        .border-top-green { border-top: 2px solid #4ade80; }
-        .border-top-red { border-top: 2px solid #f87171; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* Animasi Loading */
-        .loader {
-            border: 3px solid #2a2a2c;
-            border-top: 3px solid #fbc02d;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
+        /* Scanner Overlay */
+        .scanner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .scanner-overlay.active { display: flex; }
 
-        /* Penyesuaian tampilan video scanner */
-        #reader video {
-            border-radius: 0.5rem;
+        .scanner-frame {
+            width: 320px;
+            height: 320px;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .scanner-frame video {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
         }
-        #reader {
-            border: none !important;
+
+        /* Sudut frame scanner */
+        .scanner-frame::before,
+        .scanner-frame::after,
+        .scanner-corners::before,
+        .scanner-corners::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-color: var(--accent);
+            border-style: solid;
+            z-index: 10;
+        }
+        .scanner-frame::before {
+            top: 8px; left: 8px;
+            border-width: 3px 0 0 3px;
+            border-radius: 8px 0 0 0;
+        }
+        .scanner-frame::after {
+            top: 8px; right: 8px;
+            border-width: 3px 3px 0 0;
+            border-radius: 0 8px 0 0;
+        }
+        .scanner-corners::before {
+            bottom: 8px; left: 8px;
+            border-width: 0 0 3px 3px;
+            border-radius: 0 0 0 8px;
+        }
+        .scanner-corners::after {
+            bottom: 8px; right: 8px;
+            border-width: 0 3px 3px 0;
+            border-radius: 0 0 8px 0;
+        }
+
+        /* Garis scan bergerak */
+        .scan-line {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            box-shadow: 0 0 15px var(--accent-glow);
+            animation: scanMove 2s ease-in-out infinite;
+            z-index: 10;
+        }
+        @keyframes scanMove {
+            0%, 100% { top: 15px; }
+            50% { top: calc(100% - 15px); }
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            border-color: rgba(0, 212, 170, 0.25);
+        }
+
+        /* Input */
+        .input-field {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            width: 100%;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+        .input-field::placeholder { color: var(--text-secondary); opacity: 0.6; }
+
+        /* Tombol */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #0f1117;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 20px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        .btn-outline:hover {
+            background: var(--accent-dim);
+        }
+        .btn-danger {
+            background: var(--danger-dim);
+            color: var(--danger);
+            border: 1px solid rgba(255, 77, 106, 0.2);
+        }
+        .btn-danger:hover {
+            background: rgba(255, 77, 106, 0.2);
+        }
+        .btn-ghost {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .badge-success { background: var(--accent-dim); color: var(--accent); }
+        .badge-warning { background: var(--warning-dim); color: var(--warning); }
+        .badge-danger { background: var(--danger-dim); color: var(--danger); }
+
+        /* Tabel */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .data-table thead th {
+            background: var(--bg-primary);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .data-table tbody tr {
+            transition: background 0.2s;
+        }
+        .data-table tbody tr:hover {
+            background: rgba(0, 212, 170, 0.04);
+        }
+        .data-table tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn 0.35s ease-out;
+            min-width: 280px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        .toast-success {
+            background: linear-gradient(135deg, #1a2e28, #1a2d2a);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            color: var(--accent);
+        }
+        .toast-error {
+            background: linear-gradient(135deg, #2e1a20, #2d1a1e);
+            border: 1px solid rgba(255, 77, 106, 0.3);
+            color: var(--danger);
+        }
+        .toast-info {
+            background: linear-gradient(135deg, #1a1d2e, #1a1e2d);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(60px); }
+        }
+
+        /* Statistik angka animasi */
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--accent), #00f5c8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Pulse dot */
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            50% { box-shadow: 0 0 0 8px transparent; }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            animation: modalIn 0.3s ease-out;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Tabel scroll container */
+        .table-scroll {
+            max-height: 420px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .scanner-frame { width: 260px; height: 260px; }
+            .stat-number { font-size: 28px; }
+            .data-table tbody td, .data-table thead th { padding: 10px 10px; font-size: 12px; }
+        }
+
+        /* Koneksi status bar */
+        .status-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 0;
+            font-size: 12px;
+        }
+
+        /* Input group dengan ikon */
+        .input-group {
+            position: relative;
+        }
+        .input-group .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+        .input-group .input-field {
+            padding-left: 42px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <div class="max-w-7xl mx-auto space-y-6">
-        
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div class="bg-brand-yellow text-black p-3 rounded-lg text-2xl font-bold flex items-center justify-center w-12 h-12">
-                    <i class="fa-solid fa-clipboard-list"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-wide">Stock Opname</h1>
-                    <p class="text-gray-400 text-xs md:text-sm">Sparepart Management System</p>
-                </div>
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Scanner Overlay -->
+<div class="scanner-overlay" id="scannerOverlay">
+    <div style="text-align:center; margin-bottom: 20px;">
+        <p style="color: var(--accent); font-weight: 600; font-size: 16px; letter-spacing: 1px;">SCANNING BARCODE</p>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Arahkan kamera ke barcode</p>
+    </div>
+    <div class="scanner-frame" id="scannerFrame">
+        <video id="scannerVideo" playsinline></video>
+        <div class="scanner-corners"></div>
+        <div class="scan-line"></div>
+    </div>
+    <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <button class="btn btn-danger" onclick="stopScanner()">
+            <i data-lucide="x" style="width:16px;height:16px;"></i> Tutup
+        </button>
+    </div>
+    <p id="scanResult" class="mono" style="margin-top: 16px; color: var(--text-secondary); font-size: 13px;"></p>
+</div>
+
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box">
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;" id="modalTitle">Konfirmasi</h3>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;" id="modalMessage"></p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+            <button class="btn btn-primary" id="modalConfirmBtn" onclick="closeModal()">Ya</button>
+        </div>
+    </div>
+</div>
+
+<!-- Konten Utama -->
+<div style="position: relative; z-index: 1;">
+
+    <!-- Header -->
+    <header style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(15,17,23,0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="package-check" style="width:20px;height:20px;color:var(--accent);"></i>
             </div>
             <div>
-                <button onclick="scanBarcode()" class="bg-brand-yellow text-black font-semibold px-6 py-3 rounded-lg hover-bg-brand-yellow transition duration-200 flex items-center gap-2 shadow-lg shadow-yellow-900/20">
-                    <i class="fa-solid fa-qrcode"></i> Scan Barcode
-                </button>
+                <h1 style="font-size: 18px; font-weight: 700; letter-spacing: -0.5px;">Stock Opname</h1>
+                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 1px;">Sistem pencatatan stok real-time</p>
             </div>
         </div>
-
-        <!-- KPI Cards Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="panel-bg rounded-xl p-5 border-top-yellow relative overflow-hidden">
-                <p class="text-gray-400 text-sm mb-2">Total Items</p>
-                <h2 class="text-3xl font-bold" id="kpi-total">0</h2>
-            </div>
-            <div class="panel-bg rounded-xl p-5 border-top-green relative overflow-hidden">
-                <p class="text-gray-400 text-sm mb-2">Sudah Dihitung</p>
-                <h2 class="text-3xl font-bold text-green-400" id="kpi-sudah">0</h2>
-            </div>
-            <div class="panel-bg rounded-xl p-5 border-top-yellow relative overflow-hidden">
-                <p class="text-gray-400 text-sm mb-2">Belum Dihitung</p>
-                <h2 class="text-3xl font-bold text-yellow-400" id="kpi-belum">0</h2>
-            </div>
-            <div class="panel-bg rounded-xl p-5 border-top-red relative overflow-hidden">
-                <p class="text-gray-400 text-sm mb-2">Ada Selisih</p>
-                <h2 class="text-3xl font-bold text-red-400" id="kpi-selisih">0</h2>
-            </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="pulse-dot" id="statusDot"></div>
+            <span style="font-size: 12px; color: var(--text-secondary);" id="statusText">Belum terhubung</span>
         </div>
+    </header>
 
-        <!-- Action / Upload Section -->
-        <div class="panel-bg rounded-xl p-6 flex flex-col lg:flex-row justify-between items-center gap-6">
-            <!-- Dropzone -->
-            <div class="w-full lg:w-2/3 border-2 border-dashed border-gray-600 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#222225] transition duration-200" onclick="document.getElementById('file-upload').click()">
-                <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-3"></i>
-                <p class="text-gray-300 font-medium">Drop Excel file atau klik untuk upload</p>
-                <p class="text-gray-500 text-sm mt-1">Format: .xlsx, .xls</p>
-                <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls">
+    <!-- Status Bar Koneksi -->
+    <div class="status-bar" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <i data-lucide="link" style="width:12px;height:12px;color:var(--text-secondary);"></i>
+        <span style="color: var(--text-secondary);">Google Sheet:</span>
+        <span class="mono" style="color: var(--text-secondary); font-size: 11px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="sheetUrlDisplay">Tidak ada URL</span>
+    </div>
+
+    <main style="max-width: 1100px; margin: 0 auto; padding: 24px;">
+
+        <!-- Konfigurasi API -->
+        <section class="card fade-in" style="margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <i data-lucide="settings" style="width:18px;height:18px;color:var(--accent);"></i>
+                <h2 style="font-size: 15px; font-weight: 700;">Konfigurasi Google Sheet API</h2>
             </div>
-
-            <!-- Export / Clear Buttons -->
-            <div class="w-full lg:w-1/3 flex flex-wrap lg:flex-col xl:flex-row gap-3 justify-center lg:justify-end">
-                <button onclick="exportExcel()" class="panel-bg hover:bg-gray-800 text-gray-200 px-5 py-2.5 rounded-lg border border-gray-600 transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel"></i> Export Excel
-                </button>
-                <button onclick="exportPDF()" class="panel-bg hover:bg-gray-800 text-gray-200 px-5 py-2.5 rounded-lg border border-gray-600 transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-pdf"></i> Export PDF
-                </button>
-                <button onclick="clearData()" class="bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/50 px-5 py-2.5 rounded-lg transition flex items-center gap-2">
-                    <i class="fa-solid fa-trash-can"></i> Clear
+            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.6;">
+                Paste URL Google Sheet API kamu di bawah ini. Format:
+                <code class="mono" style="background: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 12px; color: var(--accent);">
+                    https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0
+                </code>
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div class="input-group" style="flex: 1; min-width: 280px;">
+                    <i data-lucide="file-spreadsheet" class="input-icon" style="width:16px;height:16px;"></i>
+                    <input type="text" class="input-field" id="sheetUrlInput"
+                        placeholder="Paste URL Google Sheet di sini..."
+                        value="https://docs.google.com/spreadsheets/d/1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY/edit?gid=0#gid=0">
+                </div>
+                <button class="btn btn-primary" onclick="connectSheet()">
+                    <i data-lucide="plug" style="width:16px;height:16px;"></i> Hubungkan
                 </button>
             </div>
-        </div>
+        </section>
 
-        <!-- Search Bar -->
-        <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
+        <!-- Statistik -->
+        <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;" class="fade-in">
+            <div class="card" style="padding: 20px;">
+                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Item</p>
+                <div class="stat-number" id="statTotal">0</div>
             </div>
-            <input type="text" id="searchInput" placeholder="Cari berdasarkan No, Part, atau Deskripsi..." 
-                class="w-full panel-bg border border-gray-700 text-white rounded-lg pl-11 pr-10 py-3 focus:outline-none focus:border-gray-500 transition shadow-inner">
-            <div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer" onclick="document.getElementById('searchInput').value=''; filterTable();">
-                <i class="fa-solid fa-xmark text-gray-500 hover:text-white transition"></i>
+            <div class="card" style="padding: 20px;">
+                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Sudah Diinput</p>
+                <div class="stat-number" id="statInput">0</div>
             </div>
-        </div>
+            <div class="card" style="padding: 20px;">
+                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Belum Diinput</p>
+                <div class="stat-number" id="statRemaining" style="background: linear-gradient(135deg, var(--warning), #ffd166); -webkit-background-clip: text; background-clip: text;">0</div>
+            </div>
+            <div class="card" style="padding: 20px;">
+                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Progress</p>
+                <div class="stat-number" id="statProgress">0%</div>
+                <div style="margin-top: 10px; height: 4px; background: var(--bg-primary); border-radius: 2px; overflow: hidden;">
+                    <div id="progressBar" style="height: 100%; width: 0%; background: var(--accent); border-radius: 2px; transition: width 0.5s ease;"></div>
+                </div>
+            </div>
+        </section>
 
-        <!-- Data Table Section -->
-        <div class="panel-bg rounded-xl border border-gray-700 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-[#222225] text-gray-400 uppercase text-xs font-semibold border-b border-gray-700">
+        <!-- Input Section -->
+        <section class="card fade-in" style="margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="scan-barcode" style="width:18px;height:18px;color:var(--accent);"></i>
+                    <h2 style="font-size: 15px; font-weight: 700;">Input Stok</h2>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline" onclick="startScanner()" style="padding: 10px 18px; font-size: 13px;">
+                        <i data-lucide="camera" style="width:15px;height:15px;"></i> Scan Barcode
+                    </button>
+                    <button class="btn btn-ghost" onclick="loadSheetData()" style="padding: 10px 18px; font-size: 13px;">
+                        <i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Input Manual -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;" id="inputForm">
+                <div>
+                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Barcode / Kode</label>
+                    <input type="text" class="input-field" id="inputBarcode" placeholder="Scan atau ketik kode barcode..." onkeydown="if(event.key==='Enter') searchBarcode()">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Jumlah Stok Fisik</label>
+                    <input type="number" class="input-field" id="inputQty" placeholder="0" min="0" onkeydown="if(event.key==='Enter') submitStock()">
+                </div>
+                <button class="btn btn-primary" onclick="submitStock()" style="height: 46px; padding: 0 28px;">
+                    <i data-lucide="check" style="width:16px;height:16px;"></i> Simpan
+                </button>
+            </div>
+
+            <!-- Info item ditemukan -->
+            <div id="foundItem" style="display: none; margin-top: 16px; padding: 16px; background: var(--accent-dim); border: 1px solid rgba(0,212,170,0.2); border-radius: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent);"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: var(--accent);">Item Ditemukan</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 13px;">
+                    <div>
+                        <span style="color: var(--text-secondary);">Nama Item</span>
+                        <p style="font-weight: 600; margin-top: 2px;" id="foundName">-</p>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">Stok Sistem</span>
+                        <p class="mono" style="font-weight: 600; margin-top: 2px;" id="foundSystem">-</p>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">Satuan</span>
+                        <p style="font-weight: 600; margin-top: 2px;" id="foundUnit">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item tidak ditemukan -->
+            <div id="notFoundItem" style="display: none; margin-top: 16px; padding: 16px; background: var(--danger-dim); border: 1px solid rgba(255,77,106,0.2); border-radius: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="alert-circle" style="width:16px;height:16px;color:var(--danger);"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: var(--danger);">Item tidak ditemukan di database</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabel Data -->
+        <section class="card fade-in">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="table" style="width:18px;height:18px;color:var(--accent);"></i>
+                    <h2 style="font-size: 15px; font-weight: 700;">Data Stock Opname</h2>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <div class="input-group" style="width: 220px;">
+                        <i data-lucide="search" class="input-icon" style="width:14px;height:14px;"></i>
+                        <input type="text" class="input-field" id="searchTable" placeholder="Cari item..." style="padding-left: 36px; font-size: 13px;" oninput="filterTable()">
+                    </div>
+                    <select class="input-field" id="filterStatus" style="width: 140px; font-size: 13px; cursor: pointer;" onchange="filterTable()">
+                        <option value="all">Semua</option>
+                        <option value="done">Sudah Input</option>
+                        <option value="pending">Belum Input</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-scroll" id="tableContainer">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-4">No</th>
-                            <th class="px-6 py-4">Part</th>
-                            <th class="px-6 py-4">Deskripsi</th>
-                            <th class="px-6 py-4 text-center">Part QTY</th>
-                            <th class="px-6 py-4 text-center">QTY Alloc</th>
-                            <th class="px-6 py-4 text-center">Available</th>
-                            <th class="px-6 py-4 text-center">Fisik</th>
-                            <th class="px-6 py-4 text-center">Selisih</th>
-                            <th class="px-6 py-4 text-center">Aksi</th>
+                            <th style="width:50px;">No</th>
+                            <th>Barcode</th>
+                            <th>Nama Item</th>
+                            <th style="text-align:right;">Stok Sistem</th>
+                            <th style="text-align:right;">Stok Fisik</th>
+                            <th style="text-align:right;">Selisih</th>
+                            <th style="text-align:center;">Status</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y divide-gray-800">
-                        <!-- Data will be populated here -->
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                <i data-lucide="database" style="width:40px;height:40px;margin: 0 auto 12px;display:block;opacity:0.3;"></i>
+                                Hubungkan Google Sheet terlebih dahulu untuk memuat data
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-            
-            <!-- Empty State / Loading State -->
-            <div id="emptyState" class="py-16 flex flex-col items-center justify-center text-gray-500">
-                <i class="fa-regular fa-file-lines text-5xl mb-4 opacity-50"></i>
-                <p class="text-lg font-medium">Belum ada data</p>
-                <p class="text-sm mt-1">Upload file Excel atau ambil data dari Google Sheets untuk memulai</p>
-                <p class="text-xs mt-4 opacity-30">- By Gregorius Berlin</p>
-            </div>
-            
-            <div id="loadingState" class="py-16 hidden flex-col items-center justify-center text-brand-yellow">
-                <div class="loader mb-4"></div>
-                <p class="text-sm font-medium animate-pulse">Mengambil data dari Google Sheets...</p>
-            </div>
-        </div>
+        </section>
 
-    </div>
+        <!-- Footer -->
+        <footer style="text-align: center; padding: 32px 0 16px; color: var(--text-secondary); font-size: 12px;">
+            <p>Stock Opname System &mdash; Terintegrasi dengan Google Sheet</p>
+        </footer>
+    </main>
+</div>
 
-    <!-- Modal Scanner Kamera -->
-    <div id="scannerModal" class="fixed inset-0 bg-black/90 hidden z-[100] flex-col items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-[#1a1a1c] border border-gray-700 rounded-xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl shadow-yellow-900/20">
-            <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-[#222225]">
-                <h3 class="text-lg font-bold text-brand-yellow flex items-center gap-2">
-                    <i class="fa-solid fa-camera"></i> Scan Barcode Part
-                </h3>
-                <button onclick="closeScanner()" class="text-gray-400 hover:text-red-400 transition">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
-                </button>
-            </div>
-            
-            <div class="p-4 flex flex-col items-center justify-center bg-black relative min-h-[300px]">
-                <!-- Tempat Video Scanner Muncul -->
-                <div id="reader" class="w-full max-w-sm rounded-lg overflow-hidden"></div>
-                <div id="scannerLoading" class="absolute inset-0 flex flex-col items-center justify-center text-brand-yellow hidden">
-                    <div class="loader mb-3"></div>
-                    <p class="text-sm">Menyiapkan kamera...</p>
-                </div>
-            </div>
-            
-            <div class="p-4 border-t border-gray-700 text-center text-sm text-gray-400 bg-[#222225]">
-                Arahkan kamera ke Barcode atau QR Code Part.<br>
-                <button onclick="manualInput()" class="mt-3 bg-[#333] hover:bg-brand-yellow hover:text-black text-white px-4 py-2 rounded-lg transition duration-200">
-                    <i class="fa-solid fa-keyboard mr-1"></i> Ketik Manual Saja
-                </button>
-            </div>
-        </div>
-    </div>
+<script>
+    // ============================================
+    // Variabel Global
+    // ============================================
+    let sheetData = [];           // Data dari Google Sheet
+    let stockOpname = {};         // Data stok fisik yang sudah diinput { barcode: qty }
+    let connectedSheetId = null;  // ID sheet yang terhubung
+    let codeReader = null;        // Instance ZXing barcode reader
+    let isScanning = false;       // Status scanner
+    let selectedBarcode = null;   // Barcode yang sedang dipilih untuk input
 
-    <script>
-        /* =====================================================================
-           [PENTING] KONFIGURASI GOOGLE SHEETS API
-           =====================================================================
-           Ganti URL di bawah ini dengan URL Web App Google Apps Script Anda.
-           Lihat instruksi di luar kotak kode ini untuk cara membuat Web App-nya.
-        */
-        const GOOGLE_SCRIPT_URL = ""https://script.google.com/macros/s/AKfycbzuzPVqPHpsh9XFesb2xOu3e9Jncjj7Ug3hyGx6V3KxJoh5Tlfvl5rCVIp06ZePMWY3/exec")
-        
-        // Data State
-        let stockData = [];
-        let html5QrCode = null; // Variabel untuk menyimpan instance scanner
+    // Inisialisasi ikon Lucide
+    lucide.createIcons();
 
-        // DOM Elements
-        const tableBody = document.getElementById('tableBody');
-        const emptyState = document.getElementById('emptyState');
-        const loadingState = document.getElementById('loadingState');
-        const searchInput = document.getElementById('searchInput');
+    // ============================================
+    // Konfigurasi - PASTE API URL DI SINI
+    // ============================================
+    /*
+     * CARA MENGGUNAKAN:
+     * 1. Buka Google Sheet kamu
+     * 2. Klik menu "Extensions" > "Apps Script"
+     * 3. Paste kode Apps Script berikut:
+     *
+     * function doGet(e) {
+     *   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(e.parameter.sheet || "Sheet1");
+     *   var data = sheet.getDataRange().getValues();
+     *   var headers = data[0];
+     *   var rows = [];
+     *   for (var i = 1; i < data.length; i++) {
+     *     var row = {};
+     *     for (var j = 0; j < headers.length; j++) {
+     *       row[headers[j]] = data[i][j];
+     *     }
+     *     rows.push(row);
+     *   }
+     *   return ContentService.createTextOutput(JSON.stringify(rows))
+     *     .setMimeType(ContentService.MimeType.JSON);
+     * }
+     *
+     * function doPost(e) {
+     *   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(e.parameter.sheet || "Sheet1");
+     *   var data = JSON.parse(e.postData.contents);
+     *   var headers = sheet.getDataRange().getValues()[0];
+     *   var colIndex = headers.indexOf("Stok Fisik");
+     *   var barcodeCol = headers.indexOf("Barcode");
+     *   if (colIndex === -1 || barcodeCol === -1) {
+     *     return ContentService.createTextOutput(JSON.stringify({error: "Kolom tidak ditemukan"}))
+     *       .setMimeType(ContentService.MimeType.JSON);
+     *   }
+     *   var allData = sheet.getDataRange().getValues();
+     *   for (var i = 1; i < allData.length; i++) {
+     *     if (String(allData[i][barcodeCol]) === String(data.barcode)) {
+     *       sheet.getRange(i + 1, colIndex + 1).setValue(data.qty);
+     *       break;
+     *     }
+     *   }
+     *   return ContentService.createTextOutput(JSON.stringify({success: true}))
+     *     .setMimeType(ContentService.MimeType.JSON);
+     * }
+     *
+     * 4. Klik "Deploy" > "New Deployment"
+     * 5. Pilih type "Web app"
+     * 6. Set "Execute as" = Me, "Who has access" = Anyone
+     * 7. Klik "Deploy" dan copy URL-nya
+     * 8. Paste URL tersebut di input konfigurasi di atas
+     *
+     * ATAU gunakan URL langsung jika sudah di-deploy.
+     * Kolom yang dibutuhkan: Barcode, Nama Item, Stok Sistem, Satuan, Stok Fisik
+     */
 
-        // Initial Load
-        document.addEventListener('DOMContentLoaded', () => {
-            if (GOOGLE_SCRIPT_URL !== "") {
-                fetchDataFromGoogleSheets();
-            } else {
-                // Tampilkan data contoh (dummy) jika URL API kosong agar desain terlihat
-                loadDummyData();
+    // Default URL (ganti dengan URL deployment Apps Script kamu)
+    let API_BASE_URL = "";
+
+    // ============================================
+    // Fungsi Koneksi Google Sheet
+    // ============================================
+    function extractSheetId(url) {
+        // Ekstrak ID dari URL Google Sheet
+        const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+        return match ? match[1] : null;
+    }
+
+    function connectSheet() {
+        const url = document.getElementById('sheetUrlInput').value.trim();
+        if (!url) {
+            showToast('Masukkan URL Google Sheet terlebih dahulu', 'error');
+            return;
+        }
+
+        const sheetId = extractSheetId(url);
+        if (!sheetId) {
+            showToast('Format URL tidak valid. Pastikan URL benar.', 'error');
+            return;
+        }
+
+        connectedSheetId = sheetId;
+        API_BASE_URL = url;
+
+        // Tampilkan URL di status bar
+        document.getElementById('sheetUrlDisplay').textContent = url;
+        document.getElementById('statusDot').style.background = 'var(--warning)';
+        document.getElementById('statusText').textContent = 'Menghubungkan...';
+
+        showToast('Mencoba menghubungkan ke Google Sheet...', 'info');
+
+        // Coba load data
+        loadSheetData();
+    }
+
+    async function loadSheetData() {
+        if (!connectedSheetId) {
+            showToast('Hubungkan Google Sheet terlebih dahulu', 'error');
+            return;
+        }
+
+        try {
+            // Gunakan public CSV endpoint sebagai fallback
+            // Format: https://docs.google.com/spreadsheets/d/{ID}/export?format=csv&gid=0
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${connectedSheetId}/export?format=csv&gid=0`;
+            const response = await fetch(csvUrl);
+            const text = await response.text();
+
+            if (!text || text.includes('<!DOCTYPE')) {
+                throw new Error('Sheet tidak publik atau tidak ditemukan');
             }
+
+            // Parse CSV
+            sheetData = parseCSV(text);
+
+            if (sheetData.length === 0) {
+                throw new Error('Data kosong');
+            }
+
+            // Normalisasi key (lowercase, trim)
+            sheetData = sheetData.map(row => {
+                const normalized = {};
+                for (const key in row) {
+                    normalized[key.toLowerCase().trim()] = row[key];
+                }
+                return normalized;
+            });
+
+            // Update status
+            document.getElementById('statusDot').style.background = 'var(--accent)';
+            document.getElementById('statusText').textContent = 'Terhubung';
+            document.getElementById('statusDot').classList.add('pulse-dot');
+
+            showToast(`Berhasil memuat ${sheetData.length} item`, 'success');
+            renderTable();
+            updateStats();
+
+        } catch (error) {
+            console.error('Error loading sheet:', error);
+            document.getElementById('statusDot').style.background = 'var(--danger)';
+            document.getElementById('statusText').textContent = 'Gagal terhubung';
+
+            // Tampilkan pesan error spesifik
+            if (error.message.includes('Sheet tidak publik')) {
+                showToast('Sheet tidak publik. Klik "Share" > "Anyone with the link" > "Viewer"', 'error');
+            } else {
+                showToast('Gagal memuat data: ' + error.message, 'error');
+            }
+        }
+    }
+
+    // ============================================
+    // Parser CSV Sederhana
+    // ============================================
+    function parseCSV(text) {
+        const lines = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (char === '"') {
+                if (inQuotes && text[i + 1] === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                if (current.trim()) lines.push(current);
+                current = '';
+                if (char === '\r' && text[i + 1] === '\n') i++;
+            } else {
+                current += char;
+            }
+        }
+        if (current.trim()) lines.push(current);
+
+        if (lines.length < 2) return [];
+
+        const headers = parseCSVLine(lines[0]);
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            if (values.length === 0 || (values.length === 1 && values[0] === '')) continue;
+            const row = {};
+            headers.forEach((h, idx) => {
+                row[h.trim()] = (values[idx] || '').trim();
+            });
+            rows.push(row);
+        }
+        return rows;
+    }
+
+    function parseCSVLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                if (inQuotes && line[i + 1] === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current);
+        return result;
+    }
+
+    // ============================================
+    // Pencarian Barcode
+    // ============================================
+    function searchBarcode() {
+        const barcode = document.getElementById('inputBarcode').value.trim();
+        if (!barcode) return;
+
+        const item = sheetData.find(row => {
+            const rowBarcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
+            return rowBarcode === barcode;
         });
 
-        // Search Listener
-        searchInput.addEventListener('input', filterTable);
+        const foundDiv = document.getElementById('foundItem');
+        const notFoundDiv = document.getElementById('notFoundItem');
 
-        // Fetch Data dari Google Sheets
-        async function fetchDataFromGoogleSheets() {
-            showLoading(true);
+        if (item) {
+            selectedBarcode = barcode;
+            foundDiv.style.display = 'block';
+            notFoundDiv.style.display = 'none';
+
+            document.getElementById('foundName').textContent = item['nama item'] || item['nama'] || item['name'] || '-';
+            document.getElementById('foundSystem').textContent = item['stok sistem'] || item['stok'] || item['stock'] || '0';
+            document.getElementById('foundUnit').textContent = item['satuan'] || item['unit'] || '-';
+
+            // Fokus ke input qty
+            document.getElementById('inputQty').focus();
+        } else {
+            selectedBarcode = null;
+            foundDiv.style.display = 'none';
+            notFoundDiv.style.display = 'block';
+        }
+    }
+
+    // ============================================
+    // Submit Stok
+    // ============================================
+    function submitStock() {
+        const barcode = document.getElementById('inputBarcode').value.trim();
+        const qty = document.getElementById('inputQty').value.trim();
+
+        if (!barcode) {
+            showToast('Masukkan kode barcode terlebih dahulu', 'error');
+            return;
+        }
+        if (!qty || isNaN(qty) || parseInt(qty) < 0) {
+            showToast('Masukkan jumlah stok yang valid', 'error');
+            return;
+        }
+
+        // Cari item di data
+        const item = sheetData.find(row => {
+            const rowBarcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
+            return rowBarcode === barcode;
+        });
+
+        if (!item) {
+            showToast('Barcode tidak ditemukan di database', 'error');
+            return;
+        }
+
+        // Simpan stok fisik
+        stockOpname[barcode] = parseInt(qty);
+
+        // Coba kirim ke Google Sheet via Apps Script (jika URL deployment ada)
+        updateSheetCell(barcode, parseInt(qty));
+
+        showToast(`Stok "${item['nama item'] || item['nama'] || 'Item'}" berhasil disimpan: ${qty}`, 'success');
+
+        // Reset form
+        document.getElementById('inputBarcode').value = '';
+        document.getElementById('inputQty').value = '';
+        document.getElementById('foundItem').style.display = 'none';
+        document.getElementById('notFoundItem').style.display = 'none';
+        selectedBarcode = null;
+
+        // Update tabel dan statistik
+        renderTable();
+        updateStats();
+
+        // Fokus kembali ke input barcode
+        document.getElementById('inputBarcode').focus();
+    }
+
+    // ============================================
+    // Update ke Google Sheet (via Apps Script Web App)
+    // ============================================
+    async function updateSheetCell(barcode, qty) {
+        // Jika menggunakan Apps Script deployment URL
+        if (API_BASE_URL && API_BASE_URL.includes('script.google.com')) {
             try {
-                const response = await fetch(GOOGLE_SCRIPT_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    stockData = result.data;
-                    renderTable();
-                    calculateKPI();
-                } else {
-                    Swal.fire('Error', 'Gagal memuat data dari spreadsheet', 'error');
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                Swal.fire('Error', 'Koneksi ke Google Sheets gagal. Pastikan URL API benar dan mendukung CORS.', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Render Tabel
-        function renderTable(dataToRender = stockData) {
-            tableBody.innerHTML = '';
-            
-            if (dataToRender.length === 0) {
-                emptyState.style.display = 'flex';
-                return;
-            }
-            
-            emptyState.style.display = 'none';
-
-            dataToRender.forEach((row, index) => {
-                const isDihitung = row.fisik !== null && row.fisik !== "" && row.fisik !== undefined;
-                const partQty = parseInt(row.part_qty) || 0;
-                const qtyAlloc = parseInt(row.qty_alloc) || 0;
-                const available = parseInt(row.available) || 0;
-                const fisik = isDihitung ? parseInt(row.fisik) : '-';
-                const selisih = isDihitung ? (fisik - available) : '-';
-                
-                let selisihClass = 'text-gray-400';
-                if (selisih > 0) selisihClass = 'text-blue-400';
-                if (selisih < 0) selisihClass = 'text-red-400';
-                if (selisih === 0) selisihClass = 'text-green-400';
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-[#2a2a2c] transition duration-150 group';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 text-gray-400">${row.no || (index + 1)}</td>
-                    <td class="px-6 py-4 font-medium text-brand-yellow">${row.part || row.part_number}</td>
-                    <td class="px-6 py-4 text-gray-300">${row.deskripsi}</td>
-                    <td class="px-6 py-4 text-center font-semibold text-gray-400">${partQty}</td>
-                    <td class="px-6 py-4 text-center font-semibold text-gray-400">${qtyAlloc}</td>
-                    <td class="px-6 py-4 text-center font-semibold">${available}</td>
-                    <td class="px-6 py-4 text-center font-semibold ${isDihitung ? 'text-white' : 'text-gray-600'}">${fisik}</td>
-                    <td class="px-6 py-4 text-center font-bold ${selisihClass}">
-                        ${selisih > 0 ? '+' : ''}${selisih !== '-' ? selisih : '-'}
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <button onclick="updateQty('${row.part || row.part_number}', '${row.deskripsi}', ${available}, '${isDihitung ? row.fisik : 'null'}')" 
-                            class="bg-[#333] hover:bg-brand-yellow hover:text-black text-gray-300 px-3 py-1.5 rounded text-xs transition duration-200">
-                            <i class="fa-solid fa-pen"></i> Input Fisik
-                        </button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
-
-        // Kalkulasi KPI Cards
-        function calculateKPI() {
-            const total = stockData.length;
-            let sudah = 0;
-            let selisihCount = 0;
-
-            stockData.forEach(item => {
-                if (item.fisik !== null && item.fisik !== "" && item.fisik !== undefined && item.fisik !== '-') {
-                    sudah++;
-                    const avail = parseInt(item.available) || 0;
-                    const fis = parseInt(item.fisik) || 0;
-                    if (avail !== fis) {
-                        selisihCount++;
-                    }
-                }
-            });
-
-            document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-sudah').innerText = sudah;
-            document.getElementById('kpi-belum').innerText = total - sudah;
-            document.getElementById('kpi-selisih').innerText = selisihCount;
-        }
-
-        // Filter Tabel (Search)
-        function filterTable() {
-            const query = searchInput.value.toLowerCase();
-            const filteredData = stockData.filter(item => {
-                const part = item.part || item.part_number || '';
-                return (part.toLowerCase().includes(query)) ||
-                       (item.deskripsi && item.deskripsi.toLowerCase().includes(query)) ||
-                       (item.no && item.no.toString().includes(query));
-            });
-            renderTable(filteredData);
-        }
-
-        // Fitur Update Qty Fisik
-        async function updateQty(partNumber, deskripsi, available, currentFisik) {
-            const { value: newQty } = await Swal.fire({
-                title: 'Input Qty Fisik',
-                html: `
-                    <div class="text-left text-sm mb-4">
-                        <p class="mb-1 text-gray-400">Part: <strong class="text-white">${partNumber}</strong></p>
-                        <p class="mb-1 text-gray-400">Deskripsi: <strong class="text-white">${deskripsi}</strong></p>
-                        <p class="mb-3 text-gray-400">Qty Available: <strong class="text-white">${available}</strong></p>
-                    </div>
-                `,
-                input: 'number',
-                inputValue: currentFisik !== 'null' && currentFisik !== '-' ? currentFisik : '',
-                inputPlaceholder: 'Masukkan jumlah fisik aktual',
-                showCancelButton: true,
-                confirmButtonColor: '#fbc02d',
-                cancelButtonColor: '#333',
-                confirmButtonText: '<span class="text-black font-bold">Simpan</span>',
-                cancelButtonText: 'Batal',
-                background: '#1a1a1c',
-                color: '#fff',
-                customClass: {
-                    input: 'bg-[#2a2a2c] text-white border-gray-600 focus:border-yellow-400',
-                    popup: 'border border-gray-700 rounded-xl'
-                }
-            });
-
-            if (newQty !== undefined) {
-                // 1. Update state lokal
-                const index = stockData.findIndex(item => (item.part || item.part_number) === partNumber);
-                if (index !== -1) {
-                    stockData[index].fisik = newQty;
-                    renderTable();
-                    calculateKPI();
-
-                    // 2. Kirim update ke Google Sheets (Jika API URL tersedia)
-                    if (GOOGLE_SCRIPT_URL !== "") {
-                        sendUpdateToGoogleSheets(partNumber, newQty);
-                    } else {
-                        Swal.fire({
-                            title: 'Tersimpan (Lokal)',
-                            text: 'Data disimpan sementara di browser karena API URL belum disetel.',
-                            icon: 'success',
-                            background: '#1a1a1c',
-                            color: '#fff',
-                            confirmButtonColor: '#fbc02d',
-                        });
-                    }
-                }
-            }
-        }
-
-        // Kirim Update via POST ke Web App Google Script
-        async function sendUpdateToGoogleSheets(partNumber, qtyFisik) {
-            try {
-                Swal.fire({
-                    title: 'Menyimpan...',
-                    background: '#1a1a1c',
-                    color: '#fff',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                await fetch(API_BASE_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Penting untuk menghindari error CORS saat post ke GAS dari browser
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'update',
-                        part_number: partNumber,
-                        fisik: qtyFisik
-                    })
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ barcode: barcode, qty: qty })
                 });
-
-                // Karena no-cors, kita tidak bisa membaca response. Asumsikan berhasil jika tidak masuk catch.
-                Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Data fisik berhasil diupdate ke server.',
-                    icon: 'success',
-                    background: '#1a1a1c',
-                    color: '#fff',
-                    confirmButtonColor: '#fbc02d',
-                });
-            } catch (error) {
-                console.error('Error updating:', error);
-                Swal.fire('Error', 'Gagal menyimpan ke server.', 'error');
+            } catch (e) {
+                console.log('Update ke sheet gagal (data tersimpan lokal):', e);
             }
         }
+    }
 
-        // Dummy Data untuk Tampilan awal jika belum diconnect API
-        function loadDummyData() {
-            stockData = [
-                { no: 1, part: "SP-001", deskripsi: "Filter Oli Mesin", part_qty: 60, qty_alloc: 10, available: 50, fisik: null },
-                { no: 2, part: "SP-002", deskripsi: "Kampas Rem Depan", part_qty: 30, qty_alloc: 5, available: 25, fisik: 25 },
-                { no: 3, part: "SP-003", deskripsi: "Busi Iridium NGK", part_qty: 120, qty_alloc: 20, available: 100, fisik: 98 },
-                { no: 4, part: "SP-004", deskripsi: "V-Belt Transmisi", part_qty: 15, qty_alloc: 3, available: 12, fisik: 15 },
-                { no: 5, part: "SP-005", deskripsi: "Oli Gardan 1L", part_qty: 40, qty_alloc: 0, available: 40, fisik: null },
-            ];
-            renderTable();
-            calculateKPI();
+    // ============================================
+    // Render Tabel
+    // ============================================
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+
+        if (sheetData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:60px 20px;color:var(--text-secondary);">
+                <i data-lucide="database" style="width:40px;height:40px;margin:0 auto 12px;display:block;opacity:0.3;"></i>
+                Tidak ada data untuk ditampilkan
+            </td></tr>`;
+            lucide.createIcons();
+            return;
         }
 
-        // Fitur Scanner Kamera
-        function scanBarcode() {
-            const modal = document.getElementById('scannerModal');
-            const loading = document.getElementById('scannerLoading');
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            loading.classList.remove('hidden');
+        let html = '';
+        sheetData.forEach((row, index) => {
+            const barcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
+            const name = row['nama item'] || row['nama'] || row['name'] || '-';
+            const systemStock = parseFloat(row['stok sistem'] || row['stok'] || row['stock'] || 0);
+            const unit = row['satuan'] || row['unit'] || '';
+            const physicalStock = stockOpname[barcode] !== undefined ? stockOpname[barcode] : null;
+            const diff = physicalStock !== null ? physicalStock - systemStock : null;
 
-            // Inisialisasi Html5Qrcode
-            html5QrCode = new Html5Qrcode("reader");
-            
-            // Konfigurasi: Gunakan kamera belakang jika ada
-            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            const isDone = physicalStock !== null;
+            const statusBadge = isDone
+                ? (diff === 0 ? '<span class="badge badge-success">Sesuai</span>'
+                    : diff > 0 ? '<span class="badge badge-warning">Lebih</span>'
+                    : '<span class="badge badge-danger">Kurang</span>')
+                : '<span class="badge" style="background:var(--bg-primary);color:var(--text-secondary);">Pending</span>';
 
-            html5QrCode.start({ facingMode: "environment" }, config, 
-                // Callback jika berhasil di scan
-                (decodedText, decodedResult) => {
-                    closeScanner(); // Matikan kamera
-                    
-                    searchInput.value = decodedText;
-                    filterTable(); // Filter tabel
+            const diffColor = diff === null ? 'var(--text-secondary)'
+                : diff === 0 ? 'var(--accent)'
+                : diff > 0 ? 'var(--warning)' : 'var(--danger)';
+            const diffText = diff === null ? '-'
+                : diff === 0 ? '0'
+                : (diff > 0 ? '+' : '') + diff;
 
-                    // Cek apakah part ada di tabel
-                    const exists = stockData.some(item => {
-                        const part = item.part || item.part_number || '';
-                        return part.toLowerCase() === decodedText.toLowerCase();
-                    });
+            html += `<tr data-barcode="${barcode}" data-status="${isDone ? 'done' : 'pending'}" data-name="${name.toLowerCase()}">
+                <td style="color:var(--text-secondary); font-size:13px;">${index + 1}</td>
+                <td><code class="mono" style="font-size:12px; background:var(--bg-primary); padding:3px 8px; border-radius:4px;">${barcode || '-'}</code></td>
+                <td style="font-weight:500;">${name}</td>
+                <td style="text-align:right;" class="mono">${systemStock} <span style="color:var(--text-secondary);font-size:11px;">${unit}</span></td>
+                <td style="text-align:right;" class="mono" style="font-weight:600;">${physicalStock !== null ? physicalStock + ' <span style="color:var(--text-secondary);font-size:11px;">' + unit + '</span>' : '<span style="color:var(--text-secondary);">-</span>'}</td>
+                <td style="text-align:right;" class="mono" style="color:${diffColor}; font-weight:600;">${diffText}</td>
+                <td style="text-align:center;">${statusBadge}</td>
+            </tr>`;
+        });
 
-                    if (exists) {
-                        Swal.fire({
-                            title: 'Ditemukan!',
-                            text: `Part: ${decodedText}`,
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false,
-                            background: '#1a1a1c',
-                            color: '#fff'
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Tidak Ditemukan',
-                            text: `Barcode ${decodedText} tidak ada dalam daftar opname.`,
-                            icon: 'warning',
-                            background: '#1a1a1c',
-                            color: '#fff',
-                            confirmButtonColor: '#fbc02d'
-                        });
+        tbody.innerHTML = html;
+        lucide.createIcons();
+    }
+
+    // ============================================
+    // Filter Tabel
+    // ============================================
+    function filterTable() {
+        const search = document.getElementById('searchTable').value.toLowerCase();
+        const status = document.getElementById('filterStatus').value;
+
+        const rows = document.querySelectorAll('#tableBody tr[data-barcode]');
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name') || '';
+            const barcode = row.getAttribute('data-barcode') || '';
+            const rowStatus = row.getAttribute('data-status') || '';
+
+            const matchSearch = name.includes(search) || barcode.includes(search);
+            const matchStatus = status === 'all' || rowStatus === status;
+
+            row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+        });
+    }
+
+    // ============================================
+    // Update Statistik
+    // ============================================
+    function updateStats() {
+        const total = sheetData.length;
+        let inputCount = 0;
+
+        sheetData.forEach(row => {
+            const barcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
+            if (stockOpname[barcode] !== undefined) inputCount++;
+        });
+
+        const remaining = total - inputCount;
+        const progress = total > 0 ? Math.round((inputCount / total) * 100) : 0;
+
+        // Animasi angka
+        animateNumber('statTotal', total);
+        animateNumber('statInput', inputCount);
+        animateNumber('statRemaining', remaining);
+        document.getElementById('statProgress').textContent = progress + '%';
+        document.getElementById('progressBar').style.width = progress + '%';
+    }
+
+    function animateNumber(elementId, target) {
+        const el = document.getElementById(elementId);
+        const current = parseInt(el.textContent) || 0;
+        const diff = target - current;
+        const steps = 20;
+        const stepTime = 30;
+        let step = 0;
+
+        const interval = setInterval(() => {
+            step++;
+            const value = Math.round(current + (diff * (step / steps)));
+            el.textContent = value;
+            if (step >= steps) {
+                el.textContent = target;
+                clearInterval(interval);
+            }
+        }, stepTime);
+    }
+
+    // ============================================
+    // Barcode Scanner (ZXing - Sensitif)
+    // ============================================
+    async function startScanner() {
+        const overlay = document.getElementById('scannerOverlay');
+        const video = document.getElementById('scannerVideo');
+
+        overlay.classList.add('active');
+        document.getElementById('scanResult').textContent = 'Mengaktifkan kamera...';
+        isScanning = true;
+
+        try {
+            // Konfigurasi ZXing dengan pengaturan sensitif
+            codeReader = new ZXing.BrowserMultiFormatReader(undefined, {
+                delayBetweenScanSuccess: 500,      // Jeda antar scan sukses (ms)
+                delayBetweenScanAttempts: 30,      // Jeda antar percobaan scan (ms) - SENSITIF
+                tryHarder: true,                    // Mode sensitif
+                possibleFormats: [
+                    ZXing.BarcodeFormat.CODE_128,
+                    ZXing.BarcodeFormat.CODE_39,
+                    ZXing.BarcodeFormat.EAN_13,
+                    ZXing.BarcodeFormat.EAN_8,
+                    ZXing.BarcodeFormat.UPC_A,
+                    ZXing.BarcodeFormat.UPC_E,
+                    ZXing.BarcodeFormat.ITF,
+                    ZXing.BarcodeFormat.CODE_93,
+                    ZXing.BarcodeFormat.QR_CODE,
+                    ZXing.BarcodeFormat.DATA_MATRIX
+                ]
+            });
+
+            // Pilih kamera belakang (lebih baik untuk barcode)
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const backCamera = devices.find(d => d.kind === 'videoinput' && d.label.toLowerCase().includes('back'))
+                || devices.find(d => d.kind === 'videoinput' && d.label.toLowerCase().includes('rear'))
+                || devices.find(d => d.kind === 'videoinput');
+
+            const videoInputDevices = await codeReader.listVideoInputDevices();
+            const selectedDevice = videoInputDevices.length > 1 ? videoInputDevices[videoInputDevices.length - 1] : videoInputDevices[0];
+
+            document.getElementById('scanResult').textContent = 'Kamera aktif - Arahkan ke barcode...';
+
+            codeReader.decodeFromVideoDevice(
+                selectedDevice.deviceId,
+                video,
+                (result, err) => {
+                    if (result) {
+                        const text = result.getText();
+                        document.getElementById('scanResult').textContent = 'Terdeteksi: ' + text;
+
+                        // Masukkan hasil scan ke input
+                        document.getElementById('inputBarcode').value = text;
+
+                        // Tutup scanner dan langsung cari
+                        stopScanner();
+                        searchBarcode();
+
+                        // Vibrate jika didukung
+                        if (navigator.vibrate) navigator.vibrate(100);
                     }
-                },
-                // Callback gagal baca (berjalan setiap frame, biarkan kosong agar tidak spam)
-                (errorMessage) => { }
-            ).then(() => {
-                loading.classList.add('hidden'); // Sembunyikan loading setelah kamera aktif
-            }).catch((err) => {
-                loading.classList.add('hidden');
-                console.error("Gagal memulai scanner: ", err);
-                closeScanner();
-                Swal.fire('Error Kamera', 'Tidak dapat mengakses kamera. Pastikan Anda telah memberikan izin akses kamera ke website ini.', 'error');
-            });
-        }
-
-        // Tutup scanner dan matikan kamera
-        function closeScanner() {
-            const modal = document.getElementById('scannerModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                }).catch(err => {
-                    console.error("Gagal menghentikan scanner: ", err);
-                });
-            }
-        }
-
-        // Fitur Input Manual (Fallback jika kamera rusak/tidak diizinkan)
-        function manualInput() {
-            closeScanner(); // Matikan kamera jika sedang menyala
-            Swal.fire({
-                title: 'Input Manual Part Number',
-                input: 'text',
-                inputPlaceholder: 'Ketik Part Number disini...',
-                showCancelButton: true,
-                confirmButtonColor: '#fbc02d',
-                cancelButtonColor: '#333',
-                confirmButtonText: '<span class="text-black font-bold">Cari</span>',
-                background: '#1a1a1c',
-                color: '#fff',
-                customClass: { input: 'bg-[#2a2a2c] text-white border-gray-600 focus:border-yellow-400' }
-            }).then((result) => {
-                if (result.isConfirmed && result.value) {
-                    searchInput.value = result.value;
-                    filterTable();
+                    if (err && !(err instanceof ZXing.NotFoundException)) {
+                        // Abaik NotFoundException (normal saat tidak ada barcode)
+                        console.log('Scan error:', err);
+                    }
                 }
-            });
+            );
+
+        } catch (error) {
+            console.error('Scanner error:', error);
+            document.getElementById('scanResult').textContent = 'Error: ' + error.message;
+            showToast('Gagal mengaktifkan kamera: ' + error.message, 'error');
+            stopScanner();
+        }
+    }
+
+    function stopScanner() {
+        isScanning = false;
+        if (codeReader) {
+            codeReader.reset();
+            codeReader = null;
+        }
+        const video = document.getElementById('scannerVideo');
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+        document.getElementById('scannerOverlay').classList.remove('active');
+    }
+
+    // ============================================
+    // Toast Notification
+    // ============================================
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        const icons = {
+            success: 'check-circle',
+            error: 'alert-triangle',
+            info: 'info'
+        };
+
+        toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" style="width:18px;height:18px;flex-shrink:0;"></i><span>${message}</span>`;
+        container.appendChild(toast);
+        lucide.createIcons();
+
+        // Auto remove
+        setTimeout(() => {
+            toast.style.animation = 'toastOut 0.3s ease-in forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // ============================================
+    // Modal
+    // ============================================
+    function showModal(title, message, onConfirm) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalMessage').textContent = message;
+        document.getElementById('confirmModal').classList.add('active');
+        document.getElementById('modalConfirmBtn').onclick = () => {
+            closeModal();
+            if (onConfirm) onConfirm();
+        };
+    }
+
+    function closeModal() {
+        document.getElementById('confirmModal').classList.remove('active');
+    }
+
+    // ============================================
+    // Keyboard Shortcut
+    // ============================================
+    document.addEventListener('keydown', (e) => {
+        // Escape tutup scanner
+        if (e.key === 'Escape') {
+            if (isScanning) stopScanner();
+            if (document.getElementById('confirmModal').classList.contains('active')) closeModal();
+        }
+        // Ctrl+Shift+S buka scanner
+        if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+            e.preventDefault();
+            startScanner();
+        }
+    });
+
+    // ============================================
+    // Inisialisasi - Cek URL yang sudah diisi
+    // ============================================
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedUrl = localStorage.getItem('stockOpname_sheetUrl');
+        if (savedUrl) {
+            document.getElementById('sheetUrlInput').value = savedUrl;
         }
 
-        function clearData() {
-            Swal.fire({
-                title: 'Yakin bersihkan data?',
-                text: "Semua isian Qty Fisik di layar akan dihapus!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#333',
-                confirmButtonText: 'Ya, Bersihkan!',
-                background: '#1a1a1c',
-                color: '#fff'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    stockData.forEach(item => item.fisik = null);
-                    renderTable();
-                    calculateKPI();
-                    Swal.fire({ title:'Terhapus!', icon:'success', background: '#1a1a1c', color: '#fff', showConfirmButton:false, timer: 1000});
-                }
-            });
-        }
-
-        function exportExcel() {
-            if(stockData.length === 0) return Swal.fire('Oops', 'Tidak ada data untuk diexport', 'info');
-            
-            // Format data untuk Excel
-            const ws_data = stockData.map(item => ({
-                "No": item.no,
-                "Part": item.part || item.part_number,
-                "Deskripsi": item.deskripsi,
-                "Part QTY": item.part_qty || 0,
-                "QTY Alloc": item.qty_alloc || 0,
-                "Available": item.available || 0,
-                "Fisik": item.fisik || '',
-                "Selisih": item.fisik ? (item.fisik - (item.available || 0)) : ''
-            }));
-            
-            const ws = XLSX.utils.json_to_sheet(ws_data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "StockOpname");
-            XLSX.writeFile(wb, "Hasil_Stock_Opname.xlsx");
-        }
-
-        function exportPDF() {
-            Swal.fire('Fitur PDF', 'Untuk export PDF, gunakan fitur Print browser (Ctrl+P) dan pilih "Save as PDF". Desain ini sudah optimal untuk dicetak.', 'info');
-        }
-
-        function showLoading(show) {
-            emptyState.style.display = 'none';
-            if (show) {
-                loadingState.style.display = 'flex';
-                tableBody.innerHTML = '';
-            } else {
-                loadingState.style.display = 'none';
-            }
-        }
-    </script>
+        // Simpan URL saat diubah
+        document.getElementById('sheetUrlInput').addEventListener('change', (e) => {
+            localStorage.setItem('stockOpname_sheetUrl', e.target.value);
+        });
+    });
+</script>
 </body>
 </html>
