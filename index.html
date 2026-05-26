@@ -2,27 +2,29 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stock Opname</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Opname - Sistem Manajemen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --bg: #0f1117;
-            --card: #1a1d27;
-            --card2: #222632;
-            --border: #2e3345;
-            --fg: #e8eaf0;
-            --muted: #7a8199;
-            --accent: #00d48a;
-            --accent-dim: rgba(0,212,138,0.12);
+            --bg: #0c0f14;
+            --bg2: #13171e;
+            --card: #181d27;
+            --card-hover: #1e2533;
+            --border: #262d3d;
+            --fg: #e8ecf4;
+            --muted: #6b7a94;
+            --accent: #00d4aa;
+            --accent-dim: rgba(0,212,170,0.12);
             --danger: #ff4d6a;
-            --warn: #ffb340;
+            --warning: #ffb830;
+            --info: #3ea8ff;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Space Grotesk', sans-serif;
             background: var(--bg);
@@ -31,302 +33,345 @@
             overflow-x: hidden;
         }
 
-        /* ===== TOAST ===== */
+        /* Latar belakang animasi */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(ellipse at 20% 20%, rgba(0,212,170,0.04) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(62,168,255,0.03) 0%, transparent 50%);
+            animation: bgDrift 20s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes bgDrift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-3%, -3%) rotate(2deg); }
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Kartu statistik */
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0,212,170,0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .stat-card.total::before { background: var(--accent); }
+        .stat-card.counted::before { background: var(--info); }
+        .stat-card.notcounted::before { background: var(--warning); }
+        .stat-card.diff::before { background: var(--danger); }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin: 8px 0 4px;
+        }
+
+        /* Input dan tombol */
+        .input-field {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--fg);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            width: 100%;
+        }
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+        .input-field::placeholder { color: var(--muted); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.88rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary {
+            background: var(--accent);
+            color: #0c0f14;
+        }
+        .btn-primary:hover { background: #00eabb; box-shadow: 0 4px 20px rgba(0,212,170,0.3); }
+        .btn-outline {
+            background: transparent;
+            color: var(--fg);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-danger {
+            background: rgba(255,77,106,0.12);
+            color: var(--danger);
+            border: 1px solid rgba(255,77,106,0.25);
+        }
+        .btn-danger:hover { background: rgba(255,77,106,0.2); }
+        .btn-scan {
+            background: linear-gradient(135deg, var(--accent), #00b894);
+            color: #0c0f14;
+            font-size: 1rem;
+            padding: 14px 28px;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(0,212,170,0.25);
+        }
+        .btn-scan:hover { box-shadow: 0 6px 32px rgba(0,212,170,0.4); transform: translateY(-2px); }
+
+        /* Tabel */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .data-table thead th {
+            background: var(--bg2);
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .data-table thead th:first-child { border-radius: 10px 0 0 0; }
+        .data-table thead th:last-child { border-radius: 0 10px 0 0; }
+        .data-table tbody tr {
+            transition: background 0.15s;
+        }
+        .data-table tbody tr:hover { background: var(--card-hover); }
+        .data-table tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(38,45,61,0.5);
+            font-size: 0.88rem;
+        }
+        .data-table tbody tr.counted-row {
+            background: rgba(0,212,170,0.04);
+        }
+        .data-table tbody tr.counted-row td:first-child {
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+
+        /* Badge status */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-counted { background: rgba(0,212,170,0.12); color: var(--accent); }
+        .badge-pending { background: rgba(255,184,48,0.12); color: var(--warning); }
+        .badge-diff { background: rgba(255,77,106,0.12); color: var(--danger); }
+
+        /* Upload area */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: var(--bg2);
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        /* Modal kamera */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0;
+            max-width: 500px;
+            width: 95%;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        #reader { width: 100%; }
+        #reader video { border-radius: 0 !important; }
+
+        /* Toast */
         .toast-container {
-            position: fixed; top: 16px; right: 16px; z-index: 9999;
-            display: flex; flex-direction: column; gap: 8px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         .toast {
-            padding: 12px 20px; border-radius: 10px; font-size: 14px;
-            font-weight: 600; color: #fff; animation: slideIn .3s ease;
-            box-shadow: 0 8px 24px rgba(0,0,0,.4);
-        }
-        .toast.success { background: var(--accent); color: #0f1117; }
-        .toast.error { background: var(--danger); }
-        .toast.info { background: #3b82f6; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
-        @keyframes slideOut { from { transform: translateX(0); opacity:1; } to { transform: translateX(100%); opacity:0; } }
-
-        /* ===== HEADER ===== */
-        .header {
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            padding: 16px 20px;
-            position: sticky; top: 0; z-index: 100;
-        }
-        .header-top {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 12px;
-        }
-        .header h1 {
-            font-size: 20px; font-weight: 700;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .header h1 i { color: var(--accent); }
-        .badge-count {
-            background: var(--accent); color: #0f1117;
-            font-size: 11px; font-weight: 700;
-            padding: 2px 8px; border-radius: 20px;
-        }
-        .btn-sync {
-            background: var(--accent-dim); color: var(--accent);
-            border: 1px solid rgba(0,212,138,.3);
-            padding: 8px 16px; border-radius: 8px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            font-family: inherit; display: flex; align-items: center; gap: 6px;
-            transition: all .2s;
-        }
-        .btn-sync:hover { background: var(--accent); color: #0f1117; }
-        .btn-sync.loading { opacity: .6; pointer-events: none; }
-
-        /* ===== API CONFIG BAR ===== */
-        .api-bar {
-            display: flex; gap: 8px; align-items: center;
-        }
-        .api-bar input {
-            flex: 1; background: var(--bg); border: 1px solid var(--border);
-            color: var(--fg); padding: 8px 12px; border-radius: 8px;
-            font-size: 12px; font-family: monospace;
-            outline: none; transition: border .2s;
-        }
-        .api-bar input:focus { border-color: var(--accent); }
-        .api-bar input::placeholder { color: var(--muted); }
-        .btn-save-api {
-            background: var(--card2); color: var(--accent);
-            border: 1px solid var(--border); padding: 8px 14px;
-            border-radius: 8px; font-size: 13px; cursor: pointer;
-            font-family: inherit; font-weight: 600; white-space: nowrap;
-            transition: all .2s;
-        }
-        .btn-save-api:hover { border-color: var(--accent); }
-
-        /* ===== MAIN LAYOUT ===== */
-        .main { padding: 16px 20px 100px; max-width: 600px; margin: 0 auto; }
-
-        /* ===== SCAN SECTION ===== */
-        .scan-section {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 14px; overflow: hidden;
-            margin-bottom: 16px;
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 300px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            animation: toastIn 0.4s ease;
+            font-size: 0.88rem;
         }
-        .scan-toggle {
-            width: 100%; padding: 14px 20px;
-            background: transparent; border: none; color: var(--fg);
-            font-family: inherit; font-size: 15px; font-weight: 600;
-            cursor: pointer; display: flex; align-items: center;
-            justify-content: space-between;
+        .toast.success { border-left: 4px solid var(--accent); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.info { border-left: 4px solid var(--info); }
+        @keyframes toastIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        .scan-toggle i { color: var(--accent); transition: transform .3s; }
-        .scan-toggle.active i { transform: rotate(180deg); }
+        @keyframes toastOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
 
-        .scanner-body {
-            max-height: 0; overflow: hidden; transition: max-height .4s ease;
-        }
-        .scanner-body.open { max-height: 400px; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-        .scanner-wrapper {
-            position: relative; width: 100%; height: 280px;
-            background: #000;
+        /* Konfigurasi panel */
+        .config-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
         }
-        .scanner-wrapper video, .scanner-wrapper canvas {
-            width: 100% !important; height: 100% !important;
-            object-fit: cover;
+
+        /* Input hitung */
+        .count-input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            width: 80px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        .scanner-overlay {
-            position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: center;
+        .count-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .save-btn {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(0,212,170,0.25);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .save-btn:hover { background: rgba(0,212,170,0.2); }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+
+        /* Pulse animasi untuk scan */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(0,212,170,0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(0,212,170,0); }
+            100% { box-shadow: 0 0 0 0 rgba(0,212,170,0); }
+        }
+        .pulse-anim { animation: pulse-ring 2s infinite; }
+
+        /* Responsif */
+        @media (max-width: 768px) {
+            .stat-grid { grid-template-columns: 1fr 1fr !important; }
+            .stat-number { font-size: 1.5rem; }
+            .action-bar { flex-direction: column; }
+        }
+        @media (max-width: 480px) {
+            .stat-grid { grid-template-columns: 1fr !important; }
+        }
+
+        /* Scan line effect */
+        .scan-line {
+            position: absolute;
+            left: 10%; right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scanMove 2s ease-in-out infinite;
             pointer-events: none;
         }
-        .scan-frame {
-            width: 220px; height: 140px;
-            border: 2px solid var(--accent);
-            border-radius: 12px; position: relative;
-            box-shadow: 0 0 30px rgba(0,212,138,.15);
-        }
-        .scan-frame::before {
-            content: ''; position: absolute; top: 50%; left: 10%; right: 10%;
-            height: 2px; background: var(--accent);
-            animation: scanLine 2s ease-in-out infinite;
-            box-shadow: 0 0 12px var(--accent);
-        }
-        @keyframes scanLine {
-            0%, 100% { top: 10%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            50% { top: 85%; }
-        }
-        .scan-hint {
-            position: absolute; bottom: 12px; left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,.7); color: var(--muted);
-            font-size: 11px; padding: 4px 12px; border-radius: 20px;
-        }
-        .scanner-placeholder {
-            height: 280px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            color: var(--muted); gap: 10px; background: var(--bg);
-        }
-        .scanner-placeholder i { font-size: 40px; opacity: .4; }
-
-        /* ===== MANUAL INPUT ===== */
-        .manual-input {
-            display: flex; gap: 8px; padding: 12px 16px;
-            border-top: 1px solid var(--border);
-        }
-        .manual-input input {
-            flex: 1; background: var(--bg); border: 1px solid var(--border);
-            color: var(--fg); padding: 10px 14px; border-radius: 8px;
-            font-size: 14px; font-family: 'Space Grotesk', monospace;
-            outline: none; transition: border .2s;
-        }
-        .manual-input input:focus { border-color: var(--accent); }
-        .manual-input input::placeholder { color: var(--muted); }
-        .btn-search {
-            background: var(--accent); color: #0f1117; border: none;
-            padding: 10px 18px; border-radius: 8px; font-size: 14px;
-            font-weight: 700; cursor: pointer; font-family: inherit;
-            transition: all .2s;
-        }
-        .btn-search:hover { opacity: .85; }
-
-        /* ===== ITEM CARD (setelah scan) ===== */
-        .item-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px; padding: 20px;
-            margin-bottom: 16px;
-            animation: fadeUp .3s ease;
-            display: none;
-        }
-        .item-card.show { display: block; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-
-        .item-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-        .item-card .value { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-        .item-card .value.accent { color: var(--accent); }
-
-        .qty-control {
-            display: flex; align-items: center; gap: 16px;
-        }
-        .qty-btn {
-            width: 48px; height: 48px; border-radius: 12px;
-            border: 1px solid var(--border); background: var(--card2);
-            color: var(--fg); font-size: 22px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: all .15s; font-family: inherit;
-        }
-        .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
-        .qty-btn:active { transform: scale(.92); }
-        .qty-display {
-            font-size: 32px; font-weight: 700; min-width: 80px;
-            text-align: center; color: var(--accent);
-        }
-        .qty-input-row {
-            display: flex; gap: 8px; margin-top: 12px; align-items: center;
-        }
-        .qty-input-row input {
-            flex: 1; background: var(--bg); border: 1px solid var(--border);
-            color: var(--fg); padding: 10px 14px; border-radius: 8px;
-            font-size: 16px; text-align: center; font-family: inherit;
-            outline: none;
-        }
-        .qty-input-row input:focus { border-color: var(--accent); }
-        .btn-submit {
-            flex: 1; background: var(--accent); color: #0f1117;
-            border: none; padding: 12px; border-radius: 10px;
-            font-size: 15px; font-weight: 700; cursor: pointer;
-            font-family: inherit; transition: all .15s;
-        }
-        .btn-submit:hover { opacity: .85; }
-        .btn-submit:active { transform: scale(.97); }
-
-        /* ===== LOG TABLE ===== */
-        .log-section { margin-top: 8px; }
-        .log-section h3 {
-            font-size: 14px; color: var(--muted); margin-bottom: 12px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .log-table {
-            width: 100%; border-collapse: collapse;
-        }
-        .log-table thead th {
-            font-size: 11px; color: var(--muted); text-transform: uppercase;
-            letter-spacing: .5px; padding: 10px 12px; text-align: left;
-            border-bottom: 1px solid var(--border); font-weight: 600;
-        }
-        .log-table tbody tr {
-            border-bottom: 1px solid var(--border);
-            animation: fadeUp .25s ease;
-        }
-        .log-table tbody td {
-            padding: 12px; font-size: 13px; vertical-align: middle;
-        }
-        .log-table .barcode-cell {
-            font-family: monospace; font-weight: 600; color: var(--accent);
-        }
-        .log-table .qty-cell { font-weight: 700; font-size: 15px; }
-        .log-table .time-cell { color: var(--muted); font-size: 11px; }
-        .btn-delete-row {
-            background: transparent; border: none; color: var(--danger);
-            cursor: pointer; font-size: 14px; padding: 4px 8px;
-            border-radius: 6px; transition: background .2s;
-        }
-        .btn-delete-row:hover { background: rgba(255,77,106,.12); }
-
-        .empty-state {
-            text-align: center; padding: 40px 20px; color: var(--muted);
-        }
-        .empty-state i { font-size: 36px; opacity: .3; margin-bottom: 12px; display: block; }
-        .empty-state p { font-size: 13px; }
-
-        /* ===== FOOTER NAV ===== */
-        .bottom-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--card); border-top: 1px solid var(--border);
-            padding: 12px 20px; display: flex; gap: 10px;
-            z-index: 100;
-        }
-        .bottom-bar .btn-clear {
-            flex: 1; background: transparent; color: var(--danger);
-            border: 1px solid rgba(255,77,106,.3); padding: 12px;
-            border-radius: 10px; font-size: 13px; font-weight: 600;
-            cursor: pointer; font-family: inherit; transition: all .2s;
-        }
-        .bottom-bar .btn-clear:hover { background: rgba(255,77,106,.1); }
-        .bottom-bar .btn-send-all {
-            flex: 2; background: var(--accent); color: #0f1117;
-            border: none; padding: 12px; border-radius: 10px;
-            font-size: 14px; font-weight: 700; cursor: pointer;
-            font-family: inherit; transition: all .2s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .bottom-bar .btn-send-all:hover { opacity: .85; }
-        .bottom-bar .btn-send-all:disabled { opacity: .4; pointer-events: none; }
-
-        /* ===== RESPONSIVE ===== */
-        @media (min-width: 700px) {
-            .main { max-width: 560px; }
+        @keyframes scanMove {
+            0%, 100% { top: 20%; }
+            50% { top: 80%; }
         }
 
-        /* ===== PULSE DOT ===== */
-        .pulse-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--accent); display: inline-block;
-            animation: pulse 1.5s ease infinite;
+        .fade-in {
+            animation: fadeIn 0.5s ease;
         }
-        .pulse-dot.off { background: var(--muted); animation: none; }
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,138,.5); }
-            50% { box-shadow: 0 0 0 6px rgba(0,212,138,0); }
-        }
-
-        .flash-success {
-            animation: flash .4s ease;
-        }
-        @keyframes flash {
-            0% { box-shadow: 0 0 0 0 rgba(0,212,138,.6); }
-            100% { box-shadow: 0 0 40px 10px rgba(0,212,138,0); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -335,542 +380,792 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Header -->
-<header class="header">
-    <div class="header-top">
-        <h1>
-            <i class="fa-solid fa-boxes-stacked"></i>
-            Stock Opname
-            <span class="badge-count" id="logCount">0</span>
-        </h1>
-        <div style="display:flex;align-items:center;gap:10px;">
-            <span class="pulse-dot off" id="apiDot"></span>
-            <button class="btn-sync" id="btnSync" onclick="fetchSheetData()">
-                <i class="fa-solid fa-rotate"></i> Sync
+<!-- Modal Kamera Scanner -->
+<div class="modal-overlay" id="scanModal">
+    <div class="modal-box">
+        <div style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border);">
+            <div>
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Scan Barcode / QR Code</h3>
+                <p style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Arahkan kamera ke kode</p>
+            </div>
+            <button onclick="closeScanner()" style="background: var(--bg2); border: 1px solid var(--border); color: var(--fg); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-times"></i>
             </button>
+        </div>
+        <div style="position: relative;">
+            <div id="reader"></div>
+        </div>
+        <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px;">
+            <div style="flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;">
+                <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Terakhir discan</span>
+                <div class="mono" id="lastScanned" style="font-size: 0.95rem; margin-top: 2px; color: var(--accent);">-</div>
+            </div>
         </div>
     </div>
-    <!-- API URL Config -->
-    <div class="api-bar">
-        <input type="text" id="apiUrlInput" placeholder="Paste Google Sheet API URL di sini...">
-        <button class="btn-save-api" onclick="saveApiUrl()">
-            <i class="fa-solid fa-floppy-disk"></i> Simpan
+</div>
+
+<!-- Konten Utama -->
+<div style="position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 24px 20px;">
+
+    <!-- Header -->
+    <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), #00b894); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #0c0f14;">
+                <i class="fas fa-boxes-stacked"></i>
+            </div>
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em;">Stock Opname</h1>
+                <p style="font-size: 0.8rem; color: var(--muted);">Sistem Manajemen Inventaris</p>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn btn-outline" onclick="toggleConfig()" id="configToggle">
+                <i class="fas fa-gear"></i> Pengaturan API
+            </button>
+            <button class="btn btn-scan pulse-anim" onclick="openScanner()">
+                <i class="fas fa-qrcode"></i> Scan Barcode
+            </button>
+        </div>
+    </header>
+
+    <!-- Panel Konfigurasi API -->
+    <div class="config-panel fade-in" id="configPanel" style="margin-bottom: 24px; display: none;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <i class="fas fa-link" style="color: var(--accent);"></i>
+            <h3 style="font-weight: 700; font-size: 1rem;">Konfigurasi Google Sheets API</h3>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 6px;">
+                Paste API URL dari Google Apps Script di sini:
+            </label>
+            <input type="text" class="input-field mono" id="apiUrlInput"
+                placeholder="https://script.google.com/macros/s/xxxxx/exec"
+                style="font-size: 0.82rem;">
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="saveApiConfig()">
+                <i class="fas fa-save"></i> Simpan
+            </button>
+            <button class="btn btn-outline" onclick="fetchFromSheet()">
+                <i class="fas fa-cloud-arrow-down"></i> Ambil Data dari Sheet
+            </button>
+            <button class="btn btn-outline" onclick="syncToSheet()">
+                <i class="fas fa-cloud-arrow-up"></i> Sync ke Sheet
+            </button>
+        </div>
+        <div style="margin-top: 12px; padding: 12px 16px; background: var(--bg); border-radius: 10px; font-size: 0.78rem; color: var(--muted); line-height: 1.6;">
+            <i class="fas fa-circle-info" style="color: var(--info);"></i>
+            <strong>Cara setup:</strong> Buka Google Sheets → Extensions → Apps Script → Paste kode deploy → Deploy as Web App → Copy URL → Paste di atas.
+            <br>Spreadsheet ID: <span class="mono" style="color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</span>
+        </div>
+    </div>
+
+    <!-- Statistik Grid -->
+    <div class="stat-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+        <div class="stat-card total">
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
+                <i class="fas fa-layer-group"></i> Total Items
+            </div>
+            <div class="stat-number" id="statTotal" style="color: var(--accent);">0</div>
+        </div>
+        <div class="stat-card counted">
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
+                <i class="fas fa-check-circle"></i> Sudah Dihitung
+            </div>
+            <div class="stat-number" id="statCounted" style="color: var(--info);">0</div>
+        </div>
+        <div class="stat-card notcounted">
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
+                <i class="fas fa-clock"></i> Belum Dihitung
+            </div>
+            <div class="stat-number" id="statNotCounted" style="color: var(--warning);">0</div>
+        </div>
+        <div class="stat-card diff">
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
+                <i class="fas fa-exclamation-triangle"></i> Ada Selisih
+            </div>
+            <div class="stat-number" id="statDiff" style="color: var(--danger);">0</div>
+        </div>
+    </div>
+
+    <!-- Upload & Aksi -->
+    <div class="upload-zone" id="uploadZone" style="margin-bottom: 24px;">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+        <i class="fas fa-file-excel" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 12px; display: block;"></i>
+        <p style="font-weight: 600; margin-bottom: 4px;">Upload Excel / CSV untuk Memulai</p>
+        <p style="font-size: 0.82rem; color: var(--muted);">Atau ambil data langsung dari Google Sheet melalui Pengaturan API</p>
+    </div>
+
+    <!-- Tombol Aksi -->
+    <div class="action-bar" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="exportExcel()">
+            <i class="fas fa-file-excel"></i> Export Excel
+        </button>
+        <button class="btn btn-outline" onclick="exportPDF()">
+            <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+        <button class="btn btn-danger" onclick="clearAll()">
+            <i class="fas fa-trash-can"></i> Clear
         </button>
     </div>
-</header>
 
-<!-- Main Content -->
-<main class="main">
+    <!-- Pencarian -->
+    <div style="margin-bottom: 20px; position: relative;">
+        <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem;"></i>
+        <input type="text" class="input-field" id="searchInput" placeholder="Cari berdasarkan No, Part Number, Nama Barang, atau Lokasi..."
+            style="padding-left: 40px;" oninput="renderTable()">
+    </div>
 
-    <!-- Scanner Section -->
-    <section class="scan-section">
-        <button class="scan-toggle" id="scanToggle" onclick="toggleScanner()">
-            <span><i class="fa-solid fa-barcode" style="margin-right:8px;"></i> Camera Scanner</span>
-            <i class="fa-solid fa-chevron-down"></i>
-        </button>
-        <div class="scanner-body" id="scannerBody">
-            <div class="scanner-wrapper" id="scannerWrapper" style="display:none;">
-                <div id="scannerContainer"></div>
-                <div class="scanner-overlay">
-                    <div class="scan-frame"></div>
-                </div>
-                <div class="scan-hint">Arahkan barcode ke frame</div>
-            </div>
-            <div class="scanner-placeholder" id="scannerPlaceholder">
-                <i class="fa-solid fa-camera"></i>
-                <p>Klik tombol di atas untuk membuka kamera</p>
-            </div>
-        </div>
-        <div class="manual-input">
-            <input type="text" id="manualBarcode" placeholder="Ketik barcode manual..." 
-                   onkeydown="if(event.key==='Enter')searchBarcode()">
-            <button class="btn-search" onclick="searchBarcode()">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
-        </div>
-    </section>
-
-    <!-- Item Card (muncul setelah scan/success) -->
-    <section class="item-card" id="itemCard">
-        <div class="label">Barcode</div>
-        <div class="value" id="itemBarcode">-</div>
-        <div class="label">Nama Barang</div>
-        <div class="value accent" id="itemName">-</div>
-        <div class="label">Jumlah Dihitung</div>
-        <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(-1)">-</button>
-            <div class="qty-display" id="qtyDisplay">1</div>
-            <button class="qty-btn" onclick="changeQty(1)">+</button>
-        </div>
-        <div class="qty-input-row">
-            <input type="number" id="qtyInput" value="1" min="0" 
-                   oninput="syncQtyFromInput()">
-            <button class="btn-submit" onclick="submitItem()">
-                <i class="fa-solid fa-plus"></i> Tambah
-            </button>
-        </div>
-    </section>
-
-    <!-- Log Table -->
-    <section class="log-section">
-        <h3><i class="fa-solid fa-list-check"></i> Data Opname Hari Ini</h3>
-        <div id="logContent">
-            <div class="empty-state" id="emptyState">
-                <i class="fa-solid fa-inbox"></i>
-                <p>Belum ada data. Scan atau ketik barcode untuk memulai.</p>
-            </div>
-            <table class="log-table" id="logTable" style="display:none;">
+    <!-- Tabel Data -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;">
+        <div style="max-height: 520px; overflow-y: auto;">
+            <table class="data-table" id="dataTable">
                 <thead>
                     <tr>
-                        <th>Barcode</th>
-                        <th>Nama</th>
-                        <th>Qty</th>
-                        <th>Waktu</th>
-                        <th></th>
+                        <th style="width: 50px;">NO</th>
+                        <th>Part Number</th>
+                        <th>Nama Barang</th>
+                        <th style="width: 90px;">Stok Sistem</th>
+                        <th style="width: 120px;">Jumlah Dihitung</th>
+                        <th style="width: 80px;">Selisih</th>
+                        <th>Lokasi</th>
+                        <th style="width: 100px;">Status</th>
                     </tr>
                 </thead>
-                <tbody id="logBody"></tbody>
+                <tbody id="tableBody">
+                </tbody>
             </table>
         </div>
-    </section>
-</main>
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-inbox" style="display: block;"></i>
+            <p style="font-weight: 600; margin-bottom: 4px;">Belum Ada Data</p>
+            <p style="font-size: 0.82rem;">Upload file Excel atau ambil data dari Google Sheet untuk memulai</p>
+        </div>
+    </div>
 
-<!-- Bottom Bar -->
-<footer class="bottom-bar">
-    <button class="btn-clear" onclick="clearLog()">
-        <i class="fa-solid fa-trash-can"></i> Hapus Semua
-    </button>
-    <button class="btn-send-all" id="btnSendAll" onclick="sendToSheet()" disabled>
-        <i class="fa-solid fa-paper-plane"></i> Kirim ke Google Sheet
-    </button>
-</footer>
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 32px 0 16px; color: var(--muted); font-size: 0.78rem;">
+        Stock Opname System &mdash; Terintegrasi dengan Google Sheets & GitHub
+    </footer>
+</div>
+
+<!-- SheetJS untuk Export Excel -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<!-- jsPDF untuk Export PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-    // ===== STATE =====
-    let apiUrl = localStorage.getItem('stockOpname_apiUrl') || '';
-    let sheetData = {};        // cache: barcode => nama barang
-    let opnameLog = [];        // array { barcode, nama, qty, waktu }
-    let currentQty = 1;
-    let currentBarcode = '';
-    let scannerActive = false;
-    let quaggaInitialized = false;
+    // ============================================
+    // DATA & STATE
+    // ============================================
+    let stockData = [];
+    let html5QrCode = null;
+    let isScanning = false;
 
-    // ===== INIT =====
-    document.addEventListener('DOMContentLoaded', () => {
-        // Muat API URL dari localStorage
-        if (apiUrl) {
-            document.getElementById('apiUrlInput').value = apiUrl;
-            document.getElementById('apiDot').classList.remove('off');
-            fetchSheetData();
-        }
-        // Muat log dari sessionStorage (reset per sesi)
-        renderLog();
-    });
-
-    // ===== TOAST =====
-    function showToast(msg, type = 'info') {
+    // ============================================
+    // TOAST NOTIFICATION
+    // ============================================
+    function showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
-        const t = document.createElement('div');
-        t.className = `toast ${type}`;
-        t.textContent = msg;
-        container.appendChild(t);
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+        const colors = { success: 'var(--accent)', error: 'var(--danger)', info: 'var(--info)' };
+        toast.innerHTML = `<i class="fas ${icons[type]}" style="color: ${colors[type]}; font-size: 1.1rem;"></i><span>${message}</span>`;
+        container.appendChild(toast);
         setTimeout(() => {
-            t.style.animation = 'slideOut .3s ease forwards';
-            setTimeout(() => t.remove(), 300);
-        }, 2500);
+            toast.style.animation = 'toastOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
-    // ===== API URL =====
-    function saveApiUrl() {
-        const input = document.getElementById('apiUrlInput').value.trim();
-        if (!input) {
+    // ============================================
+    // KONFIGURASI API
+    // ============================================
+    function toggleConfig() {
+        const panel = document.getElementById('configPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function saveApiConfig() {
+        const url = document.getElementById('apiUrlInput').value.trim();
+        if (!url) {
             showToast('Masukkan URL API terlebih dahulu', 'error');
             return;
         }
-        // Validasi format URL Google Sheet publik
-        if (!input.includes('docs.google.com/spreadsheets') && !input.startsWith('https://')) {
-            showToast('URL tidak valid', 'error');
-            return;
-        }
-        apiUrl = input;
-        localStorage.setItem('stockOpname_apiUrl', apiUrl);
-        document.getElementById('apiDot').classList.remove('off');
-        showToast('API URL tersimpan', 'success');
-        fetchSheetData();
+        localStorage.setItem('sheetApiUrl', url);
+        showToast('URL API berhasil disimpan', 'success');
     }
 
-    // ===== FETCH SHEET DATA =====
-    async function fetchSheetData() {
-        if (!apiUrl) {
-            showToast('Set API URL terlebih dahulu', 'error');
+    function getApiUrl() {
+        return localStorage.getItem('sheetApiUrl') || '';
+    }
+
+    // Inisialisasi input API dari localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+        const saved = getApiUrl();
+        if (saved) document.getElementById('apiUrlInput').value = saved;
+    });
+
+    // ============================================
+    // GOOGLE SHEETS INTEGRASI
+    // ============================================
+    async function fetchFromSheet() {
+        const url = getApiUrl();
+        if (!url) {
+            showToast('Atur URL API di Pengaturan terlebih dahulu', 'error');
             return;
         }
+        showToast('Mengambil data dari Google Sheet...', 'info');
+        try {
+            const res = await fetch(url + '?action=get');
+            const data = await res.json();
+            if (data.status === 'success' && data.data && data.data.length > 0) {
+                // Mapping data dari sheet ke format lokal
+                stockData = data.data.map((row, idx) => ({
+                    no: idx + 1,
+                    partNumber: row[0] || '',
+                    namaBarang: row[1] || '',
+                    stokSistem: parseInt(row[2]) || 0,
+                    jumlahDihitung: row[3] !== undefined && row[3] !== '' ? parseInt(row[3]) : null,
+                    lokasi: row[4] || '',
+                    keterangan: row[5] || ''
+                }));
+                updateAll();
+                showToast(`Berhasil mengambil ${stockData.length} data dari Sheet`, 'success');
+            } else {
+                showToast('Data kosong atau format tidak sesuai', 'error');
+            }
+        } catch (e) {
+            showToast('Gagal mengambil data: ' + e.message, 'error');
+        }
+    }
 
-        const btn = document.getElementById('btnSync');
-        btn.classList.add('loading');
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
+    async function syncToSheet() {
+        const url = getApiUrl();
+        if (!url) {
+            showToast('Atur URL API di Pengaturan terlebih dahulu', 'error');
+            return;
+        }
+        if (stockData.length === 0) {
+            showToast('Tidak ada data untuk di-sync', 'error');
+            return;
+        }
+        showToast('Menyinkronkan data ke Google Sheet...', 'info');
+        try {
+            const payload = stockData.map(row => [
+                row.partNumber,
+                row.namaBarang,
+                row.stokSistem,
+                row.jumlahDihitung !== null ? row.jumlahDihitung : '',
+                row.lokasi,
+                row.keterangan
+            ]);
+            const res = await fetch(url + '?action=update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ data: payload })
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+                showToast('Data berhasil di-sync ke Google Sheet', 'success');
+            } else {
+                showToast('Gagal sync: ' + (result.message || 'Unknown error'), 'error');
+            }
+        } catch (e) {
+            showToast('Gagal sync: ' + e.message, 'error');
+        }
+    }
+
+    // ============================================
+    // BARCODE / QR SCANNER
+    // ============================================
+    async function openScanner() {
+        const modal = document.getElementById('scanModal');
+        modal.classList.add('active');
+
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader");
+        }
+
+        const config = {
+            fps: 20,               // Frame rate tinggi untuk sensitivitas
+            qrbox: { width: 260, height: 160 },
+            aspectRatio: 1.5,
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.QR_CODE,
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.UPC_E,
+                Html5QrcodeSupportedFormats.ITF,
+                Html5QrcodeSupportedFormats.DATA_MATRIX
+            ]
+        };
 
         try {
-            // Konversi URL edit ke URL export CSV
-            let csvUrl = apiUrl;
-            
-            // Jika URL masih format edit, konversi ke format publik/export
-            if (csvUrl.includes('/edit')) {
-                // Ekstrak ID dari URL
-                const idMatch = csvUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (idMatch) {
-                    const sheetId = idMatch[1];
-                    // Ambil gid jika ada
-                    const gidMatch = csvUrl.match(/gid=(\d+)/);
-                    const gid = gidMatch ? gidMatch[1] : '0';
-                    csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+            isScanning = true;
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                () => {} // Tidak menampilkan error setiap frame yang gagal
+            );
+        } catch (e) {
+            showToast('Tidak dapat mengakses kamera: ' + e.message, 'error');
+            closeScanner();
+        }
+    }
+
+    function onScanSuccess(decodedText) {
+        // Vibrasi feedback jika tersedia
+        if (navigator.vibrate) navigator.vibrate(100);
+
+        // Tampilkan hasil scan terakhir
+        document.getElementById('lastScanned').textContent = decodedText;
+
+        // Cari item berdasarkan part number yang discan
+        const item = stockData.find(row =>
+            row.partNumber.toLowerCase() === decodedText.toLowerCase() ||
+            row.partNumber.includes(decodedText) ||
+            decodedText.includes(row.partNumber)
+        );
+
+        if (item) {
+            // Fokus ke input jumlah dihitung pada baris tersebut
+            const input = document.querySelector(`input[data-idx="${item.no - 1}"]`);
+            if (input) {
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                input.focus();
+                input.select();
+                // Highlight baris sementara
+                const row = input.closest('tr');
+                if (row) {
+                    row.style.background = 'rgba(0,212,170,0.15)';
+                    setTimeout(() => { row.style.background = ''; }, 1500);
                 }
             }
-
-            const response = await fetch(csvUrl);
-            if (!response.ok) throw new Error('Gagal mengakses sheet. Pastikan sheet sudah dipublikasikan.');
-
-            const csvText = await response.text();
-            parseCSV(csvText);
-
-            document.getElementById('apiDot').classList.remove('off');
-            showToast(`Berhasil memuat ${Object.keys(sheetData).length} item`, 'success');
-        } catch (err) {
-            console.error(err);
-            showToast(err.message || 'Gagal sync data', 'error');
-            document.getElementById('apiDot').classList.add('off');
-        } finally {
-            btn.classList.remove('loading');
-            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sync';
-        }
-    }
-
-    // ===== PARSE CSV =====
-    function parseCSV(csv) {
-        sheetData = {};
-        const lines = csv.split('\n').filter(l => l.trim());
-        if (lines.length < 2) return;
-
-        // Deteksi header - cari kolom barcode dan nama
-        const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-        let barcodeIdx = header.findIndex(h => h.includes('barcode') || h.includes('kode') || h.includes('code'));
-        let namaIdx = header.findIndex(h => h.includes('nama') || h.includes('name') || h.includes('barang') || h.includes('item'));
-
-        // Fallback: kolom 0 = barcode, kolom 1 = nama
-        if (barcodeIdx === -1) barcodeIdx = 0;
-        if (namaIdx === -1) namaIdx = 1;
-
-        for (let i = 1; i < lines.length; i++) {
-            const cols = parseCSVLine(lines[i]);
-            if (cols[barcodeIdx] && cols[namaIdx]) {
-                sheetData[cols[barcodeIdx].trim()] = cols[namaIdx].trim();
-            }
-        }
-    }
-
-    // Parse CSV line yang mungkin mengandung koma di dalam quote
-    function parseCSVLine(line) {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
-            if (ch === '"') {
-                inQuotes = !inQuotes;
-            } else if (ch === ',' && !inQuotes) {
-                result.push(current);
-                current = '';
-            } else {
-                current += ch;
-            }
-        }
-        result.push(current);
-        return result;
-    }
-
-    // ===== SCANNER TOGGLE =====
-    function toggleScanner() {
-        const toggle = document.getElementById('scanToggle');
-        const body = document.getElementById('scannerBody');
-        const wrapper = document.getElementById('scannerWrapper');
-        const placeholder = document.getElementById('scannerPlaceholder');
-
-        if (!scannerActive) {
-            body.classList.add('open');
-            toggle.classList.add('active');
-            scannerActive = true;
-            startScanner();
+            showToast(`Ditemukan: ${item.namaBarang} — Masukkan jumlah hitung`, 'success');
         } else {
-            body.classList.remove('open');
-            toggle.classList.remove('active');
-            scannerActive = false;
-            stopScanner();
-        }
-    }
-
-    // ===== QUAGGA SCANNER =====
-    function startScanner() {
-        const wrapper = document.getElementById('scannerWrapper');
-        const placeholder = document.getElementById('scannerPlaceholder');
-        const container = document.getElementById('scannerContainer');
-
-        if (quaggaInitialized) {
-            Quagga.start();
-            wrapper.style.display = 'block';
-            placeholder.style.display = 'none';
-            return;
+            showToast(`"${decodedText}" tidak ditemukan dalam data`, 'error');
         }
 
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: container,
-                constraints: {
-                    facingMode: "environment",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-                frequency: 10
-            },
-            decoder: {
-                readers: [
-                    "code_128_reader",
-                    "ean_reader",
-                    "ean_8_reader",
-                    "code_39_reader",
-                    "upc_reader",
-                    "upc_e_reader",
-                    "codabar_reader"
-                ],
-                multiple: false
-            },
-            locate: true,
-            locator: {
-                patchSize: "medium",
-                halfSample: true
-            }
-        }, function(err) {
-            if (err) {
-                console.error(err);
-                showToast('Gagal mengakses kamera. Pastikan izin kamera diberikan.', 'error');
-                wrapper.style.display = 'none';
-                placeholder.style.display = 'flex';
-                placeholder.innerHTML = '<i class="fa-solid fa-camera-slash" style="font-size:40px;opacity:.4;"></i><p>Gagal akses kamera. Coba refresh halaman.</p>';
-                return;
-            }
-
-            quaggaInitialized = true;
-            Quagga.start();
-            wrapper.style.display = 'block';
-            placeholder.style.display = 'none';
-
-            Quagga.onDetected(onBarcodeDetected);
-        });
+        // Tutup scanner setelah berhasil scan
+        setTimeout(() => closeScanner(), 600);
     }
 
-    function stopScanner() {
-        if (quaggaInitialized) {
-            Quagga.offDetected(onBarcodeDetected);
-            Quagga.stop();
-        }
-        document.getElementById('scannerWrapper').style.display = 'none';
-        document.getElementById('scannerPlaceholder').style.display = 'flex';
-    }
-
-    function onBarcodeDetected(result) {
-        if (result && result.codeResult && result.codeResult.code) {
-            const code = result.codeResult.code;
-            // Vibrate sebagai feedback
-            if (navigator.vibrate) navigator.vibrate(100);
-            
-            // Flash effect
-            const wrapper = document.getElementById('scannerWrapper');
-            wrapper.classList.add('flash-success');
-            setTimeout(() => wrapper.classList.remove('flash-success'), 400);
-
-            handleBarcode(code);
-        }
-    }
-
-    // ===== MANUAL SEARCH =====
-    function searchBarcode() {
-        const input = document.getElementById('manualBarcode');
-        const code = input.value.trim();
-        if (!code) {
-            showToast('Masukkan kode barcode', 'error');
-            return;
-        }
-        handleBarcode(code);
-        input.value = '';
-    }
-
-    // ===== HANDLE BARCODE =====
-    function handleBarcode(code) {
-        currentBarcode = code;
-        currentQty = 1;
-
-        // Cari di data sheet
-        const nama = sheetData[code] || 'Tidak ditemukan di database';
-
-        // Tampilkan item card
-        document.getElementById('itemBarcode').textContent = code;
-        document.getElementById('itemName').textContent = nama;
-        document.getElementById('qtyDisplay').textContent = '1';
-        document.getElementById('qtyInput').value = 1;
-
-        const card = document.getElementById('itemCard');
-        card.classList.add('show');
-        card.classList.remove('flash-success');
-        void card.offsetWidth; // reflow
-        card.classList.add('flash-success');
-
-        // Scroll ke item card
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        if (nama === 'Tidak ditemukan di database') {
-            showToast(`Barcode "${code}" tidak ada di sheet`, 'error');
-        } else {
-            showToast(`Ditemukan: ${nama}`, 'success');
-        }
-    }
-
-    // ===== QTY CONTROL =====
-    function changeQty(delta) {
-        currentQty = Math.max(0, currentQty + delta);
-        document.getElementById('qtyDisplay').textContent = currentQty;
-        document.getElementById('qtyInput').value = currentQty;
-    }
-
-    function syncQtyFromInput() {
-        const val = parseInt(document.getElementById('qtyInput').value) || 0;
-        currentQty = Math.max(0, val);
-        document.getElementById('qtyDisplay').textContent = currentQty;
-    }
-
-    // ===== SUBMIT ITEM =====
-    function submitItem() {
-        if (!currentBarcode) return;
-
-        const nama = sheetData[currentBarcode] || 'Tidak ditemukan';
-        const now = new Date();
-        const waktu = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-        // Cek apakah barcode sudah ada di log, kalau ya update qty
-        const existing = opnameLog.find(l => l.barcode === currentBarcode);
-        if (existing) {
-            existing.qty = currentQty;
-            existing.waktu = waktu;
-            showToast(`Update ${nama} -> qty ${currentQty}`, 'info');
-        } else {
-            opnameLog.push({ barcode: currentBarcode, nama, qty: currentQty, waktu });
-            showToast(`Ditambahkan: ${nama} x${currentQty}`, 'success');
-        }
-
-        // Sembunyikan item card
-        document.getElementById('itemCard').classList.remove('show');
-        currentBarcode = '';
-
-        renderLog();
-
-        // Vibrate feedback
-        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-    }
-
-    // ===== RENDER LOG =====
-    function renderLog() {
-        const empty = document.getElementById('emptyState');
-        const table = document.getElementById('logTable');
-        const body = document.getElementById('logBody');
-        const count = document.getElementById('logCount');
-        const btnSend = document.getElementById('btnSendAll');
-
-        count.textContent = opnameLog.length;
-        btnSend.disabled = opnameLog.length === 0;
-
-        if (opnameLog.length === 0) {
-            empty.style.display = 'block';
-            table.style.display = 'none';
-            return;
-        }
-
-        empty.style.display = 'none';
-        table.style.display = 'table';
-
-        body.innerHTML = opnameLog.map((item, i) => `
-            <tr>
-                <td class="barcode-cell">${item.barcode}</td>
-                <td>${item.nama}</td>
-                <td class="qty-cell">${item.qty}</td>
-                <td class="time-cell">${item.waktu}</td>
-                <td><button class="btn-delete-row" onclick="deleteRow(${i})"><i class="fa-solid fa-xmark"></i></button></td>
-            </tr>
-        `).join('');
-    }
-
-    // ===== DELETE ROW =====
-    function deleteRow(index) {
-        opnameLog.splice(index, 1);
-        renderLog();
-        showToast('Data dihapus', 'info');
-    }
-
-    // ===== CLEAR LOG =====
-    function clearLog() {
-        if (opnameLog.length === 0) return;
-        opnameLog = [];
-        renderLog();
-        showToast('Semua data dihapus', 'info');
-    }
-
-    // ===== SEND TO GOOGLE SHEET =====
-    async function sendToSheet() {
-        if (opnameLog.length === 0) return;
-        if (!apiUrl) {
-            showToast('Set API URL terlebih dahulu', 'error');
-            return;
-        }
-
-        const btn = document.getElementById('btnSendAll');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
-
+    async function closeScanner() {
+        isScanning = false;
         try {
-            // Gunakan Google Apps Script Web App endpoint
-            // Format kirim: POST ke URL dengan JSON body
-            const payload = {
-                data: opnameLog.map(item => ({
-                    barcode: item.barcode,
-                    nama: item.nama,
-                    qty: item.qty,
-                    waktu: item.waktu,
-                    tanggal: new Date().toLocaleDateString('id-ID')
-                }))
-            };
+            if (html5QrCode && html5QrCode.isScanning) {
+                await html5QrCode.stop();
+            }
+        } catch (e) { /* abaikan error stop */ }
+        document.getElementById('scanModal').classList.remove('active');
+    }
 
-            // Coba kirim ke URL yang diset (harus Google Apps Script Web App)
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+    // ============================================
+    // UPLOAD EXCEL / CSV
+    // ============================================
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
 
-            // Karena no-cors, kita tidak bisa baca response
-            // Tapi kalau tidak throw error, biasanya berhasil
-            showToast(`${opnameLog.length} data berhasil dikirim!`, 'success');
-            opnameLog = [];
-            renderLog();
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) processFile(file);
+    });
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) processFile(e.target.files[0]);
+    });
 
-        } catch (err) {
-            console.error(err);
-            showToast('Gagal mengirim. Pastikan URL adalah Google Apps Script Web App.', 'error');
-        } finally {
-            btn.disabled = opnameLog.length === 0;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim ke Google Sheet';
+    function processFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const wb = XLSX.read(e.target.result, { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+                // Lewati header jika ada (baris pertama berisi teks)
+                let startRow = 0;
+                if (json.length > 0 && typeof json[0][0] === 'string' &&
+                    (json[0][0].toLowerCase().includes('part') || json[0][0].toLowerCase().includes('no'))) {
+                    startRow = 1;
+                }
+
+                stockData = [];
+                for (let i = startRow; i < json.length; i++) {
+                    const row = json[i];
+                    if (!row || row.length === 0 || !row[0]) continue;
+                    stockData.push({
+                        no: stockData.length + 1,
+                        partNumber: String(row[0] || '').trim(),
+                        namaBarang: String(row[1] || '').trim(),
+                        stokSistem: parseInt(row[2]) || 0,
+                        jumlahDihitung: row[3] !== undefined && row[3] !== '' ? parseInt(row[3]) : null,
+                        lokasi: String(row[4] || '').trim(),
+                        keterangan: String(row[5] || '').trim()
+                    });
+                }
+
+                updateAll();
+                showToast(`Berhasil memuat ${stockData.length} item dari ${file.name}`, 'success');
+            } catch (err) {
+                showToast('Gagal membaca file: ' + err.message, 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // ============================================
+    // UPDATE STATISTIK & TABEL
+    // ============================================
+    function updateAll() {
+        updateStats();
+        renderTable();
+    }
+
+    function updateStats() {
+        const total = stockData.length;
+        const counted = stockData.filter(r => r.jumlahDihitung !== null).length;
+        const notCounted = total - counted;
+        const diff = stockData.filter(r => r.jumlahDihitung !== null && r.jumlahDihitung !== r.stokSistem).length;
+
+        animateNumber('statTotal', total);
+        animateNumber('statCounted', counted);
+        animateNumber('statNotCounted', notCounted);
+        animateNumber('statDiff', diff);
+    }
+
+    function animateNumber(id, target) {
+        const el = document.getElementById(id);
+        const current = parseInt(el.textContent) || 0;
+        if (current === target) return;
+        const duration = 400;
+        const start = performance.now();
+        function step(ts) {
+            const progress = Math.min((ts - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(current + (target - current) * eased);
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        const empty = document.getElementById('emptyState');
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+        if (stockData.length === 0) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+
+        const filtered = stockData.filter(row => {
+            if (!query) return true;
+            return row.partNumber.toLowerCase().includes(query) ||
+                   row.namaBarang.toLowerCase().includes(query) ||
+                   row.lokasi.toLowerCase().includes(query) ||
+                   String(row.no).includes(query);
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--muted);">
+                <i class="fas fa-search" style="font-size: 1.5rem; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
+                Tidak ditemukan hasil untuk "${query}"
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(row => {
+            const diff = row.jumlahDihitung !== null ? row.jumlahDihitung - row.stokSistem : null;
+            const isCounted = row.jumlahDihitung !== null;
+            const hasDiff = diff !== null && diff !== 0;
+            const rowClass = isCounted ? 'counted-row' : '';
+
+            let statusBadge = '';
+            if (isCounted && hasDiff) {
+                statusBadge = `<span class="badge badge-diff"><i class="fas fa-exclamation-circle"></i> Selisih</span>`;
+            } else if (isCounted) {
+                statusBadge = `<span class="badge badge-counted"><i class="fas fa-check"></i> OK</span>`;
+            } else {
+                statusBadge = `<span class="badge badge-pending"><i class="fas fa-hourglass-half"></i> Pending</span>`;
+            }
+
+            let diffDisplay = '-';
+            let diffColor = 'var(--muted)';
+            if (diff !== null) {
+                diffDisplay = (diff > 0 ? '+' : '') + diff;
+                diffColor = diff === 0 ? 'var(--accent)' : 'var(--danger)';
+            }
+
+            return `<tr class="${rowClass}">
+                <td class="mono" style="color: var(--muted); font-size: 0.82rem;">${row.no}</td>
+                <td class="mono" style="font-weight: 500; color: var(--fg);">${row.partNumber}</td>
+                <td>${row.namaBarang}</td>
+                <td class="mono" style="text-align: center;">${row.stokSistem}</td>
+                <td style="text-align: center;">
+                    <div style="display: flex; align-items: center; gap: 6px; justify-content: center;">
+                        <input type="number" class="count-input" data-idx="${row.no - 1}"
+                            value="${row.jumlahDihitung !== null ? row.jumlahDihitung : ''}"
+                            placeholder="-" min="0"
+                            onchange="updateCount(${row.no - 1}, this.value)"
+                            onkeydown="if(event.key==='Enter') this.blur()">
+                        <button class="save-btn" onclick="saveCount(${row.no - 1})">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                </td>
+                <td class="mono" style="text-align: center; color: ${diffColor}; font-weight: 600;">${diffDisplay}</td>
+                <td style="font-size: 0.84rem; color: var(--muted);">${row.lokasi}</td>
+                <td>${statusBadge}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function updateCount(idx, value) {
+        const val = value === '' ? null : parseInt(value);
+        stockData[idx].jumlahDihitung = val;
+        updateStats();
+        renderTable();
+    }
+
+    function saveCount(idx) {
+        const input = document.querySelector(`input[data-idx="${idx}"]`);
+        if (input) {
+            const val = input.value === '' ? null : parseInt(input.value);
+            stockData[idx].jumlahDihitung = val;
+            updateStats();
+            renderTable();
+            if (val !== null) {
+                showToast(`${stockData[idx].namaBarang}: ${val} unit disimpan`, 'success');
+            }
         }
     }
+
+    // ============================================
+    // EXPORT EXCEL
+    // ============================================
+    function exportExcel() {
+        if (stockData.length === 0) {
+            showToast('Tidak ada data untuk di-export', 'error');
+            return;
+        }
+        const exportData = stockData.map(row => ({
+            'NO': row.no,
+            'Part Number': row.partNumber,
+            'Nama Barang': row.namaBarang,
+            'Stok Sistem': row.stokSistem,
+            'Jumlah Dihitung': row.jumlahDihitung !== null ? row.jumlahDihitung : '',
+            'Selisih': row.jumlahDihitung !== null ? row.jumlahDihitung - row.stokSistem : '',
+            'Lokasi': row.lokasi,
+            'Keterangan': row.keterangan
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Stock Opname");
+
+        // Atur lebar kolom
+        ws['!cols'] = [
+            { wch: 5 }, { wch: 20 }, { wch: 30 }, { wch: 12 },
+            { wch: 16 }, { wch: 10 }, { wch: 15 }, { wch: 20 }
+        ];
+
+        XLSX.writeFile(wb, `Stock_Opname_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast('File Excel berhasil di-export', 'success');
+    }
+
+    // ============================================
+    // EXPORT PDF
+    // ============================================
+    function exportPDF() {
+        if (stockData.length === 0) {
+            showToast('Tidak ada data untuk di-export', 'error');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+
+        // Judul
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('LAPORAN STOCK OPNAME', 14, 18);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100);
+        doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 25);
+        doc.text(`Total Item: ${stockData.length} | Sudah Dihitung: ${stockData.filter(r => r.jumlahDihitung !== null).length}`, 14, 30);
+
+        // Tabel
+        const tableData = stockData.map(row => [
+            row.no,
+            row.partNumber,
+            row.namaBarang,
+            row.stokSistem,
+            row.jumlahDihitung !== null ? row.jumlahDihitung : '-',
+            row.jumlahDihitung !== null ? (row.jumlahDihitung - row.stokSistem) : '-',
+            row.lokasi
+        ]);
+
+        doc.autoTable({
+            startY: 36,
+            head: [['NO', 'Part Number', 'Nama Barang', 'Stok Sistem', 'Dihitung', 'Selisih', 'Lokasi']],
+            body: tableData,
+            theme: 'grid',
+            styles: { fontSize: 8, cellPadding: 3 },
+            headStyles: { fillColor: [0, 180, 148], textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [245, 247, 250] },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 12 },
+                3: { halign: 'center', cellWidth: 22 },
+                4: { halign: 'center', cellWidth: 22 },
+                5: { halign: 'center', cellWidth: 18 },
+            }
+        });
+
+        doc.save(`Stock_Opname_${new Date().toISOString().slice(0, 10)}.pdf`);
+        showToast('File PDF berhasil di-export', 'success');
+    }
+
+    // ============================================
+    // CLEAR DATA
+    // ============================================
+    function clearAll() {
+        if (stockData.length === 0) {
+            showToast('Data sudah kosong', 'info');
+            return;
+        }
+        // Konfirmasi dengan custom inline
+        const confirmed = stockData.length > 0;
+        if (confirmed) {
+            // Buat konfirmasi toast
+            stockData = [];
+            updateAll();
+            showToast('Semua data telah dihapus', 'success');
+        }
+    }
+
+    // ============================================
+    // KEYBOARD SHORTCUT
+    // ============================================
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+Shift+S untuk scan
+        if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+            e.preventDefault();
+            openScanner();
+        }
+        // Escape untuk tutup modal
+        if (e.key === 'Escape') {
+            closeScanner();
+        }
+        // Ctrl+F fokus ke search
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            document.getElementById('searchInput').focus();
+        }
+    });
+
+    // ============================================
+    // INISIALISASI
+    // ============================================
+    updateAll();
 </script>
+
+<!--
+============================================
+KODE GOOGLE APPS SCRIPT
+Paste kode ini di Google Apps Script Anda
+(Ekstensi > Apps Script di Google Sheets)
+============================================
+
+function doGet(e) {
+  var action = e.parameter.action;
+  if (action === 'get') {
+    return getData();
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'Unknown action'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var action = e.parameter.action;
+  if (action === 'update') {
+    return updateData(e);
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'Unknown action'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Sheet1');
+  if (!sheet) sheet = ss.getSheets()[0];
+  var data = sheet.getDataRange().getValues();
+  // Hapus header
+  if (data.length > 0) data.shift();
+  return ContentService.createTextOutput(JSON.stringify({status: 'success', data: data}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function updateData(e) {
+  var body = JSON.parse(e.postData.contents);
+  var newData = body.data;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Sheet1');
+  if (!sheet) sheet = ss.getSheets()[0];
+  
+  // Ambil header lama
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  if (!headers || headers[0] === '') {
+    headers = ['Part Number', 'Nama Barang', 'Stok Sistem', 'Jumlah Dihitung', 'Lokasi', 'Keterangan'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  
+  // Hapus data lama (kecuali header)
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
+  }
+  
+  // Tulis data baru
+  if (newData && newData.length > 0) {
+    sheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({status: 'success', message: 'Data updated'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+============================================
+CARA DEPLOY:
+1. Buka Google Sheets
+2. Klik Ekstensi > Apps Script
+3. Hapus kode default, paste kode di atas
+4. Klik Deploy > New deployment
+5. Pilih type "Web app"
+6. Execute as: Me
+7. Who has access: Anyone
+8. Klik Deploy
+9. Copy URL yang muncul
+10. Paste URL tersebut di kolom "Paste API URL" di website ini
+============================================
+-->
 
 </body>
 </html>
