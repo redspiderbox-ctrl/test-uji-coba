@@ -318,6 +318,15 @@
         }
         .fade-in { animation: fadeIn 0.5s ease; }
 
+        /* Link sheet di config panel */
+        .sheet-link {
+            color: var(--accent);
+            text-decoration: none;
+            transition: opacity 0.2s;
+            word-break: break-all;
+        }
+        .sheet-link:hover { opacity: 0.8; text-decoration: underline; }
+
         @media (max-width: 768px) {
             .stat-grid { grid-template-columns: 1fr 1fr !important; }
             .stat-number { font-size: 1.5rem; }
@@ -406,10 +415,14 @@
                 <i class="fas fa-cloud-arrow-up"></i> Sync ke Sheet
             </button>
         </div>
-        <div style="margin-top: 12px; padding: 12px 16px; background: var(--bg); border-radius: 10px; font-size: 0.78rem; color: var(--muted); line-height: 1.6;">
+        <div style="margin-top: 12px; padding: 12px 16px; background: var(--bg); border-radius: 10px; font-size: 0.78rem; color: var(--muted); line-height: 1.8;">
             <i class="fas fa-circle-info" style="color: var(--info);"></i>
             <strong>Cara setup:</strong> Buka Google Sheets → Extensions → Apps Script → Paste kode deploy → Deploy as Web App → Copy URL → Paste di atas.
-            <br>Spreadsheet ID: <span class="mono" style="color: var(--accent);">1J4Gzo2HGESVx8SB-D51yHhLuTP4O57gydL7TBvAkBlY</span>
+            <br><i class="fas fa-table" style="color: var(--accent); margin-right: 4px;"></i>
+            Link Spreadsheet:
+            <a href="https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0" target="_blank" class="sheet-link mono">https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0</a>
+            <br><i class="fas fa-key" style="color: var(--warning); margin-right: 4px;"></i>
+            Spreadsheet ID: <span class="mono" style="color: var(--accent);">1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0</span>
         </div>
     </div>
 
@@ -559,6 +572,7 @@
 
     // ============================================
     // GOOGLE SHEETS INTEGRASI
+    // Spreadsheet ID: 1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
     // ============================================
     async function fetchFromSheet() {
         const url = getApiUrl();
@@ -574,14 +588,9 @@
                     deskripsiPart: String(row[1] || '').trim(),
                     qty: parseInt(row[2]) || 0,
                     qtyAlloc: parseInt(row[3]) || 0,
-                    available: parseInt(row[4]) || 0,
+                    available: (parseInt(row[2]) || 0) - (parseInt(row[3]) || 0),
                     fisik: row[5] !== undefined && row[5] !== '' ? parseInt(row[5]) : null,
-                    // Selisih dihitung otomatis
                 }));
-                // Hitung available & selisih
-                stockData.forEach(r => {
-                    r.available = r.qty - r.qtyAlloc;
-                });
                 updateAll();
                 showToast(`Berhasil mengambil ${stockData.length} data dari Sheet`, 'success');
             } else {
@@ -840,7 +849,6 @@
                 selisihColor = selisih === 0 ? 'var(--accent)' : 'var(--danger)';
             }
 
-            // Warna available
             let availColor = 'var(--fg)';
             if (row.available <= 0) availColor = 'var(--danger)';
             else if (row.available <= 5) availColor = 'var(--warning)';
@@ -1002,6 +1010,10 @@
 KODE GOOGLE APPS SCRIPT
 Paste kode ini di Google Apps Script Anda
 (Ekstensi > Apps Script di Google Sheets)
+
+Target Spreadsheet:
+https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0
+Spreadsheet ID: 1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
 ============================================
 
 function doGet(e) {
@@ -1059,7 +1071,7 @@ function updateData(e) {
 
 ============================================
 CARA DEPLOY:
-1. Buka Google Sheets Anda
+1. Buka spreadsheet: https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
 2. Klik Ekstensi > Apps Script
 3. Hapus kode default, paste kode di atas
 4. Klik Deploy > New deployment
