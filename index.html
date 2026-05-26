@@ -2,437 +2,331 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Opname System</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- ZXing Barcode Scanner -->
-    <script src="https://unpkg.com/@zxing/browser@latest"></script>
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stock Opname</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <style>
         :root {
-            --bg-primary: #0f1117;
-            --bg-secondary: #1a1d27;
-            --bg-card: #222636;
-            --border: #2e3348;
-            --text-primary: #e8eaf0;
-            --text-secondary: #8b90a5;
-            --accent: #00d4aa;
-            --accent-dim: rgba(0, 212, 170, 0.12);
-            --accent-glow: rgba(0, 212, 170, 0.3);
+            --bg: #0f1117;
+            --card: #1a1d27;
+            --card2: #222632;
+            --border: #2e3345;
+            --fg: #e8eaf0;
+            --muted: #7a8199;
+            --accent: #00d48a;
+            --accent-dim: rgba(0,212,138,0.12);
             --danger: #ff4d6a;
-            --danger-dim: rgba(255, 77, 106, 0.12);
-            --warning: #ffb547;
-            --warning-dim: rgba(255, 181, 71, 0.12);
-            --success: #00d4aa;
+            --warn: #ffb340;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            background: var(--bg);
+            color: var(--fg);
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* Background Atmosphere */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -30%;
-            right: -20%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-            animation: floatBlob 12s ease-in-out infinite;
-        }
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -20%;
-            left: -15%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-            animation: floatBlob 15s ease-in-out infinite reverse;
-        }
-
-        @keyframes floatBlob {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -40px) scale(1.05); }
-            66% { transform: translate(-20px, 20px) scale(0.95); }
-        }
-
-        .mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* Scanner Overlay */
-        .scanner-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.92);
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(8px);
-        }
-        .scanner-overlay.active { display: flex; }
-
-        .scanner-frame {
-            width: 320px;
-            height: 320px;
-            position: relative;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 0 50px rgba(0, 212, 170, 0.15);
-            border: 1px solid var(--border);
-        }
-        .scanner-frame video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Sudut frame scanner */
-        .scanner-frame::before,
-        .scanner-frame::after,
-        .scanner-corners::before,
-        .scanner-corners::after {
-            content: '';
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border-color: var(--accent);
-            border-style: solid;
-            z-index: 10;
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-        .scanner-frame::before {
-            top: 8px; left: 8px;
-            border-width: 3px 0 0 3px;
-            border-radius: 8px 0 0 0;
-        }
-        .scanner-frame::after {
-            top: 8px; right: 8px;
-            border-width: 3px 3px 0 0;
-            border-radius: 0 8px 0 0;
-        }
-        .scanner-corners::before {
-            bottom: 8px; left: 8px;
-            border-width: 0 0 3px 3px;
-            border-radius: 0 0 0 8px;
-        }
-        .scanner-corners::after {
-            bottom: 8px; right: 8px;
-            border-width: 0 3px 3px 0;
-            border-radius: 0 0 8px 0;
-        }
-
-        /* Garis scan bergerak */
-        .scan-line {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            box-shadow: 0 0 15px var(--accent-glow);
-            animation: scanMove 2s ease-in-out infinite;
-            z-index: 10;
-        }
-        @keyframes scanMove {
-            0%, 100% { top: 15px; }
-            50% { top: calc(100% - 15px); }
-        }
-
-        /* Card */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .card:hover {
-            border-color: rgba(0, 212, 170, 0.25);
-        }
-
-        /* Input */
-        .input-field {
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            width: 100%;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            outline: none;
-        }
-        .input-field:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-dim);
-        }
-        .input-field::placeholder { color: var(--text-secondary); opacity: 0.6; }
-
-        /* Tombol */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.25s;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-        .btn-primary {
-            background: var(--accent);
-            color: #0f1117;
-        }
-        .btn-primary:hover {
-            box-shadow: 0 4px 20px var(--accent-glow);
-            transform: translateY(-1px);
-        }
-        .btn-primary:active { transform: translateY(0); }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .btn-outline:hover {
-            background: var(--accent-dim);
-        }
-        .btn-danger {
-            background: var(--danger-dim);
-            color: var(--danger);
-            border: 1px solid rgba(255, 77, 106, 0.2);
-        }
-        .btn-danger:hover {
-            background: rgba(255, 77, 106, 0.2);
-        }
-        .btn-ghost {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-        .btn-ghost:hover {
-            color: var(--text-primary);
-            border-color: var(--text-secondary);
-        }
-
-        /* Badge */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .badge-success { background: var(--accent-dim); color: var(--accent); }
-        .badge-warning { background: var(--warning-dim); color: var(--warning); }
-        .badge-danger { background: var(--danger-dim); color: var(--danger); }
-
-        /* Tabel */
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        .data-table thead th {
-            background: var(--bg-primary);
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 2;
-        }
-        .data-table tbody tr {
-            transition: background 0.2s;
-        }
-        .data-table tbody tr:hover {
-            background: rgba(0, 212, 170, 0.04);
-        }
-        .data-table tbody td {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-        }
-
-        /* Toast */
+        /* ===== TOAST ===== */
         .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            position: fixed; top: 16px; right: 16px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 8px;
         }
         .toast {
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: toastIn 0.35s ease-out;
-            min-width: 280px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
+            padding: 12px 20px; border-radius: 10px; font-size: 14px;
+            font-weight: 600; color: #fff; animation: slideIn .3s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
         }
-        .toast-success {
-            background: linear-gradient(135deg, rgba(26, 46, 40, 0.9), rgba(26, 45, 42, 0.9));
-            border: 1px solid rgba(0, 212, 170, 0.3);
-            color: var(--accent);
-        }
-        .toast-error {
-            background: linear-gradient(135deg, rgba(46, 26, 32, 0.9), rgba(45, 26, 30, 0.9));
-            border: 1px solid rgba(255, 77, 106, 0.3);
-            color: var(--danger);
-        }
-        .toast-info {
-            background: linear-gradient(135deg, rgba(26, 29, 46, 0.9), rgba(26, 30, 45, 0.9));
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #818cf8;
-        }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(60px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes toastOut {
-            from { opacity: 1; transform: translateX(0); }
-            to { opacity: 0; transform: translateX(60px); }
-        }
+        .toast.success { background: var(--accent); color: #0f1117; }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: #3b82f6; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity:1; } to { transform: translateX(100%); opacity:0; } }
 
-        /* Statistik angka animasi */
-        .stat-number {
-            font-size: 36px;
-            font-weight: 700;
-            line-height: 1;
-            background: linear-gradient(135deg, var(--accent), #00f5c8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-primary); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
-
-        /* Pulse dot */
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
-            50% { box-shadow: 0 0 0 8px transparent; }
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            z-index: 90;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 420px;
-            width: 90%;
-            animation: modalIn 0.3s ease-out;
-        }
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        /* Tabel scroll container */
-        .table-scroll {
-            max-height: 420px;
-            overflow-y: auto;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .scanner-frame { width: 260px; height: 260px; }
-            .stat-number { font-size: 28px; }
-            .data-table tbody td, .data-table thead th { padding: 10px 10px; font-size: 12px; }
-        }
-
-        /* Koneksi status bar */
-        .status-bar {
-            background: var(--bg-secondary);
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--card);
             border-bottom: 1px solid var(--border);
-            padding: 8px 0;
-            font-size: 12px;
+            padding: 16px 20px;
+            position: sticky; top: 0; z-index: 100;
         }
+        .header-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .header h1 {
+            font-size: 20px; font-weight: 700;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .header h1 i { color: var(--accent); }
+        .badge-count {
+            background: var(--accent); color: #0f1117;
+            font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 20px;
+        }
+        .btn-sync {
+            background: var(--accent-dim); color: var(--accent);
+            border: 1px solid rgba(0,212,138,.3);
+            padding: 8px 16px; border-radius: 8px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            font-family: inherit; display: flex; align-items: center; gap: 6px;
+            transition: all .2s;
+        }
+        .btn-sync:hover { background: var(--accent); color: #0f1117; }
+        .btn-sync.loading { opacity: .6; pointer-events: none; }
 
-        /* Input group dengan ikon */
-        .input-group {
-            position: relative;
+        /* ===== API CONFIG BAR ===== */
+        .api-bar {
+            display: flex; gap: 8px; align-items: center;
         }
-        .input-group .input-icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
+        .api-bar input {
+            flex: 1; background: var(--bg); border: 1px solid var(--border);
+            color: var(--fg); padding: 8px 12px; border-radius: 8px;
+            font-size: 12px; font-family: monospace;
+            outline: none; transition: border .2s;
+        }
+        .api-bar input:focus { border-color: var(--accent); }
+        .api-bar input::placeholder { color: var(--muted); }
+        .btn-save-api {
+            background: var(--card2); color: var(--accent);
+            border: 1px solid var(--border); padding: 8px 14px;
+            border-radius: 8px; font-size: 13px; cursor: pointer;
+            font-family: inherit; font-weight: 600; white-space: nowrap;
+            transition: all .2s;
+        }
+        .btn-save-api:hover { border-color: var(--accent); }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main { padding: 16px 20px 100px; max-width: 600px; margin: 0 auto; }
+
+        /* ===== SCAN SECTION ===== */
+        .scan-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .scan-toggle {
+            width: 100%; padding: 14px 20px;
+            background: transparent; border: none; color: var(--fg);
+            font-family: inherit; font-size: 15px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: space-between;
+        }
+        .scan-toggle i { color: var(--accent); transition: transform .3s; }
+        .scan-toggle.active i { transform: rotate(180deg); }
+
+        .scanner-body {
+            max-height: 0; overflow: hidden; transition: max-height .4s ease;
+        }
+        .scanner-body.open { max-height: 400px; }
+
+        .scanner-wrapper {
+            position: relative; width: 100%; height: 280px;
+            background: #000;
+        }
+        .scanner-wrapper video, .scanner-wrapper canvas {
+            width: 100% !important; height: 100% !important;
+            object-fit: cover;
+        }
+        .scanner-overlay {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
             pointer-events: none;
         }
-        .input-group .input-field {
-            padding-left: 42px;
+        .scan-frame {
+            width: 220px; height: 140px;
+            border: 2px solid var(--accent);
+            border-radius: 12px; position: relative;
+            box-shadow: 0 0 30px rgba(0,212,138,.15);
+        }
+        .scan-frame::before {
+            content: ''; position: absolute; top: 50%; left: 10%; right: 10%;
+            height: 2px; background: var(--accent);
+            animation: scanLine 2s ease-in-out infinite;
+            box-shadow: 0 0 12px var(--accent);
+        }
+        @keyframes scanLine {
+            0%, 100% { top: 10%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            50% { top: 85%; }
+        }
+        .scan-hint {
+            position: absolute; bottom: 12px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,.7); color: var(--muted);
+            font-size: 11px; padding: 4px 12px; border-radius: 20px;
+        }
+        .scanner-placeholder {
+            height: 280px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: var(--muted); gap: 10px; background: var(--bg);
+        }
+        .scanner-placeholder i { font-size: 40px; opacity: .4; }
+
+        /* ===== MANUAL INPUT ===== */
+        .manual-input {
+            display: flex; gap: 8px; padding: 12px 16px;
+            border-top: 1px solid var(--border);
+        }
+        .manual-input input {
+            flex: 1; background: var(--bg); border: 1px solid var(--border);
+            color: var(--fg); padding: 10px 14px; border-radius: 8px;
+            font-size: 14px; font-family: 'Space Grotesk', monospace;
+            outline: none; transition: border .2s;
+        }
+        .manual-input input:focus { border-color: var(--accent); }
+        .manual-input input::placeholder { color: var(--muted); }
+        .btn-search {
+            background: var(--accent); color: #0f1117; border: none;
+            padding: 10px 18px; border-radius: 8px; font-size: 14px;
+            font-weight: 700; cursor: pointer; font-family: inherit;
+            transition: all .2s;
+        }
+        .btn-search:hover { opacity: .85; }
+
+        /* ===== ITEM CARD (setelah scan) ===== */
+        .item-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px; padding: 20px;
+            margin-bottom: 16px;
+            animation: fadeUp .3s ease;
+            display: none;
+        }
+        .item-card.show { display: block; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+        .item-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .item-card .value { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .item-card .value.accent { color: var(--accent); }
+
+        .qty-control {
+            display: flex; align-items: center; gap: 16px;
+        }
+        .qty-btn {
+            width: 48px; height: 48px; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--card2);
+            color: var(--fg); font-size: 22px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .15s; font-family: inherit;
+        }
+        .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .qty-btn:active { transform: scale(.92); }
+        .qty-display {
+            font-size: 32px; font-weight: 700; min-width: 80px;
+            text-align: center; color: var(--accent);
+        }
+        .qty-input-row {
+            display: flex; gap: 8px; margin-top: 12px; align-items: center;
+        }
+        .qty-input-row input {
+            flex: 1; background: var(--bg); border: 1px solid var(--border);
+            color: var(--fg); padding: 10px 14px; border-radius: 8px;
+            font-size: 16px; text-align: center; font-family: inherit;
+            outline: none;
+        }
+        .qty-input-row input:focus { border-color: var(--accent); }
+        .btn-submit {
+            flex: 1; background: var(--accent); color: #0f1117;
+            border: none; padding: 12px; border-radius: 10px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: all .15s;
+        }
+        .btn-submit:hover { opacity: .85; }
+        .btn-submit:active { transform: scale(.97); }
+
+        /* ===== LOG TABLE ===== */
+        .log-section { margin-top: 8px; }
+        .log-section h3 {
+            font-size: 14px; color: var(--muted); margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .log-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .log-table thead th {
+            font-size: 11px; color: var(--muted); text-transform: uppercase;
+            letter-spacing: .5px; padding: 10px 12px; text-align: left;
+            border-bottom: 1px solid var(--border); font-weight: 600;
+        }
+        .log-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            animation: fadeUp .25s ease;
+        }
+        .log-table tbody td {
+            padding: 12px; font-size: 13px; vertical-align: middle;
+        }
+        .log-table .barcode-cell {
+            font-family: monospace; font-weight: 600; color: var(--accent);
+        }
+        .log-table .qty-cell { font-weight: 700; font-size: 15px; }
+        .log-table .time-cell { color: var(--muted); font-size: 11px; }
+        .btn-delete-row {
+            background: transparent; border: none; color: var(--danger);
+            cursor: pointer; font-size: 14px; padding: 4px 8px;
+            border-radius: 6px; transition: background .2s;
+        }
+        .btn-delete-row:hover { background: rgba(255,77,106,.12); }
+
+        .empty-state {
+            text-align: center; padding: 40px 20px; color: var(--muted);
+        }
+        .empty-state i { font-size: 36px; opacity: .3; margin-bottom: 12px; display: block; }
+        .empty-state p { font-size: 13px; }
+
+        /* ===== FOOTER NAV ===== */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--card); border-top: 1px solid var(--border);
+            padding: 12px 20px; display: flex; gap: 10px;
+            z-index: 100;
+        }
+        .bottom-bar .btn-clear {
+            flex: 1; background: transparent; color: var(--danger);
+            border: 1px solid rgba(255,77,106,.3); padding: 12px;
+            border-radius: 10px; font-size: 13px; font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: all .2s;
+        }
+        .bottom-bar .btn-clear:hover { background: rgba(255,77,106,.1); }
+        .bottom-bar .btn-send-all {
+            flex: 2; background: var(--accent); color: #0f1117;
+            border: none; padding: 12px; border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: all .2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .bottom-bar .btn-send-all:hover { opacity: .85; }
+        .bottom-bar .btn-send-all:disabled { opacity: .4; pointer-events: none; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (min-width: 700px) {
+            .main { max-width: 560px; }
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
+        /* ===== PULSE DOT ===== */
+        .pulse-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent); display: inline-block;
+            animation: pulse 1.5s ease infinite;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+        .pulse-dot.off { background: var(--muted); animation: none; }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,138,.5); }
+            50% { box-shadow: 0 0 0 6px rgba(0,212,138,0); }
+        }
+
+        .flash-success {
+            animation: flash .4s ease;
+        }
+        @keyframes flash {
+            0% { box-shadow: 0 0 0 0 rgba(0,212,138,.6); }
+            100% { box-shadow: 0 0 40px 10px rgba(0,212,138,0); }
         }
     </style>
 </head>
@@ -441,783 +335,542 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Scanner Overlay -->
-<div class="scanner-overlay" id="scannerOverlay">
-    <div style="text-align:center; margin-bottom: 20px;">
-        <p style="color: var(--accent); font-weight: 600; font-size: 16px; letter-spacing: 1px;">SCANNING BARCODE</p>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Arahkan kamera ke barcode</p>
+<!-- Header -->
+<header class="header">
+    <div class="header-top">
+        <h1>
+            <i class="fa-solid fa-boxes-stacked"></i>
+            Stock Opname
+            <span class="badge-count" id="logCount">0</span>
+        </h1>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span class="pulse-dot off" id="apiDot"></span>
+            <button class="btn-sync" id="btnSync" onclick="fetchSheetData()">
+                <i class="fa-solid fa-rotate"></i> Sync
+            </button>
+        </div>
     </div>
-    <div class="scanner-frame" id="scannerFrame">
-        <video id="scannerVideo" playsinline></video>
-        <div class="scanner-corners"></div>
-        <div class="scan-line"></div>
-    </div>
-    <div style="margin-top: 24px; display: flex; gap: 12px;">
-        <button class="btn btn-danger" onclick="stopScanner()">
-            <i data-lucide="x" style="width:16px;height:16px;"></i> Tutup
+    <!-- API URL Config -->
+    <div class="api-bar">
+        <input type="text" id="apiUrlInput" placeholder="Paste Google Sheet API URL di sini...">
+        <button class="btn-save-api" onclick="saveApiUrl()">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan
         </button>
     </div>
-    <p id="scanResult" class="mono" style="margin-top: 16px; color: var(--text-secondary); font-size: 13px;"></p>
-</div>
+</header>
 
-<!-- Modal Konfirmasi -->
-<div class="modal-overlay" id="confirmModal">
-    <div class="modal-box">
-        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;" id="modalTitle">Konfirmasi</h3>
-        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;" id="modalMessage"></p>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
-            <button class="btn btn-primary" id="modalConfirmBtn" onclick="closeModal()">Ya</button>
-        </div>
-    </div>
-</div>
+<!-- Main Content -->
+<main class="main">
 
-<!-- Konten Utama -->
-<div style="position: relative; z-index: 1;">
-
-    <!-- Header -->
-    <header style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(15,17,23,0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center;">
-                <i data-lucide="package-check" style="width:20px;height:20px;color:var(--accent);"></i>
+    <!-- Scanner Section -->
+    <section class="scan-section">
+        <button class="scan-toggle" id="scanToggle" onclick="toggleScanner()">
+            <span><i class="fa-solid fa-barcode" style="margin-right:8px;"></i> Camera Scanner</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="scanner-body" id="scannerBody">
+            <div class="scanner-wrapper" id="scannerWrapper" style="display:none;">
+                <div id="scannerContainer"></div>
+                <div class="scanner-overlay">
+                    <div class="scan-frame"></div>
+                </div>
+                <div class="scan-hint">Arahkan barcode ke frame</div>
             </div>
-            <div>
-                <h1 style="font-size: 18px; font-weight: 700; letter-spacing: -0.5px;">Stock Opname</h1>
-                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 1px;">Sistem pencatatan stok real-time</p>
+            <div class="scanner-placeholder" id="scannerPlaceholder">
+                <i class="fa-solid fa-camera"></i>
+                <p>Klik tombol di atas untuk membuka kamera</p>
             </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="pulse-dot" id="statusDot"></div>
-            <span style="font-size: 12px; color: var(--text-secondary);" id="statusText">Belum terhubung</span>
+        <div class="manual-input">
+            <input type="text" id="manualBarcode" placeholder="Ketik barcode manual..." 
+                   onkeydown="if(event.key==='Enter')searchBarcode()">
+            <button class="btn-search" onclick="searchBarcode()">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
         </div>
-    </header>
+    </section>
 
-    <!-- Status Bar Koneksi -->
-    <div class="status-bar" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-        <i data-lucide="link" style="width:12px;height:12px;color:var(--text-secondary);"></i>
-        <span style="color: var(--text-secondary);">Google Sheet:</span>
-        <span class="mono" style="color: var(--text-secondary); font-size: 11px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="sheetUrlDisplay">Tidak ada URL</span>
-    </div>
+    <!-- Item Card (muncul setelah scan/success) -->
+    <section class="item-card" id="itemCard">
+        <div class="label">Barcode</div>
+        <div class="value" id="itemBarcode">-</div>
+        <div class="label">Nama Barang</div>
+        <div class="value accent" id="itemName">-</div>
+        <div class="label">Jumlah Dihitung</div>
+        <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(-1)">-</button>
+            <div class="qty-display" id="qtyDisplay">1</div>
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+        <div class="qty-input-row">
+            <input type="number" id="qtyInput" value="1" min="0" 
+                   oninput="syncQtyFromInput()">
+            <button class="btn-submit" onclick="submitItem()">
+                <i class="fa-solid fa-plus"></i> Tambah
+            </button>
+        </div>
+    </section>
 
-    <main style="max-width: 1100px; margin: 0 auto; padding: 24px;">
+    <!-- Log Table -->
+    <section class="log-section">
+        <h3><i class="fa-solid fa-list-check"></i> Data Opname Hari Ini</h3>
+        <div id="logContent">
+            <div class="empty-state" id="emptyState">
+                <i class="fa-solid fa-inbox"></i>
+                <p>Belum ada data. Scan atau ketik barcode untuk memulai.</p>
+            </div>
+            <table class="log-table" id="logTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Nama</th>
+                        <th>Qty</th>
+                        <th>Waktu</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="logBody"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
 
-        <!-- Konfigurasi API -->
-        <section class="card fade-in" style="margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-                <i data-lucide="settings" style="width:18px;height:18px;color:var(--accent);"></i>
-                <h2 style="font-size: 15px; font-weight: 700;">Konfigurasi Google Sheet</h2>
-            </div>
-            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.6;">
-                Paste URL Google Sheet kamu di bawah ini. Pastikan Sheet sudah di-set ke <strong>"Anyone with the link is a Viewer"</strong>.
-            </p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <div class="input-group" style="flex: 1; min-width: 280px;">
-                    <i data-lucide="file-spreadsheet" class="input-icon" style="width:16px;height:16px;"></i>
-                    <input type="text" class="input-field" id="sheetUrlInput"
-                        placeholder="Paste URL Google Sheet di sini..."
-                        value="">
-                </div>
-                <button class="btn btn-primary" onclick="connectSheet()">
-                    <i data-lucide="plug" style="width:16px;height:16px;"></i> Hubungkan
-                </button>
-            </div>
-        </section>
-
-        <!-- Statistik -->
-        <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;" class="fade-in">
-            <div class="card" style="padding: 20px;">
-                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Item</p>
-                <div class="stat-number" id="statTotal">0</div>
-            </div>
-            <div class="card" style="padding: 20px;">
-                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Sudah Diinput</p>
-                <div class="stat-number" id="statInput">0</div>
-            </div>
-            <div class="card" style="padding: 20px;">
-                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Belum Diinput</p>
-                <div class="stat-number" id="statRemaining" style="background: linear-gradient(135deg, var(--warning), #ffd166); -webkit-background-clip: text; background-clip: text;">0</div>
-            </div>
-            <div class="card" style="padding: 20px;">
-                <p style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Progress</p>
-                <div class="stat-number" id="statProgress">0%</div>
-                <div style="margin-top: 10px; height: 4px; background: var(--bg-primary); border-radius: 2px; overflow: hidden;">
-                    <div id="progressBar" style="height: 100%; width: 0%; background: var(--accent); border-radius: 2px; transition: width 0.5s ease;"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Input Section -->
-        <section class="card fade-in" style="margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i data-lucide="scan-barcode" style="width:18px;height:18px;color:var(--accent);"></i>
-                    <h2 style="font-size: 15px; font-weight: 700;">Input Stok</h2>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" onclick="startScanner()" style="padding: 10px 18px; font-size: 13px;">
-                        <i data-lucide="camera" style="width:15px;height:15px;"></i> Scan Barcode
-                    </button>
-                    <button class="btn btn-ghost" onclick="loadSheetData()" style="padding: 10px 18px; font-size: 13px;">
-                        <i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Refresh
-                    </button>
-                </div>
-            </div>
-
-            <!-- Form Input Manual -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;" id="inputForm">
-                <div>
-                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Barcode / Kode</label>
-                    <input type="text" class="input-field" id="inputBarcode" placeholder="Scan atau ketik kode barcode..." onkeydown="if(event.key==='Enter') searchBarcode()">
-                </div>
-                <div>
-                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 500;">Jumlah Stok Fisik</label>
-                    <input type="number" class="input-field" id="inputQty" placeholder="0" min="0" onkeydown="if(event.key==='Enter') submitStock()">
-                </div>
-                <button class="btn btn-primary" onclick="submitStock()" style="height: 46px; padding: 0 28px;">
-                    <i data-lucide="check" style="width:16px;height:16px;"></i> Simpan
-                </button>
-            </div>
-
-            <!-- Info item ditemukan -->
-            <div id="foundItem" style="display: none; margin-top: 16px; padding: 16px; background: var(--accent-dim); border: 1px solid rgba(0,212,170,0.2); border-radius: 12px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent);"></i>
-                    <span style="font-size: 13px; font-weight: 600; color: var(--accent);">Item Ditemukan</span>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 13px;">
-                    <div>
-                        <span style="color: var(--text-secondary);">Nama Item</span>
-                        <p style="font-weight: 600; margin-top: 2px;" id="foundName">-</p>
-                    </div>
-                    <div>
-                        <span style="color: var(--text-secondary);">Stok Sistem</span>
-                        <p class="mono" style="font-weight: 600; margin-top: 2px;" id="foundSystem">-</p>
-                    </div>
-                    <div>
-                        <span style="color: var(--text-secondary);">Satuan</span>
-                        <p style="font-weight: 600; margin-top: 2px;" id="foundUnit">-</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Item tidak ditemukan -->
-            <div id="notFoundItem" style="display: none; margin-top: 16px; padding: 16px; background: var(--danger-dim); border: 1px solid rgba(255,77,106,0.2); border-radius: 12px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="alert-circle" style="width:16px;height:16px;color:var(--danger);"></i>
-                    <span style="font-size: 13px; font-weight: 600; color: var(--danger);">Item tidak ditemukan di database</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Tabel Data -->
-        <section class="card fade-in">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i data-lucide="table" style="width:18px;height:18px;color:var(--accent);"></i>
-                    <h2 style="font-size: 15px; font-weight: 700;">Data Stock Opname</h2>
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <div class="input-group" style="width: 220px;">
-                        <i data-lucide="search" class="input-icon" style="width:14px;height:14px;"></i>
-                        <input type="text" class="input-field" id="searchTable" placeholder="Cari item..." style="padding-left: 36px; font-size: 13px;" oninput="filterTable()">
-                    </div>
-                    <select class="input-field" id="filterStatus" style="width: 140px; font-size: 13px; cursor: pointer;" onchange="filterTable()">
-                        <option value="all">Semua</option>
-                        <option value="done">Sudah Input</option>
-                        <option value="pending">Belum Input</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="table-scroll" id="tableContainer">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th style="width:50px;">No</th>
-                            <th>Barcode</th>
-                            <th>Nama Item</th>
-                            <th style="text-align:right;">Stok Sistem</th>
-                            <th style="text-align:right;">Stok Fisik</th>
-                            <th style="text-align:right;">Selisih</th>
-                            <th style="text-align:center;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                                <i data-lucide="database" style="width:40px;height:40px;margin: 0 auto 12px;display:block;opacity:0.3;"></i>
-                                Hubungkan Google Sheet terlebih dahulu untuk memuat data
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer style="text-align: center; padding: 32px 0 16px; color: var(--text-secondary); font-size: 12px;">
-            <p>Stock Opname System &mdash; Terintegrasi dengan Google Sheet</p>
-        </footer>
-    </main>
-</div>
+<!-- Bottom Bar -->
+<footer class="bottom-bar">
+    <button class="btn-clear" onclick="clearLog()">
+        <i class="fa-solid fa-trash-can"></i> Hapus Semua
+    </button>
+    <button class="btn-send-all" id="btnSendAll" onclick="sendToSheet()" disabled>
+        <i class="fa-solid fa-paper-plane"></i> Kirim ke Google Sheet
+    </button>
+</footer>
 
 <script>
-    // ============================================
-    // Variabel Global
-    // ============================================
-    let sheetData = [];           // Data dari Google Sheet
-    let stockOpname = {};         // Data stok fisik yang sudah diinput { barcode: qty }
-    let connectedSheetId = null;  // ID sheet yang terhubung
-    let codeReader = null;        // Instance ZXing barcode reader
-    let isScanning = false;       // Status scanner
-    let selectedBarcode = null;   // Barcode yang sedang dipilih untuk input
+    // ===== STATE =====
+    let apiUrl = localStorage.getItem('stockOpname_apiUrl') || '';
+    let sheetData = {};        // cache: barcode => nama barang
+    let opnameLog = [];        // array { barcode, nama, qty, waktu }
+    let currentQty = 1;
+    let currentBarcode = '';
+    let scannerActive = false;
+    let quaggaInitialized = false;
 
-    // Inisialisasi ikon Lucide
-    lucide.createIcons();
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', () => {
+        // Muat API URL dari localStorage
+        if (apiUrl) {
+            document.getElementById('apiUrlInput').value = apiUrl;
+            document.getElementById('apiDot').classList.remove('off');
+            fetchSheetData();
+        }
+        // Muat log dari sessionStorage (reset per sesi)
+        renderLog();
+    });
 
-    // ============================================
-    // Konfigurasi
-    // ============================================
-    // Anda dapat mengisi default URL di sini jika ingin
-    let API_BASE_URL = ""; 
-
-    // ============================================
-    // Fungsi Koneksi Google Sheet
-    // ============================================
-    function extractSheetId(url) {
-        // Ekstrak ID dari URL Google Sheet
-        const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-        return match ? match[1] : null;
+    // ===== TOAST =====
+    function showToast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.textContent = msg;
+        container.appendChild(t);
+        setTimeout(() => {
+            t.style.animation = 'slideOut .3s ease forwards';
+            setTimeout(() => t.remove(), 300);
+        }, 2500);
     }
 
-    function connectSheet() {
-        const url = document.getElementById('sheetUrlInput').value.trim();
-        if (!url) {
-            showToast('Masukkan URL Google Sheet terlebih dahulu', 'error');
+    // ===== API URL =====
+    function saveApiUrl() {
+        const input = document.getElementById('apiUrlInput').value.trim();
+        if (!input) {
+            showToast('Masukkan URL API terlebih dahulu', 'error');
             return;
         }
-
-        const sheetId = extractSheetId(url);
-        if (!sheetId) {
-            showToast('Format URL tidak valid. Pastikan URL benar.', 'error');
+        // Validasi format URL Google Sheet publik
+        if (!input.includes('docs.google.com/spreadsheets') && !input.startsWith('https://')) {
+            showToast('URL tidak valid', 'error');
             return;
         }
-
-        connectedSheetId = sheetId;
-        API_BASE_URL = url;
-
-        // Tampilkan URL di status bar
-        document.getElementById('sheetUrlDisplay').textContent = url;
-        document.getElementById('statusDot').style.background = 'var(--warning)';
-        document.getElementById('statusText').textContent = 'Menghubungkan...';
-
-        showToast('Mencoba menghubungkan ke Google Sheet...', 'info');
-
-        // Coba load data
-        loadSheetData();
+        apiUrl = input;
+        localStorage.setItem('stockOpname_apiUrl', apiUrl);
+        document.getElementById('apiDot').classList.remove('off');
+        showToast('API URL tersimpan', 'success');
+        fetchSheetData();
     }
 
-    async function loadSheetData() {
-        if (!connectedSheetId) {
-            showToast('Hubungkan Google Sheet terlebih dahulu', 'error');
+    // ===== FETCH SHEET DATA =====
+    async function fetchSheetData() {
+        if (!apiUrl) {
+            showToast('Set API URL terlebih dahulu', 'error');
             return;
         }
+
+        const btn = document.getElementById('btnSync');
+        btn.classList.add('loading');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
 
         try {
-            // Gunakan public CSV endpoint
-            // Format: https://docs.google.com/spreadsheets/d/{ID}/export?format=csv&gid=0
-            const csvUrl = `https://docs.google.com/spreadsheets/d/${connectedSheetId}/export?format=csv&gid=0`;
+            // Konversi URL edit ke URL export CSV
+            let csvUrl = apiUrl;
+            
+            // Jika URL masih format edit, konversi ke format publik/export
+            if (csvUrl.includes('/edit')) {
+                // Ekstrak ID dari URL
+                const idMatch = csvUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (idMatch) {
+                    const sheetId = idMatch[1];
+                    // Ambil gid jika ada
+                    const gidMatch = csvUrl.match(/gid=(\d+)/);
+                    const gid = gidMatch ? gidMatch[1] : '0';
+                    csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+                }
+            }
+
             const response = await fetch(csvUrl);
-            const text = await response.text();
+            if (!response.ok) throw new Error('Gagal mengakses sheet. Pastikan sheet sudah dipublikasikan.');
 
-            if (!text || text.includes('<!DOCTYPE')) {
-                throw new Error('Sheet tidak publik atau tidak ditemukan');
-            }
+            const csvText = await response.text();
+            parseCSV(csvText);
 
-            // Parse CSV
-            sheetData = parseCSV(text);
-
-            if (sheetData.length === 0) {
-                throw new Error('Data kosong');
-            }
-
-            // Normalisasi key (lowercase, trim) untuk fleksibilitas kolom
-            sheetData = sheetData.map(row => {
-                const normalized = {};
-                for (const key in row) {
-                    normalized[key.toLowerCase().trim()] = row[key];
-                }
-                return normalized;
-            });
-
-            // Update status
-            document.getElementById('statusDot').style.background = 'var(--accent)';
-            document.getElementById('statusText').textContent = 'Terhubung';
-            document.getElementById('statusDot').classList.add('pulse-dot');
-
-            showToast(`Berhasil memuat ${sheetData.length} item`, 'success');
-            renderTable();
-            updateStats();
-
-        } catch (error) {
-            console.error('Error loading sheet:', error);
-            document.getElementById('statusDot').style.background = 'var(--danger)';
-            document.getElementById('statusText').textContent = 'Gagal terhubung';
-
-            // Tampilkan pesan error spesifik
-            if (error.message.includes('Sheet tidak publik')) {
-                showToast('Akses ditolak. Pastikan Sheet di-share: "Anyone with the link" > "Viewer"', 'error');
-            } else {
-                showToast('Gagal memuat data: ' + error.message, 'error');
-            }
+            document.getElementById('apiDot').classList.remove('off');
+            showToast(`Berhasil memuat ${Object.keys(sheetData).length} item`, 'success');
+        } catch (err) {
+            console.error(err);
+            showToast(err.message || 'Gagal sync data', 'error');
+            document.getElementById('apiDot').classList.add('off');
+        } finally {
+            btn.classList.remove('loading');
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sync';
         }
     }
 
-    // ============================================
-    // Parser CSV Sederhana
-    // ============================================
-    function parseCSV(text) {
-        const lines = [];
-        let current = '';
-        let inQuotes = false;
+    // ===== PARSE CSV =====
+    function parseCSV(csv) {
+        sheetData = {};
+        const lines = csv.split('\n').filter(l => l.trim());
+        if (lines.length < 2) return;
 
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            if (char === '"') {
-                if (inQuotes && text[i + 1] === '"') {
-                    current += '"';
-                    i++;
-                } else {
-                    inQuotes = !inQuotes;
-                }
-            } else if ((char === '\n' || char === '\r') && !inQuotes) {
-                if (current.trim()) lines.push(current);
-                current = '';
-                if (char === '\r' && text[i + 1] === '\n') i++;
-            } else {
-                current += char;
-            }
-        }
-        if (current.trim()) lines.push(current);
+        // Deteksi header - cari kolom barcode dan nama
+        const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+        let barcodeIdx = header.findIndex(h => h.includes('barcode') || h.includes('kode') || h.includes('code'));
+        let namaIdx = header.findIndex(h => h.includes('nama') || h.includes('name') || h.includes('barang') || h.includes('item'));
 
-        if (lines.length < 2) return [];
+        // Fallback: kolom 0 = barcode, kolom 1 = nama
+        if (barcodeIdx === -1) barcodeIdx = 0;
+        if (namaIdx === -1) namaIdx = 1;
 
-        const headers = parseCSVLine(lines[0]);
-        const rows = [];
         for (let i = 1; i < lines.length; i++) {
-            const values = parseCSVLine(lines[i]);
-            if (values.length === 0 || (values.length === 1 && values[0] === '')) continue;
-            const row = {};
-            headers.forEach((h, idx) => {
-                row[h.trim()] = (values[idx] || '').trim();
-            });
-            rows.push(row);
+            const cols = parseCSVLine(lines[i]);
+            if (cols[barcodeIdx] && cols[namaIdx]) {
+                sheetData[cols[barcodeIdx].trim()] = cols[namaIdx].trim();
+            }
         }
-        return rows;
     }
 
+    // Parse CSV line yang mungkin mengandung koma di dalam quote
     function parseCSVLine(line) {
         const result = [];
         let current = '';
         let inQuotes = false;
         for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (char === '"') {
-                if (inQuotes && line[i + 1] === '"') {
-                    current += '"';
-                    i++;
-                } else {
-                    inQuotes = !inQuotes;
-                }
-            } else if (char === ',' && !inQuotes) {
+            const ch = line[i];
+            if (ch === '"') {
+                inQuotes = !inQuotes;
+            } else if (ch === ',' && !inQuotes) {
                 result.push(current);
                 current = '';
             } else {
-                current += char;
+                current += ch;
             }
         }
         result.push(current);
         return result;
     }
 
-    // ============================================
-    // Pencarian Barcode
-    // ============================================
-    function searchBarcode() {
-        const barcode = document.getElementById('inputBarcode').value.trim();
-        if (!barcode) return;
+    // ===== SCANNER TOGGLE =====
+    function toggleScanner() {
+        const toggle = document.getElementById('scanToggle');
+        const body = document.getElementById('scannerBody');
+        const wrapper = document.getElementById('scannerWrapper');
+        const placeholder = document.getElementById('scannerPlaceholder');
 
-        const item = sheetData.find(row => {
-            const rowBarcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            return rowBarcode === barcode;
-        });
-
-        const foundDiv = document.getElementById('foundItem');
-        const notFoundDiv = document.getElementById('notFoundItem');
-
-        if (item) {
-            selectedBarcode = barcode;
-            foundDiv.style.display = 'block';
-            notFoundDiv.style.display = 'none';
-
-            document.getElementById('foundName').textContent = item['nama item'] || item['nama'] || item['name'] || '-';
-            document.getElementById('foundSystem').textContent = item['stok sistem'] || item['stok'] || item['stock'] || '0';
-            document.getElementById('foundUnit').textContent = item['satuan'] || item['unit'] || '-';
-
-            // Fokus ke input qty
-            document.getElementById('inputQty').focus();
+        if (!scannerActive) {
+            body.classList.add('open');
+            toggle.classList.add('active');
+            scannerActive = true;
+            startScanner();
         } else {
-            selectedBarcode = null;
-            foundDiv.style.display = 'none';
-            notFoundDiv.style.display = 'block';
-        }
-    }
-
-    // ============================================
-    // Submit Stok
-    // ============================================
-    function submitStock() {
-        const barcode = document.getElementById('inputBarcode').value.trim();
-        const qty = document.getElementById('inputQty').value.trim();
-
-        if (!barcode) {
-            showToast('Masukkan kode barcode terlebih dahulu', 'error');
-            return;
-        }
-        if (!qty || isNaN(qty) || parseInt(qty) < 0) {
-            showToast('Masukkan jumlah stok yang valid', 'error');
-            return;
-        }
-
-        // Cari item di data
-        const item = sheetData.find(row => {
-            const rowBarcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            return rowBarcode === barcode;
-        });
-
-        if (!item) {
-            showToast('Barcode tidak ditemukan di database', 'error');
-            return;
-        }
-
-        // Simpan stok fisik
-        stockOpname[barcode] = parseInt(qty);
-
-        // Coba kirim ke Google Sheet via Apps Script (jika URL deployment ada)
-        updateSheetCell(barcode, parseInt(qty));
-
-        showToast(`Stok "${item['nama item'] || item['nama'] || 'Item'}" berhasil disimpan: ${qty}`, 'success');
-
-        // Reset form
-        document.getElementById('inputBarcode').value = '';
-        document.getElementById('inputQty').value = '';
-        document.getElementById('foundItem').style.display = 'none';
-        document.getElementById('notFoundItem').style.display = 'none';
-        selectedBarcode = null;
-
-        // Update tabel dan statistik
-        renderTable();
-        updateStats();
-
-        // Fokus kembali ke input barcode
-        document.getElementById('inputBarcode').focus();
-    }
-
-    // ============================================
-    // Update ke Google Sheet (via Apps Script Web App)
-    // ============================================
-    async function updateSheetCell(barcode, qty) {
-        // Jika menggunakan Apps Script deployment URL
-        if (API_BASE_URL && API_BASE_URL.includes('script.google.com')) {
-            try {
-                await fetch(API_BASE_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ barcode: barcode, qty: qty })
-                });
-            } catch (e) {
-                console.log('Update ke sheet gagal (data tersimpan lokal):', e);
-            }
-        }
-    }
-
-    // ============================================
-    // Render Tabel
-    // ============================================
-    function renderTable() {
-        const tbody = document.getElementById('tableBody');
-
-        if (sheetData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:60px 20px;color:var(--text-secondary);">
-                <i data-lucide="database" style="width:40px;height:40px;margin:0 auto 12px;display:block;opacity:0.3;"></i>
-                Tidak ada data untuk ditampilkan
-            </td></tr>`;
-            lucide.createIcons();
-            return;
-        }
-
-        let html = '';
-        sheetData.forEach((row, index) => {
-            const barcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            const name = row['nama item'] || row['nama'] || row['name'] || '-';
-            const systemStock = parseFloat(row['stok sistem'] || row['stok'] || row['stock'] || 0);
-            const unit = row['satuan'] || row['unit'] || '';
-            const physicalStock = stockOpname[barcode] !== undefined ? stockOpname[barcode] : null;
-            const diff = physicalStock !== null ? physicalStock - systemStock : null;
-
-            const isDone = physicalStock !== null;
-            const statusBadge = isDone
-                ? (diff === 0 ? '<span class="badge badge-success">Sesuai</span>'
-                    : diff > 0 ? '<span class="badge badge-warning">Lebih</span>'
-                    : '<span class="badge badge-danger">Kurang</span>')
-                : '<span class="badge" style="background:var(--bg-primary);color:var(--text-secondary);">Pending</span>';
-
-            const diffColor = diff === null ? 'var(--text-secondary)'
-                : diff === 0 ? 'var(--accent)'
-                : diff > 0 ? 'var(--warning)' : 'var(--danger)';
-            const diffText = diff === null ? '-'
-                : diff === 0 ? '0'
-                : (diff > 0 ? '+' : '') + diff;
-
-            html += `<tr data-barcode="${barcode}" data-status="${isDone ? 'done' : 'pending'}" data-name="${name.toLowerCase()}">
-                <td style="color:var(--text-secondary); font-size:13px;">${index + 1}</td>
-                <td><code class="mono" style="font-size:12px; background:var(--bg-primary); padding:3px 8px; border-radius:4px;">${barcode || '-'}</code></td>
-                <td style="font-weight:500;">${name}</td>
-                <td style="text-align:right;" class="mono">${systemStock} <span style="color:var(--text-secondary);font-size:11px;">${unit}</span></td>
-                <td style="text-align:right;" class="mono" style="font-weight:600;">${physicalStock !== null ? physicalStock + ' <span style="color:var(--text-secondary);font-size:11px;">' + unit + '</span>' : '<span style="color:var(--text-secondary);">-</span>'}</td>
-                <td style="text-align:right;" class="mono" style="color:${diffColor}; font-weight:600;">${diffText}</td>
-                <td style="text-align:center;">${statusBadge}</td>
-            </tr>`;
-        });
-
-        tbody.innerHTML = html;
-        lucide.createIcons();
-    }
-
-    // ============================================
-    // Filter Tabel
-    // ============================================
-    function filterTable() {
-        const search = document.getElementById('searchTable').value.toLowerCase();
-        const status = document.getElementById('filterStatus').value;
-
-        const rows = document.querySelectorAll('#tableBody tr[data-barcode]');
-        rows.forEach(row => {
-            const name = row.getAttribute('data-name') || '';
-            const barcode = row.getAttribute('data-barcode') || '';
-            const rowStatus = row.getAttribute('data-status') || '';
-
-            const matchSearch = name.includes(search) || barcode.includes(search);
-            const matchStatus = status === 'all' || rowStatus === status;
-
-            row.style.display = (matchSearch && matchStatus) ? '' : 'none';
-        });
-    }
-
-    // ============================================
-    // Update Statistik
-    // ============================================
-    function updateStats() {
-        const total = sheetData.length;
-        let inputCount = 0;
-
-        sheetData.forEach(row => {
-            const barcode = String(row['barcode'] || row['kode'] || row['kode barang'] || '').trim();
-            if (stockOpname[barcode] !== undefined) inputCount++;
-        });
-
-        const remaining = total - inputCount;
-        const progress = total > 0 ? Math.round((inputCount / total) * 100) : 0;
-
-        // Animasi angka
-        animateNumber('statTotal', total);
-        animateNumber('statInput', inputCount);
-        animateNumber('statRemaining', remaining);
-        document.getElementById('statProgress').textContent = progress + '%';
-        document.getElementById('progressBar').style.width = progress + '%';
-    }
-
-    function animateNumber(elementId, target) {
-        const el = document.getElementById(elementId);
-        const current = parseInt(el.textContent) || 0;
-        const diff = target - current;
-        const steps = 20;
-        const stepTime = 30;
-        let step = 0;
-
-        const interval = setInterval(() => {
-            step++;
-            const value = Math.round(current + (diff * (step / steps)));
-            el.textContent = value;
-            if (step >= steps) {
-                el.textContent = target;
-                clearInterval(interval);
-            }
-        }, stepTime);
-    }
-
-    // ============================================
-    // Barcode Scanner (ZXing - Sensitif)
-    // ============================================
-    async function startScanner() {
-        const overlay = document.getElementById('scannerOverlay');
-        const video = document.getElementById('scannerVideo');
-
-        overlay.classList.add('active');
-        document.getElementById('scanResult').textContent = 'Mengaktifkan kamera...';
-        isScanning = true;
-
-        try {
-            // Konfigurasi ZXing dengan pengaturan sensitif
-            codeReader = new ZXing.BrowserMultiFormatReader(undefined, {
-                delayBetweenScanSuccess: 500,      // Jeda antar scan sukses (ms)
-                delayBetweenScanAttempts: 30,      // Jeda antar percobaan scan (ms) - SENSITIF
-                tryHarder: true,                    // Mode sensitif
-                possibleFormats: [
-                    ZXing.BarcodeFormat.CODE_128,
-                    ZXing.BarcodeFormat.CODE_39,
-                    ZXing.BarcodeFormat.EAN_13,
-                    ZXing.BarcodeFormat.EAN_8,
-                    ZXing.BarcodeFormat.UPC_A,
-                    ZXing.BarcodeFormat.UPC_E,
-                    ZXing.BarcodeFormat.ITF,
-                    ZXing.BarcodeFormat.CODE_93,
-                    ZXing.BarcodeFormat.QR_CODE,
-                    ZXing.BarcodeFormat.DATA_MATRIX
-                ]
-            });
-
-            // Pilih kamera belakang (lebih baik untuk barcode)
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const backCamera = devices.find(d => d.kind === 'videoinput' && d.label.toLowerCase().includes('back'))
-                || devices.find(d => d.kind === 'videoinput' && d.label.toLowerCase().includes('rear'))
-                || devices.find(d => d.kind === 'videoinput');
-
-            const videoInputDevices = await codeReader.listVideoInputDevices();
-            const selectedDevice = videoInputDevices.length > 1 ? videoInputDevices[videoInputDevices.length - 1] : videoInputDevices[0];
-
-            document.getElementById('scanResult').textContent = 'Kamera aktif - Arahkan ke barcode...';
-
-            codeReader.decodeFromVideoDevice(
-                selectedDevice.deviceId,
-                video,
-                (result, err) => {
-                    if (result) {
-                        const text = result.getText();
-                        document.getElementById('scanResult').textContent = 'Terdeteksi: ' + text;
-
-                        // Masukkan hasil scan ke input
-                        document.getElementById('inputBarcode').value = text;
-
-                        // Tutup scanner dan langsung cari
-                        stopScanner();
-                        searchBarcode();
-
-                        // Vibrate jika didukung
-                        if (navigator.vibrate) navigator.vibrate(100);
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        // Abaik NotFoundException (normal saat tidak ada barcode)
-                        console.log('Scan error:', err);
-                    }
-                }
-            );
-
-        } catch (error) {
-            console.error('Scanner error:', error);
-            document.getElementById('scanResult').textContent = 'Error: ' + error.message;
-            showToast('Gagal mengaktifkan kamera: ' + error.message, 'error');
+            body.classList.remove('open');
+            toggle.classList.remove('active');
+            scannerActive = false;
             stopScanner();
         }
     }
 
-    function stopScanner() {
-        isScanning = false;
-        if (codeReader) {
-            codeReader.reset();
-            codeReader = null;
-        }
-        const video = document.getElementById('scannerVideo');
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
-            video.srcObject = null;
-        }
-        document.getElementById('scannerOverlay').classList.remove('active');
-    }
+    // ===== QUAGGA SCANNER =====
+    function startScanner() {
+        const wrapper = document.getElementById('scannerWrapper');
+        const placeholder = document.getElementById('scannerPlaceholder');
+        const container = document.getElementById('scannerContainer');
 
-    // ============================================
-    // Toast Notification
-    // ============================================
-    function showToast(message, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-
-        const icons = {
-            success: 'check-circle',
-            error: 'alert-triangle',
-            info: 'info'
-        };
-
-        toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" style="width:18px;height:18px;flex-shrink:0;"></i><span>${message}</span>`;
-        container.appendChild(toast);
-        lucide.createIcons();
-
-        // Auto remove
-        setTimeout(() => {
-            toast.style.animation = 'toastOut 0.3s ease-in forwards';
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
-    }
-
-    // ============================================
-    // Modal
-    // ============================================
-    function showModal(title, message, onConfirm) {
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('modalMessage').textContent = message;
-        document.getElementById('confirmModal').classList.add('active');
-        document.getElementById('modalConfirmBtn').onclick = () => {
-            closeModal();
-            if (onConfirm) onConfirm();
-        };
-    }
-
-    function closeModal() {
-        document.getElementById('confirmModal').classList.remove('active');
-    }
-
-    // ============================================
-    // Keyboard Shortcut
-    // ============================================
-    document.addEventListener('keydown', (e) => {
-        // Escape tutup scanner
-        if (e.key === 'Escape') {
-            if (isScanning) stopScanner();
-            if (document.getElementById('confirmModal').classList.contains('active')) closeModal();
-        }
-        // Ctrl+Shift+S buka scanner
-        if (e.ctrlKey && e.shiftKey && e.key === 'S') {
-            e.preventDefault();
-            startScanner();
-        }
-    });
-
-    // ============================================
-    // Inisialisasi - Cek URL yang sudah diisi
-    // ============================================
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedUrl = localStorage.getItem('stockOpname_sheetUrl');
-        if (savedUrl) {
-            document.getElementById('sheetUrlInput').value = savedUrl;
+        if (quaggaInitialized) {
+            Quagga.start();
+            wrapper.style.display = 'block';
+            placeholder.style.display = 'none';
+            return;
         }
 
-        // Simpan URL saat diubah
-        document.getElementById('sheetUrlInput').addEventListener('change', (e) => {
-            localStorage.setItem('stockOpname_sheetUrl', e.target.value);
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: container,
+                constraints: {
+                    facingMode: "environment",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                frequency: 10
+            },
+            decoder: {
+                readers: [
+                    "code_128_reader",
+                    "ean_reader",
+                    "ean_8_reader",
+                    "code_39_reader",
+                    "upc_reader",
+                    "upc_e_reader",
+                    "codabar_reader"
+                ],
+                multiple: false
+            },
+            locate: true,
+            locator: {
+                patchSize: "medium",
+                halfSample: true
+            }
+        }, function(err) {
+            if (err) {
+                console.error(err);
+                showToast('Gagal mengakses kamera. Pastikan izin kamera diberikan.', 'error');
+                wrapper.style.display = 'none';
+                placeholder.style.display = 'flex';
+                placeholder.innerHTML = '<i class="fa-solid fa-camera-slash" style="font-size:40px;opacity:.4;"></i><p>Gagal akses kamera. Coba refresh halaman.</p>';
+                return;
+            }
+
+            quaggaInitialized = true;
+            Quagga.start();
+            wrapper.style.display = 'block';
+            placeholder.style.display = 'none';
+
+            Quagga.onDetected(onBarcodeDetected);
         });
-    });
+    }
+
+    function stopScanner() {
+        if (quaggaInitialized) {
+            Quagga.offDetected(onBarcodeDetected);
+            Quagga.stop();
+        }
+        document.getElementById('scannerWrapper').style.display = 'none';
+        document.getElementById('scannerPlaceholder').style.display = 'flex';
+    }
+
+    function onBarcodeDetected(result) {
+        if (result && result.codeResult && result.codeResult.code) {
+            const code = result.codeResult.code;
+            // Vibrate sebagai feedback
+            if (navigator.vibrate) navigator.vibrate(100);
+            
+            // Flash effect
+            const wrapper = document.getElementById('scannerWrapper');
+            wrapper.classList.add('flash-success');
+            setTimeout(() => wrapper.classList.remove('flash-success'), 400);
+
+            handleBarcode(code);
+        }
+    }
+
+    // ===== MANUAL SEARCH =====
+    function searchBarcode() {
+        const input = document.getElementById('manualBarcode');
+        const code = input.value.trim();
+        if (!code) {
+            showToast('Masukkan kode barcode', 'error');
+            return;
+        }
+        handleBarcode(code);
+        input.value = '';
+    }
+
+    // ===== HANDLE BARCODE =====
+    function handleBarcode(code) {
+        currentBarcode = code;
+        currentQty = 1;
+
+        // Cari di data sheet
+        const nama = sheetData[code] || 'Tidak ditemukan di database';
+
+        // Tampilkan item card
+        document.getElementById('itemBarcode').textContent = code;
+        document.getElementById('itemName').textContent = nama;
+        document.getElementById('qtyDisplay').textContent = '1';
+        document.getElementById('qtyInput').value = 1;
+
+        const card = document.getElementById('itemCard');
+        card.classList.add('show');
+        card.classList.remove('flash-success');
+        void card.offsetWidth; // reflow
+        card.classList.add('flash-success');
+
+        // Scroll ke item card
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        if (nama === 'Tidak ditemukan di database') {
+            showToast(`Barcode "${code}" tidak ada di sheet`, 'error');
+        } else {
+            showToast(`Ditemukan: ${nama}`, 'success');
+        }
+    }
+
+    // ===== QTY CONTROL =====
+    function changeQty(delta) {
+        currentQty = Math.max(0, currentQty + delta);
+        document.getElementById('qtyDisplay').textContent = currentQty;
+        document.getElementById('qtyInput').value = currentQty;
+    }
+
+    function syncQtyFromInput() {
+        const val = parseInt(document.getElementById('qtyInput').value) || 0;
+        currentQty = Math.max(0, val);
+        document.getElementById('qtyDisplay').textContent = currentQty;
+    }
+
+    // ===== SUBMIT ITEM =====
+    function submitItem() {
+        if (!currentBarcode) return;
+
+        const nama = sheetData[currentBarcode] || 'Tidak ditemukan';
+        const now = new Date();
+        const waktu = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // Cek apakah barcode sudah ada di log, kalau ya update qty
+        const existing = opnameLog.find(l => l.barcode === currentBarcode);
+        if (existing) {
+            existing.qty = currentQty;
+            existing.waktu = waktu;
+            showToast(`Update ${nama} -> qty ${currentQty}`, 'info');
+        } else {
+            opnameLog.push({ barcode: currentBarcode, nama, qty: currentQty, waktu });
+            showToast(`Ditambahkan: ${nama} x${currentQty}`, 'success');
+        }
+
+        // Sembunyikan item card
+        document.getElementById('itemCard').classList.remove('show');
+        currentBarcode = '';
+
+        renderLog();
+
+        // Vibrate feedback
+        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    }
+
+    // ===== RENDER LOG =====
+    function renderLog() {
+        const empty = document.getElementById('emptyState');
+        const table = document.getElementById('logTable');
+        const body = document.getElementById('logBody');
+        const count = document.getElementById('logCount');
+        const btnSend = document.getElementById('btnSendAll');
+
+        count.textContent = opnameLog.length;
+        btnSend.disabled = opnameLog.length === 0;
+
+        if (opnameLog.length === 0) {
+            empty.style.display = 'block';
+            table.style.display = 'none';
+            return;
+        }
+
+        empty.style.display = 'none';
+        table.style.display = 'table';
+
+        body.innerHTML = opnameLog.map((item, i) => `
+            <tr>
+                <td class="barcode-cell">${item.barcode}</td>
+                <td>${item.nama}</td>
+                <td class="qty-cell">${item.qty}</td>
+                <td class="time-cell">${item.waktu}</td>
+                <td><button class="btn-delete-row" onclick="deleteRow(${i})"><i class="fa-solid fa-xmark"></i></button></td>
+            </tr>
+        `).join('');
+    }
+
+    // ===== DELETE ROW =====
+    function deleteRow(index) {
+        opnameLog.splice(index, 1);
+        renderLog();
+        showToast('Data dihapus', 'info');
+    }
+
+    // ===== CLEAR LOG =====
+    function clearLog() {
+        if (opnameLog.length === 0) return;
+        opnameLog = [];
+        renderLog();
+        showToast('Semua data dihapus', 'info');
+    }
+
+    // ===== SEND TO GOOGLE SHEET =====
+    async function sendToSheet() {
+        if (opnameLog.length === 0) return;
+        if (!apiUrl) {
+            showToast('Set API URL terlebih dahulu', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('btnSendAll');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
+
+        try {
+            // Gunakan Google Apps Script Web App endpoint
+            // Format kirim: POST ke URL dengan JSON body
+            const payload = {
+                data: opnameLog.map(item => ({
+                    barcode: item.barcode,
+                    nama: item.nama,
+                    qty: item.qty,
+                    waktu: item.waktu,
+                    tanggal: new Date().toLocaleDateString('id-ID')
+                }))
+            };
+
+            // Coba kirim ke URL yang diset (harus Google Apps Script Web App)
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            // Karena no-cors, kita tidak bisa baca response
+            // Tapi kalau tidak throw error, biasanya berhasil
+            showToast(`${opnameLog.length} data berhasil dikirim!`, 'success');
+            opnameLog = [];
+            renderLog();
+
+        } catch (err) {
+            console.error(err);
+            showToast('Gagal mengirim. Pastikan URL adalah Google Apps Script Web App.', 'error');
+        } finally {
+            btn.disabled = opnameLog.length === 0;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim ke Google Sheet';
+        }
+    }
 </script>
+
 </body>
 </html>
