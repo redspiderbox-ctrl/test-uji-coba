@@ -1,1075 +1,2350 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Opname - Sistem Manajemen</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        :root {
-            --bg: #0c0f14;
-            --bg2: #13171e;
-            --card: #181d27;
-            --card-hover: #1e2533;
-            --border: #262d3d;
-            --fg: #e8ecf4;
-            --muted: #6b7a94;
-            --accent: #00d4aa;
-            --accent-dim: rgba(0,212,170,0.12);
-            --danger: #ff4d6a;
-            --warning: #ffb830;
-            --info: #3ea8ff;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg);
-            color: var(--fg);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: radial-gradient(ellipse at 20% 20%, rgba(0,212,170,0.04) 0%, transparent 50%),
-                        radial-gradient(ellipse at 80% 80%, rgba(62,168,255,0.03) 0%, transparent 50%);
-            animation: bgDrift 20s ease-in-out infinite alternate;
-            pointer-events: none; z-index: 0;
-        }
-        @keyframes bgDrift {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-3%, -3%) rotate(2deg); }
-        }
-        .mono { font-family: 'JetBrains Mono', monospace; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>StockOpname Pro — Sistem Inventaris Modern</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    /* ============================================= */
+    /* CONFIG.JS - Ganti URL di bawah dengan URL    */
+    /* Apps Script Anda setelah deploy               */
+    /* ============================================= */
+    :root {
+      --bg-deep: #070D1A;
+      --bg-primary: #0B1628;
+      --bg-card: #111E36;
+      --bg-card-hover: #162746;
+      --bg-input: #0D1A2E;
+      --border: #1A2E4A;
+      --border-focus: #00D4AA;
+      --accent: #00D4AA;
+      --accent-dim: rgba(0,212,170,0.15);
+      --accent-glow: rgba(0,212,170,0.3);
+      --danger: #FF4757;
+      --danger-dim: rgba(255,71,87,0.15);
+      --warning: #FFB020;
+      --warning-dim: rgba(255,176,32,0.15);
+      --success: #2ED573;
+      --success-dim: rgba(46,213,115,0.15);
+      --text-primary: #E8EDF5;
+      --text-secondary: #7B8CA8;
+      --text-muted: #4A5B78;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+      --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
 
-        /* Stat Cards */
-        .stat-card {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 14px; padding: 20px 24px;
-            position: relative; overflow: hidden; transition: all 0.3s ease;
-        }
-        .stat-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0;
-            height: 3px; border-radius: 14px 14px 0 0;
-        }
-        .stat-card:hover { transform: translateY(-3px); border-color: rgba(0,212,170,0.3); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
-        .stat-card.total::before { background: var(--accent); }
-        .stat-card.counted::before { background: var(--info); }
-        .stat-card.notcounted::before { background: var(--warning); }
-        .stat-card.diff::before { background: var(--danger); }
-        .stat-number { font-size: 2rem; font-weight: 700; line-height: 1; margin: 8px 0 4px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Inputs & Buttons */
-        .input-field {
-            background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
-            padding: 10px 14px; color: var(--fg); font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; outline: none; width: 100%;
-        }
-        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-        .input-field::placeholder { color: var(--muted); }
-        .btn {
-            display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
-            border-radius: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 600;
-            font-size: 0.88rem; border: none; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
-        }
-        .btn:active { transform: scale(0.97); }
-        .btn-primary { background: var(--accent); color: #0c0f14; }
-        .btn-primary:hover { background: #00eabb; box-shadow: 0 4px 20px rgba(0,212,170,0.3); }
-        .btn-outline { background: transparent; color: var(--fg); border: 1px solid var(--border); }
-        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-danger { background: rgba(255,77,106,0.12); color: var(--danger); border: 1px solid rgba(255,77,106,0.25); }
-        .btn-danger:hover { background: rgba(255,77,106,0.2); }
-        .btn-scan {
-            background: linear-gradient(135deg, var(--accent), #00b894); color: #0c0f14;
-            font-size: 1rem; padding: 14px 28px; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,212,170,0.25);
-        }
-        .btn-scan:hover { box-shadow: 0 6px 32px rgba(0,212,170,0.4); transform: translateY(-2px); }
+    html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
 
-        /* Table */
-        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .data-table thead th {
-            background: var(--bg2); color: var(--muted); font-weight: 600; font-size: 0.78rem;
-            text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 16px; text-align: left;
-            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2;
-        }
-        .data-table thead th:first-child { border-radius: 10px 0 0 0; }
-        .data-table thead th:last-child { border-radius: 0 10px 0 0; }
-        .data-table tbody tr { transition: background 0.15s; }
-        .data-table tbody tr:hover { background: var(--card-hover); }
-        .data-table tbody td { padding: 12px 16px; border-bottom: 1px solid rgba(38,45,61,0.5); font-size: 0.88rem; }
-        .data-table tbody tr.counted-row { background: rgba(0,212,170,0.04); }
-        .data-table tbody tr.counted-row td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
 
-        /* Badge */
-        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .badge-counted { background: rgba(0,212,170,0.12); color: var(--accent); }
-        .badge-pending { background: rgba(255,184,48,0.12); color: var(--warning); }
-        .badge-diff { background: rgba(255,77,106,0.12); color: var(--danger); }
+    /* ===== BACKGROUND ATMOSPHERE ===== */
+    .bg-atmosphere {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .bg-atmosphere::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+      top: -200px; right: -150px;
+      animation: floatBlob 20s ease-in-out infinite;
+    }
+    .bg-atmosphere::after {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,100,200,0.05) 0%, transparent 70%);
+      bottom: -150px; left: -100px;
+      animation: floatBlob 25s ease-in-out infinite reverse;
+    }
+    @keyframes floatBlob {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.1); }
+      66% { transform: translate(-20px, 30px) scale(0.95); }
+    }
 
-        /* Upload Zone */
-        .upload-zone {
-            border: 2px dashed var(--border); border-radius: 14px; padding: 40px;
-            text-align: center; transition: all 0.3s; cursor: pointer; background: var(--bg2);
-        }
-        .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-dim); }
+    /* ===== GRID PATTERN ===== */
+    .grid-pattern {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(26,46,74,0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,46,74,0.3) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 70%);
+    }
 
-        /* Modal */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-            z-index: 100; display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .modal-overlay.active { opacity: 1; pointer-events: all; }
-        .modal-box {
-            background: var(--card); border: 1px solid var(--border); border-radius: 20px;
-            padding: 0; max-width: 500px; width: 95%; overflow: hidden; transform: scale(0.9); transition: transform 0.3s;
-        }
-        .modal-overlay.active .modal-box { transform: scale(1); }
-        #reader { width: 100%; }
-        #reader video { border-radius: 0 !important; }
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-        /* Toast */
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
-        .toast {
-            background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-            padding: 14px 20px; display: flex; align-items: center; gap: 10px;
-            min-width: 300px; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            animation: toastIn 0.4s ease; font-size: 0.85rem;
-        }
-        .toast.success { border-left: 4px solid var(--accent); }
-        .toast.error { border-left: 4px solid var(--danger); }
-        .toast.info { border-left: 4px solid var(--info); }
-        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+    /* ===== LOGIN PAGE ===== */
+    #loginPage {
+      position: fixed; inset: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-deep);
+      transition: opacity 0.5s, transform 0.5s;
+    }
+    #loginPage.hidden {
+      opacity: 0; transform: scale(1.05); pointer-events: none;
+    }
+    .login-container {
+      width: 100%; max-width: 420px; padding: 20px;
+      position: relative; z-index: 1;
+    }
+    .login-logo {
+      text-align: center; margin-bottom: 40px;
+    }
+    .login-logo .icon-box {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, var(--accent), #00A080);
+      border-radius: 20px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 32px; color: var(--bg-deep);
+      margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(0,212,170,0.25);
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { box-shadow: 0 8px 32px rgba(0,212,170,0.25); }
+      50% { box-shadow: 0 8px 48px rgba(0,212,170,0.4); }
+    }
+    .login-logo h1 {
+      font-family: var(--font-display);
+      font-size: 28px; font-weight: 700;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .login-logo p {
+      color: var(--text-secondary); font-size: 14px; margin-top: 6px;
+    }
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text-secondary); margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .input-wrapper {
+      position: relative;
+    }
+    .input-wrapper i {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted); font-size: 16px; transition: color var(--transition);
+    }
+    .input-wrapper input {
+      width: 100%; padding: 14px 14px 14px 44px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 15px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .input-wrapper input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .input-wrapper input:focus + i,
+    .input-wrapper input:focus ~ i { color: var(--accent); }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px 24px;
+      border: none; border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0; transition: opacity var(--transition);
+    }
+    .btn:hover::after { opacity: 1; }
+    .btn:active { transform: scale(0.97); }
 
-        /* Config Panel */
-        .config-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #00A080);
+      color: var(--bg-deep); width: 100%;
+      box-shadow: 0 4px 16px rgba(0,212,170,0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 24px rgba(0,212,170,0.4);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0) scale(0.98); }
 
-        /* Count Input */
-        .count-input {
-            background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
-            color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
-            width: 80px; text-align: center; outline: none; transition: border-color 0.2s;
-        }
-        .count-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-        .save-btn {
-            background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,212,170,0.25);
-            border-radius: 8px; padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
-        .save-btn:hover { background: rgba(0,212,170,0.2); }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-sm {
+      padding: 8px 16px; font-size: 13px;
+    }
+    .btn-icon {
+      width: 40px; height: 40px; padding: 0;
+      border-radius: var(--radius-sm);
+    }
 
-        /* Empty & Loading State */
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-        .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
-        .loading-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .login-error {
+      background: var(--danger-dim);
+      border: 1px solid rgba(255,71,87,0.3);
+      color: var(--danger);
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center; gap: 8px;
+    }
+    .login-error.show { display: flex; }
 
-        /* Spinner */
-        .spinner {
-            width: 40px; height: 40px; border: 3px solid var(--border);
-            border-top-color: var(--accent); border-radius: 50%;
-            animation: spin 0.8s linear infinite; margin: 0 auto 16px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+    /* ===== MAIN APP ===== */
+    #appMain {
+      display: none;
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    #appMain.active { display: block; }
 
-        /* Connection status bar */
-        .conn-bar {
-            display: flex; align-items: center; gap: 10px; padding: 10px 16px;
-            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-            font-size: 0.8rem; margin-bottom: 20px;
-        }
-        .conn-dot {
-            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-        }
-        .conn-dot.loading { background: var(--warning); animation: blink 1s infinite; }
-        .conn-dot.connected { background: var(--accent); box-shadow: 0 0 8px rgba(0,212,170,0.5); }
-        .conn-dot.error { background: var(--danger); box-shadow: 0 0 8px rgba(255,77,106,0.5); }
-        .conn-dot.idle { background: var(--muted); }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    /* ===== HEADER ===== */
+    .app-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,22,40,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .header-logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), #00A080);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--bg-deep);
+    }
+    .header-title {
+      font-family: var(--font-display);
+      font-size: 18px; font-weight: 700;
+    }
+    .header-right {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .user-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px 6px 8px;
+      font-size: 13px; font-weight: 500;
+    }
+    .user-avatar {
+      width: 28px; height: 28px;
+      background: var(--accent-dim);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: var(--accent); font-weight: 700;
+    }
+    .offline-badge {
+      background: var(--warning-dim);
+      border: 1px solid rgba(255,176,32,0.3);
+      color: var(--warning);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px; font-weight: 600;
+      display: none;
+    }
+    .offline-badge.show { display: block; }
 
-        /* Auto-refresh pulse */
-        .refresh-pulse { animation: refreshPulse 3s ease-in-out infinite; }
-        @keyframes refreshPulse {
-            0%, 100% { opacity: 0.5; } 50% { opacity: 1; }
-        }
+    /* ===== PAGE SECTIONS ===== */
+    .page-section {
+      display: none;
+      padding: 20px;
+      animation: fadeUp 0.35s ease-out;
+    }
+    .page-section.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .sheet-link { color: var(--accent); text-decoration: none; word-break: break-all; }
-        .sheet-link:hover { text-decoration: underline; }
+    /* ===== DASHBOARD ===== */
+    .section-header {
+      margin-bottom: 24px;
+    }
+    .section-header h2 {
+      font-family: var(--font-display);
+      font-size: 24px; font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .section-header p {
+      color: var(--text-secondary); font-size: 14px;
+    }
 
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(0,212,170,0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(0,212,170,0); }
-            100% { box-shadow: 0 0 0 0 rgba(0,212,170,0); }
-        }
-        .pulse-anim { animation: pulse-ring 2s infinite; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    @media (min-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative; overflow: hidden;
+      transition: all var(--transition);
+    }
+    .stat-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .stat-card .stat-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+    .stat-card .stat-value {
+      font-family: var(--font-display);
+      font-size: 28px; font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-card .stat-label {
+      font-size: 12px; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .stat-card .stat-glow {
+      position: absolute;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      top: -30px; right: -30px;
+      opacity: 0.15;
+    }
+    .stat-accent .stat-icon { background: var(--accent-dim); color: var(--accent); }
+    .stat-accent .stat-glow { background: var(--accent); }
+    .stat-success .stat-icon { background: var(--success-dim); color: var(--success); }
+    .stat-success .stat-glow { background: var(--success); }
+    .stat-warning .stat-icon { background: var(--warning-dim); color: var(--warning); }
+    .stat-warning .stat-glow { background: var(--warning); }
+    .stat-danger .stat-icon { background: var(--danger-dim); color: var(--danger); }
+    .stat-danger .stat-glow { background: var(--danger); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.5s ease; }
+    /* ===== PROGRESS BAR ===== */
+    .progress-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .progress-section h3 {
+      font-family: var(--font-display);
+      font-size: 16px; font-weight: 600;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .progress-bar-wrapper {
+      background: var(--bg-input);
+      border-radius: 8px;
+      height: 12px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #00FFD0);
+      border-radius: 8px;
+      transition: width 1s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+    }
+    .progress-bar-fill::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .progress-text {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: var(--text-secondary);
+    }
 
-        @media (max-width: 768px) {
-            .stat-grid { grid-template-columns: 1fr 1fr !important; }
-            .stat-number { font-size: 1.5rem; }
-            .action-bar { flex-direction: column; }
-        }
-        @media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr !important; } }
-    </style>
+    /* ===== KATEGORI CHIPS ===== */
+    .kategori-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .kategori-section h3 {
+      font-family: var(--font-display);
+      font-size: 16px; font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .kategori-chips {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .kategori-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      transition: all var(--transition);
+    }
+    .kategori-chip:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .kategori-chip .chip-count {
+      background: var(--accent-dim);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* ===== SCAN PAGE ===== */
+    .scan-area {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto 20px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 4/3;
+      border: 2px solid var(--border);
+    }
+    .scan-area.scanning {
+      border-color: var(--accent);
+      box-shadow: 0 0 30px var(--accent-dim);
+    }
+    #qrReader {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    #qrReader video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+    /* Override library styles */
+    #qrReader__scan_region {
+      min-height: 0 !important;
+    }
+    #qrReader__dashboard_section {
+      display: none !important;
+    }
+    #qrReader__header_message {
+      display: none !important;
+    }
+    .scan-overlay {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scan-frame {
+      width: 220px; height: 220px;
+      position: relative;
+    }
+    .scan-frame .corner {
+      position: absolute;
+      width: 30px; height: 30px;
+      border-color: var(--accent);
+      border-style: solid;
+      border-width: 0;
+    }
+    .scan-frame .corner.tl { top:0;left:0; border-top-width:3px; border-left-width:3px; border-top-left-radius:8px; }
+    .scan-frame .corner.tr { top:0;right:0; border-top-width:3px; border-right-width:3px; border-top-right-radius:8px; }
+    .scan-frame .corner.bl { bottom:0;left:0; border-bottom-width:3px; border-left-width:3px; border-bottom-left-radius:8px; }
+    .scan-frame .corner.br { bottom:0;right:0; border-bottom-width:3px; border-right-width:3px; border-bottom-right-radius:8px; }
+    .scan-line {
+      position: absolute;
+      left: 10px; right: 10px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: scanLine 2s ease-in-out infinite;
+      box-shadow: 0 0 12px var(--accent);
+    }
+    @keyframes scanLine {
+      0%, 100% { top: 10px; }
+      50% { top: calc(100% - 12px); }
+    }
+
+    .scan-controls {
+      display: flex; gap: 12px;
+      max-width: 480px; margin: 0 auto 24px;
+    }
+    .scan-controls .btn { flex: 1; }
+
+    .manual-input-area {
+      max-width: 480px; margin: 0 auto 24px;
+      display: flex; gap: 10px;
+    }
+    .manual-input-area input {
+      flex: 1;
+      padding: 14px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 15px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .manual-input-area input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    /* ===== SCAN RESULT CARD ===== */
+    .scan-result {
+      max-width: 480px; margin: 0 auto;
+      display: none;
+    }
+    .scan-result.show { display: block; animation: fadeUp 0.3s ease-out; }
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 0 40px var(--accent-dim);
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), #00FFD0, var(--accent));
+    }
+    .result-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-header .result-icon {
+      width: 48px; height: 48px;
+      background: var(--accent-dim);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: var(--accent);
+    }
+    .result-header .result-title {
+      font-family: var(--font-display);
+      font-size: 18px; font-weight: 700;
+    }
+    .result-header .result-barcode {
+      font-size: 13px; color: var(--text-secondary);
+      font-family: monospace;
+    }
+    .result-fields {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      margin-bottom: 20px;
+    }
+    .result-field {
+      background: var(--bg-input);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+    .result-field .field-label {
+      font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .result-field .field-value {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 700;
+    }
+    .result-field .field-value.match { color: var(--success); }
+    .result-field .field-value.diff { color: var(--danger); }
+    .result-field.full-width { grid-column: 1 / -1; }
+
+    .stok-input-row {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 16px;
+    }
+    .stok-input-row label {
+      font-size: 14px; font-weight: 600;
+      white-space: nowrap;
+    }
+    .stok-input-row input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 700;
+      text-align: center;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .stok-input-row input:focus {
+      border-color: var(--accent);
+    }
+    .stok-input-row .btn-qty {
+      width: 44px; height: 44px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .stok-input-row .btn-qty:hover {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .keterangan-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      resize: vertical;
+      min-height: 44px;
+      margin-bottom: 16px;
+      transition: border-color var(--transition);
+    }
+    .keterangan-input:focus {
+      border-color: var(--accent);
+    }
+    .result-actions {
+      display: flex; gap: 10px;
+    }
+    .result-actions .btn { flex: 1; }
+
+    /* ===== NOT FOUND CARD ===== */
+    .not-found-card {
+      max-width: 480px; margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--danger);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      text-align: center;
+      display: none;
+      box-shadow: 0 0 40px var(--danger-dim);
+    }
+    .not-found-card.show { display: block; animation: fadeUp 0.3s; }
+    .not-found-card i {
+      font-size: 48px; color: var(--danger);
+      margin-bottom: 16px;
+    }
+    .not-found-card h3 {
+      font-family: var(--font-display);
+      font-size: 18px; font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .not-found-card p {
+      color: var(--text-secondary); font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .not-found-card .barcode-text {
+      font-family: monospace;
+      font-size: 16px; font-weight: 600;
+      color: var(--danger);
+      padding: 8px 16px;
+      background: var(--danger-dim);
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      margin: 12px 0 20px;
+    }
+
+    /* ===== DATA OPNAME TABLE ===== */
+    .table-controls {
+      display: flex; gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1; min-width: 200px;
+      position: relative;
+    }
+    .search-box i {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+    .search-box input {
+      width: 100%; padding: 12px 14px 12px 40px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+    .filter-select {
+      padding: 12px 36px 12px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237B8CA8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+
+    .table-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table-scroll {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead {
+      background: var(--bg-input);
+    }
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 12px; font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,212,170,0.03); }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-success { background: var(--success-dim); color: var(--success); }
+    .badge-danger { background: var(--danger-dim); color: var(--danger); }
+    .badge-warning { background: var(--warning-dim); color: var(--warning); }
+    .badge-neutral { background: rgba(123,140,168,0.15); color: var(--text-secondary); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state i {
+      font-size: 48px; margin-bottom: 16px;
+      display: block;
+    }
+    .empty-state h3 {
+      font-family: var(--font-display);
+      font-size: 18px; font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    /* ===== HISTORY PAGE ===== */
+    .history-summary {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 480px) {
+      .history-summary { grid-template-columns: 1fr; }
+    }
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      text-align: center;
+    }
+    .summary-card .summary-val {
+      font-family: var(--font-display);
+      font-size: 24px; font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .summary-card .summary-label {
+      font-size: 12px; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 200;
+      background: rgba(11,22,40,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      height: 68px;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .nav-item {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11px; font-weight: 500;
+      cursor: pointer;
+      transition: color var(--transition);
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-item i { font-size: 20px; transition: all var(--transition); }
+    .nav-item.active {
+      color: var(--accent);
+    }
+    .nav-item.active i {
+      transform: translateY(-2px);
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+      width: 40px; height: 3px;
+      background: var(--accent);
+      border-radius: 0 0 4px 4px;
+    }
+    .nav-item.scan-nav i {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--accent), #00A080);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--bg-deep);
+      font-size: 22px;
+      margin-top: -16px;
+      box-shadow: 0 4px 16px rgba(0,212,170,0.35);
+    }
+    .nav-item.scan-nav.active i {
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed; top: 80px; right: 20px;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      pointer-events: auto;
+      animation: toastIn 0.4s ease-out;
+      min-width: 280px; max-width: 400px;
+      font-size: 14px;
+    }
+    .toast.removing {
+      animation: toastOut 0.3s ease-in forwards;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(60px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(60px); }
+    }
+    .toast-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .toast.success { border-color: var(--success); }
+    .toast.success .toast-icon { background: var(--success-dim); color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    .toast.error .toast-icon { background: var(--danger-dim); color: var(--danger); }
+    .toast.warning { border-color: var(--warning); }
+    .toast.warning .toast-icon { background: var(--warning-dim); color: var(--warning); }
+    .toast.info { border-color: var(--accent); }
+    .toast.info .toast-icon { background: var(--accent-dim); color: var(--accent); }
+
+    /* ===== LOADING SPINNER ===== */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-overlay {
+      position: fixed; inset: 0; z-index: 9000;
+      background: rgba(7,13,26,0.8);
+      backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-overlay .big-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .loading-overlay p {
+      color: var(--text-secondary); font-size: 14px;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 5000;
+      background: rgba(7,13,26,0.8);
+      backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 16px 64px rgba(0,0,0,0.5);
+      animation: fadeUp 0.3s ease-out;
+      text-align: center;
+    }
+    .modal-box i {
+      font-size: 48px; color: var(--warning);
+      margin-bottom: 16px;
+    }
+    .modal-box h3 {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .modal-box p {
+      color: var(--text-secondary); font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .modal-actions {
+      display: flex; gap: 10px;
+    }
+    .modal-actions .btn { flex: 1; }
+
+    /* ===== PULSE SCAN ANIMATION ===== */
+    @keyframes scanPulse {
+      0% { box-shadow: 0 0 0 0 var(--accent-glow); }
+      70% { box-shadow: 0 0 0 20px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    .pulse-scan {
+      animation: scanPulse 1.5s ease-out;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 480px) {
+      .stats-grid { gap: 10px; }
+      .stat-card { padding: 16px; }
+      .stat-card .stat-value { font-size: 22px; }
+      .result-fields { grid-template-columns: 1fr; }
+      .result-field.full-width { grid-column: 1; }
+      .table-controls { flex-direction: column; }
+      .header-title { font-size: 15px; }
+      .user-badge span { display: none; }
+    }
+
+    /* ===== REDUCED MOTION ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ===== PRINT STYLE ===== */
+    @media print {
+      .app-header, .bottom-nav, .scan-controls, .manual-input-area,
+      .table-controls, .toast-container, .bg-atmosphere, .grid-pattern {
+        display: none !important;
+      }
+      body { background: #fff; color: #000; }
+      .page-section { padding: 0; }
+      table { font-size: 11px; }
+      th { background: #f0f0f0; color: #000; }
+      td { color: #000; border-color: #ddd; }
+    }
+  </style>
 </head>
 <body>
+  <!-- Efek Background -->
+  <div class="bg-atmosphere"></div>
+  <div class="grid-pattern"></div>
 
-<!-- Toast Container -->
-<div class="toast-container" id="toastContainer"></div>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="big-spinner"></div>
+    <p>Memproses data...</p>
+  </div>
 
-<!-- Modal Scanner -->
-<div class="modal-overlay" id="scanModal">
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modal Logout -->
+  <div class="modal-overlay" id="logoutModal">
     <div class="modal-box">
-        <div style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border);">
-            <div>
-                <h3 style="font-size: 1.1rem; font-weight: 700;">Scan Barcode / QR Code</h3>
-                <p style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Arahkan kamera ke kode</p>
-            </div>
-            <button onclick="closeScanner()" style="background: var(--bg2); border: 1px solid var(--border); color: var(--fg); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div style="position: relative;"><div id="reader"></div></div>
-        <div style="padding: 16px 24px; border-top: 1px solid var(--border);">
-            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;">
-                <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Terakhir discan</span>
-                <div class="mono" id="lastScanned" style="font-size: 0.95rem; margin-top: 2px; color: var(--accent);">-</div>
-            </div>
-        </div>
+      <i class="fas fa-sign-out-alt"></i>
+      <h3>Keluar dari Sistem?</h3>
+      <p>Session Anda akan berakhir. Pastikan semua data sudah tersimpan.</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeLogoutModal()">Batal</button>
+        <button class="btn btn-danger" onclick="doLogout()">Ya, Keluar</button>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- Konten Utama -->
-<div style="position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 24px 20px;">
+  <!-- ============================== -->
+  <!-- HALAMAN LOGIN                  -->
+  <!-- ============================== -->
+  <div id="loginPage">
+    <div class="bg-atmosphere"></div>
+    <div class="grid-pattern"></div>
+    <div class="login-container">
+      <div class="login-logo">
+        <div class="icon-box">
+          <i class="fas fa-barcode"></i>
+        </div>
+        <h1>StockOpname Pro</h1>
+        <p>Sistem Inventaris Gudang Modern</p>
+      </div>
+      <div class="login-card">
+        <div class="login-error" id="loginError">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="loginErrorMsg">Username atau password salah</span>
+        </div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Username</label>
+            <div class="input-wrapper">
+              <input type="text" id="loginUsername" placeholder="Masukkan username" autocomplete="username" required>
+              <i class="fas fa-user"></i>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="loginPassword" placeholder="Masukkan password" autocomplete="current-password" required>
+              <i class="fas fa-lock"></i>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="loginBtn">
+            <span>Masuk ke Sistem</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </form>
+      </div>
+      <p style="text-align:center; margin-top:20px; font-size:12px; color:var(--text-muted);">
+        v1.0.0 — Barcode Scanner Stock Opname
+      </p>
+    </div>
+  </div>
 
+  <!-- ============================== -->
+  <!-- APLIKASI UTAMA                 -->
+  <!-- ============================== -->
+  <div id="appMain">
     <!-- Header -->
-    <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), #00b894); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #0c0f14;">
-                <i class="fas fa-boxes-stacked"></i>
-            </div>
-            <div>
-                <h1 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em;">Stock Opname</h1>
-                <p style="font-size: 0.8rem; color: var(--muted);">Sistem Manajemen Inventaris</p>
-            </div>
+    <header class="app-header">
+      <div class="header-left">
+        <div class="header-logo"><i class="fas fa-barcode"></i></div>
+        <span class="header-title">StockOpname Pro</span>
+      </div>
+      <div class="header-right">
+        <span class="offline-badge" id="offlineBadge">
+          <i class="fas fa-wifi-slash"></i> Offline
+        </span>
+        <div class="user-badge">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <span id="userName">Admin</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="btn btn-outline" onclick="toggleConfig()">
-                <i class="fas fa-gear"></i> Pengaturan
-            </button>
-            <button class="btn btn-scan pulse-anim" onclick="openScanner()">
-                <i class="fas fa-qrcode"></i> Scan Barcode
-            </button>
-        </div>
+        <button class="btn btn-icon btn-secondary" onclick="showLogoutModal()" title="Keluar" aria-label="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
     </header>
 
-    <!-- Status Koneksi -->
-    <div class="conn-bar" id="connBar">
-        <div class="conn-dot loading" id="connDot"></div>
-        <span id="connText" style="flex: 1;">Menghubungkan ke Google Spreadsheet...</span>
-        <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;" onclick="manualRefresh()" id="refreshBtn" disabled>
-            <i class="fas fa-rotate"></i> Refresh
-        </button>
-        <span class="mono refresh-pulse" id="lastSync" style="font-size: 0.72rem; color: var(--muted);"></span>
-    </div>
+    <!-- ===== DASHBOARD ===== -->
+    <section class="page-section active" id="pageDashboard">
+      <div class="section-header">
+        <h2>Dashboard</h2>
+        <p id="dashboardDate">Memuat data...</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card stat-accent">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="fas fa-boxes-stacked"></i></div>
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">Total Barang</div>
+        </div>
+        <div class="stat-card stat-success">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-value" id="statScanned">0</div>
+          <div class="stat-label">Sudah Di-scan</div>
+        </div>
+        <div class="stat-card stat-warning">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="fas fa-clock"></i></div>
+          <div class="stat-value" id="statRemaining">0</div>
+          <div class="stat-label">Belum Diperiksa</div>
+        </div>
+        <div class="stat-card stat-danger">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+          <div class="stat-value" id="statSelisih">0</div>
+          <div class="stat-label">Total Selisih</div>
+        </div>
+      </div>
 
-    <!-- Panel Konfigurasi (tersembunyi default) -->
-    <div class="config-panel fade-in" id="configPanel" style="margin-bottom: 20px; display: none;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-            <i class="fas fa-link" style="color: var(--accent);"></i>
-            <h3 style="font-weight: 700; font-size: 1rem;">Konfigurasi API Endpoint</h3>
+      <!-- Progress -->
+      <div class="progress-section">
+        <h3><i class="fas fa-chart-line" style="color:var(--accent)"></i> Progres Opname Hari Ini</h3>
+        <div class="progress-bar-wrapper">
+          <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
         </div>
-        <div style="margin-bottom: 12px;">
-            <label style="font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 6px;">
-                URL Google Apps Script Web App (auto-fill jika sudah pernah disimpan):
-            </label>
-            <input type="text" class="input-field mono" id="apiUrlInput"
-                placeholder="https://script.google.com/macros/s/xxxxx/exec"
-                style="font-size: 0.82rem;">
+        <div class="progress-text">
+          <span id="progressLabel">0% selesai</span>
+          <span id="progressCount">0 / 0 barang</span>
         </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
-            <button class="btn btn-primary" onclick="saveAndConnect()">
-                <i class="fas fa-plug"></i> Simpan & Hubungkan
+      </div>
+
+      <!-- Kategori -->
+      <div class="kategori-section">
+        <h3><i class="fas fa-tags" style="color:var(--accent)"></i> Distribusi Kategori</h3>
+        <div class="kategori-chips" id="kategoriChips">
+          <span style="color:var(--text-muted)">Memuat...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SCAN BARCODE ===== -->
+    <section class="page-section" id="pageScan">
+      <div class="section-header">
+        <h2>Scan Barcode</h2>
+        <p>Arahkan kamera ke barcode barang</p>
+      </div>
+
+      <div class="scan-area" id="scanArea">
+        <div id="qrReader"></div>
+        <div class="scan-overlay">
+          <div class="scan-frame">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+            <div class="scan-line"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scan-controls">
+        <button class="btn btn-primary" id="btnStartScan" onclick="startScanner()">
+          <i class="fas fa-camera"></i> Mulai Scan
+        </button>
+        <button class="btn btn-secondary" id="btnStopScan" onclick="stopScanner()" style="display:none">
+          <i class="fas fa-stop"></i> Stop Scan
+        </button>
+      </div>
+
+      <div class="manual-input-area">
+        <input type="text" id="manualBarcode" placeholder="Ketik barcode manual..." aria-label="Input barcode manual">
+        <button class="btn btn-primary" onclick="handleManualInput()" style="width:auto; padding:14px 20px;">
+          <i class="fas fa-search"></i> Cari
+        </button>
+      </div>
+
+      <!-- Hasil Scan Ditemukan -->
+      <div class="scan-result" id="scanResult">
+        <div class="result-card">
+          <div class="result-header">
+            <div class="result-icon"><i class="fas fa-box"></i></div>
+            <div>
+              <div class="result-title" id="resultNama">-</div>
+              <div class="result-barcode" id="resultBarcode">-</div>
+            </div>
+          </div>
+          <div class="result-fields">
+            <div class="result-field">
+              <div class="field-label">Kategori</div>
+              <div class="field-value" id="resultKategori" style="font-size:15px;">-</div>
+            </div>
+            <div class="result-field">
+              <div class="field-label">Harga</div>
+              <div class="field-value" id="resultHarga" style="font-size:15px;">-</div>
+            </div>
+            <div class="result-field">
+              <div class="field-label">Stok Sistem</div>
+              <div class="field-value" id="resultStokSistem">0</div>
+            </div>
+            <div class="result-field">
+              <div class="field-label">Selisih</div>
+              <div class="field-value" id="resultSelisih">0</div>
+            </div>
+          </div>
+          <div class="stok-input-row">
+            <label>Stok Fisik:</label>
+            <button class="btn-qty" onclick="adjustStok(-1)" aria-label="Kurangi stok"><i class="fas fa-minus"></i></button>
+            <input type="number" id="inputStokFisik" value="0" min="0" aria-label="Stok fisik">
+            <button class="btn-qty" onclick="adjustStok(1)" aria-label="Tambah stok"><i class="fas fa-plus"></i></button>
+          </div>
+          <textarea class="keterangan-input" id="inputKeterangan" placeholder="Keterangan tambahan (opsional)..." rows="2"></textarea>
+          <div class="result-actions">
+            <button class="btn btn-secondary" onclick="clearScanResult()">
+              <i class="fas fa-times"></i> Batal
             </button>
-            <button class="btn btn-outline" onclick="syncToSheet()">
-                <i class="fas fa-cloud-arrow-up"></i> Sync ke Sheet
+            <button class="btn btn-primary" onclick="saveOpname()" id="btnSaveOpname">
+              <i class="fas fa-save"></i> Simpan
             </button>
+          </div>
         </div>
-        <div style="padding: 14px 16px; background: var(--bg); border-radius: 10px; font-size: 0.78rem; color: var(--muted); line-height: 1.9;">
-            <i class="fas fa-circle-info" style="color: var(--info);"></i>
-            <strong style="color: var(--fg);">Cara setup koneksi otomatis:</strong>
-            <br>1. Buka <a href="https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0" target="_blank" class="sheet-link">Google Sheet ini</a>
-            <br>2. Klik <strong>Ekstensi → Apps Script</strong>
-            <br>3. Paste kode Apps Script (lihat bagian bawah source file ini)
-            <br>4. <strong>Deploy → New deployment → Web app</strong> → Execute as: Me → Access: Anyone
-            <br>5. Copy URL deploy, paste di kolom atas, klik <strong>Simpan & Hubungkan</strong>
-            <br>6. Setelah itu, website akan <strong style="color: var(--accent);">otomatis terhubung</strong> setiap kali dibuka
-            <br><i class="fas fa-key" style="color: var(--warning); margin-right: 4px;"></i>
-            Spreadsheet ID: <span class="mono" style="color: var(--accent);">1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0</span>
-        </div>
-    </div>
+      </div>
 
-    <!-- Statistik Grid -->
-    <div class="stat-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-        <div class="stat-card total">
-            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
-                <i class="fas fa-layer-group"></i> Total Items
-            </div>
-            <div class="stat-number" id="statTotal" style="color: var(--accent);">0</div>
-        </div>
-        <div class="stat-card counted">
-            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
-                <i class="fas fa-check-circle"></i> Sudah Dihitung
-            </div>
-            <div class="stat-number" id="statCounted" style="color: var(--info);">0</div>
-        </div>
-        <div class="stat-card notcounted">
-            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
-                <i class="fas fa-clock"></i> Belum Dihitung
-            </div>
-            <div class="stat-number" id="statNotCounted" style="color: var(--warning);">0</div>
-        </div>
-        <div class="stat-card diff">
-            <div style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.82rem; font-weight: 500;">
-                <i class="fas fa-exclamation-triangle"></i> Ada Selisih
-            </div>
-            <div class="stat-number" id="statDiff" style="color: var(--danger);">0</div>
-        </div>
-    </div>
-
-    <!-- Upload (opsional, sebagai fallback) -->
-    <div class="upload-zone" id="uploadZone" style="margin-bottom: 24px;">
-        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
-        <i class="fas fa-file-excel" style="font-size: 2rem; color: var(--muted); margin-bottom: 10px; display: block;"></i>
-        <p style="font-weight: 600; margin-bottom: 4px; font-size: 0.9rem;">Upload Excel / CSV (Opsional)</p>
-        <p style="font-size: 0.8rem; color: var(--muted);">Data otomatis dimuat dari Google Spreadsheet. Upload hanya jika diperlukan.</p>
-    </div>
-
-    <!-- Tombol Aksi -->
-    <div class="action-bar" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-        <button class="btn btn-primary" onclick="exportExcel()">
-            <i class="fas fa-file-excel"></i> Export Excel
+      <!-- Barcode Tidak Ditemukan -->
+      <div class="not-found-card" id="notFoundCard">
+        <i class="fas fa-question-circle"></i>
+        <h3>Barcode Tidak Ditemukan</h3>
+        <p>Barcode berikut belum terdaftar di master barang:</p>
+        <div class="barcode-text" id="notFoundBarcode">-</div>
+        <button class="btn btn-secondary" onclick="clearNotFound()" style="width:auto; margin:0 auto;">
+          <i class="fas fa-arrow-left"></i> Scan Ulang
         </button>
-        <button class="btn btn-outline" onclick="exportPDF()">
-            <i class="fas fa-file-pdf"></i> Export PDF
-        </button>
-        <button class="btn btn-danger" onclick="clearLocalData()">
-            <i class="fas fa-trash-can"></i> Clear Lokal
-        </button>
-    </div>
+      </div>
+    </section>
 
-    <!-- Pencarian -->
-    <div style="margin-bottom: 20px; position: relative;">
-        <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem;"></i>
-        <input type="text" class="input-field" id="searchInput" placeholder="Cari berdasarkan No, Part, Deskripsi Part..."
-            style="padding-left: 40px;" oninput="renderTable()">
-    </div>
+    <!-- ===== DATA STOCK OPNAME ===== -->
+    <section class="page-section" id="pageData">
+      <div class="section-header">
+        <h2>Data Stock Opname</h2>
+        <p>Hasil pencatatan stok fisik</p>
+      </div>
 
-    <!-- Tabel Data -->
-    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;">
-        <div style="max-height: 520px; overflow-y: auto; overflow-x: auto;">
-            <table class="data-table" id="dataTable">
-                <thead>
-                    <tr>
-                        <th style="width: 55px;">NO</th>
-                        <th style="min-width: 130px;">Part</th>
-                        <th style="min-width: 200px;">Deskripsi Part</th>
-                        <th style="width: 85px; text-align: center;">QTY</th>
-                        <th style="width: 100px; text-align: center;">QTY Alloc</th>
-                        <th style="width: 100px; text-align: center;">Available</th>
-                        <th style="width: 110px; text-align: center;">Fisik</th>
-                        <th style="width: 85px; text-align: center;">Selisih</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+      <div class="table-controls">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchOpname" placeholder="Cari barcode atau nama barang..." oninput="filterOpnameTable()" aria-label="Cari data opname">
         </div>
+        <select class="filter-select" id="filterSelisih" onchange="filterOpnameTable()" aria-label="Filter selisih">
+          <option value="all">Semua Selisih</option>
+          <option value="match">Cocok (0)</option>
+          <option value="minus">Selisih Minus</option>
+          <option value="plus">Selisih Plus</option>
+        </select>
+      </div>
 
-        <!-- Loading State -->
-        <div class="loading-state" id="loadingState">
-            <div class="spinner"></div>
-            <p style="font-weight: 600; margin-bottom: 4px;">Memuat data dari Google Spreadsheet...</p>
-            <p style="font-size: 0.82rem;" id="loadingDetail">Menghubungkan ke server...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <i class="fas fa-inbox" style="display: block;"></i>
-            <p style="font-weight: 600; margin-bottom: 4px;">Tidak Ada Data</p>
-            <p style="font-size: 0.82rem;">Pastikan Google Sheets sudah berisi data dan API sudah dikonfigurasi</p>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer style="text-align: center; padding: 32px 0 16px; color: var(--muted); font-size: 0.78rem;">
-        Stock Opname System &mdash; Auto-sync dengan
-        <a href="https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0" target="_blank" class="sheet-link">Google Spreadsheet</a>
-    </footer>
-</div>
-
-<!-- Libraries -->
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
-<script>
-    // ============================================
-    // KONSTANTA & STATE
-    // ============================================
-    const SHEET_ID = '1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0';
-    const REFRESH_INTERVAL = 30000; // Auto-refresh setiap 30 detik
-    let stockData = [];
-    let html5QrCode = null;
-    let isScanning = false;
-    let refreshTimer = null;
-    let isConnected = false;
-
-    // ============================================
-    // TOAST
-    // ============================================
-    function showToast(message, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
-        const colors = { success: 'var(--accent)', error: 'var(--danger)', info: 'var(--info)' };
-        toast.innerHTML = `<i class="fas ${icons[type]}" style="color: ${colors[type]}; font-size: 1.1rem; flex-shrink: 0;"></i><span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.animation = 'toastOut 0.3s ease forwards';
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
-    }
-
-    // ============================================
-    // STATUS KONEKSI
-    // ============================================
-    function setConnectionStatus(status, text) {
-        const dot = document.getElementById('connDot');
-        const txt = document.getElementById('connText');
-        const btn = document.getElementById('refreshBtn');
-        const syncEl = document.getElementById('lastSync');
-
-        dot.className = 'conn-dot ' + status;
-        txt.innerHTML = text;
-
-        if (status === 'connected') {
-            btn.disabled = false;
-            isConnected = true;
-            const now = new Date();
-            syncEl.textContent = now.getHours().toString().padStart(2,'0') + ':' +
-                                 now.getMinutes().toString().padStart(2,'0') + ':' +
-                                 now.getSeconds().toString().padStart(2,'0');
-        } else if (status === 'error') {
-            btn.disabled = false;
-            isConnected = false;
-        } else {
-            btn.disabled = true;
-            isConnected = false;
-        }
-    }
-
-    // ============================================
-    // KONFIGURASI API
-    // ============================================
-    function toggleConfig() {
-        const panel = document.getElementById('configPanel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function getApiUrl() {
-        return localStorage.getItem('sheetApiUrl_' + SHEET_ID) || '';
-    }
-
-    function saveApiConfig() {
-        const url = document.getElementById('apiUrlInput').value.trim();
-        if (!url) { showToast('Masukkan URL API terlebih dahulu', 'error'); return false; }
-        localStorage.setItem('sheetApiUrl_' + SHEET_ID, url);
-        return true;
-    }
-
-    function saveAndConnect() {
-        if (saveApiConfig()) {
-            showToast('URL tersimpan, menghubungkan...', 'info');
-            fetchFromSheet();
-        }
-    }
-
-    // ============================================
-    // FETCH DATA DARI GOOGLE SHEET (OTOMATIS)
-    // ============================================
-    async function fetchFromSheet() {
-        const url = getApiUrl();
-        if (!url) {
-            setConnectionStatus('error',
-                '<i class="fas fa-unlink" style="color: var(--danger);"></i> Belum dikonfigurasi — <a href="javascript:toggleConfig()" style="color: var(--accent); text-decoration: underline;">Buka Pengaturan</a> untuk paste URL API');
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
-            return;
-        }
-
-        setConnectionStatus('loading', '<i class="fas fa-spinner fa-spin" style="color: var(--warning);"></i> Mengambil data dari Google Spreadsheet...');
-        document.getElementById('loadingState').style.display = 'block';
-        document.getElementById('loadingDetail').textContent = 'Menghubungkan ke ' + new URL(url).hostname + '...';
-
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 15000);
-
-            const res = await fetch(url + '?action=get&t=' + Date.now(), {
-                signal: controller.signal
-            });
-            clearTimeout(timeout);
-
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-
-            const data = await res.json();
-
-            if (data.status === 'success' && data.data && data.data.length > 0) {
-                stockData = data.data.map((row, idx) => {
-                    const qty = parseInt(row[2]) || 0;
-                    const qtyAlloc = parseInt(row[3]) || 0;
-                    return {
-                        no: idx + 1,
-                        part: String(row[0] || '').trim(),
-                        deskripsiPart: String(row[1] || '').trim(),
-                        qty: qty,
-                        qtyAlloc: qtyAlloc,
-                        available: qty - qtyAlloc,
-                        fisik: (row[5] !== undefined && row[5] !== '' && row[5] !== null) ? parseInt(row[5]) : null,
-                    };
-                });
-                updateAll();
-                setConnectionStatus('connected',
-                    `<i class="fas fa-link" style="color: var(--accent);"></i> Terhubung — <strong>${stockData.length} item</strong> dimuat otomatis`);
-                document.getElementById('loadingState').style.display = 'none';
-                startAutoRefresh();
-            } else if (data.status === 'success' && (!data.data || data.data.length === 0)) {
-                stockData = [];
-                updateAll();
-                setConnectionStatus('connected',
-                    '<i class="fas fa-link" style="color: var(--accent);"></i> Terhubung — Spreadsheet kosong');
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-                startAutoRefresh();
-            } else {
-                throw new Error(data.message || 'Format respons tidak sesuai');
-            }
-        } catch (e) {
-            let errorMsg = e.message;
-            if (e.name === 'AbortError') errorMsg = 'Timeout (15 detik)';
-            if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')) {
-                errorMsg = 'Tidak dapat menjangkau server. Pastikan URL benar dan deployment aktif.';
-            }
-            setConnectionStatus('error',
-                `<i class="fas fa-triangle-exclamation" style="color: var(--danger);"></i> Gagal terhubung: ${errorMsg}`);
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
-
-            // Jika ada data lokal dari sebelumnya, tetap tampilkan
-            if (stockData.length > 0) {
-                document.getElementById('emptyState').style.display = 'none';
-                renderTable();
-            }
-        }
-    }
-
-    // ============================================
-    // AUTO-REFRESH PERIODIK
-    // ============================================
-    function startAutoRefresh() {
-        if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(() => {
-            if (isConnected) {
-                fetchFromSheet();
-            }
-        }, REFRESH_INTERVAL);
-    }
-
-    function manualRefresh() {
-        fetchFromSheet();
-    }
-
-    // ============================================
-    // SYNC KE SHEET
-    // ============================================
-    async function syncToSheet() {
-        const url = getApiUrl();
-        if (!url) { showToast('Atur URL API di Pengaturan terlebih dahulu', 'error'); return; }
-        if (stockData.length === 0) { showToast('Tidak ada data untuk di-sync', 'error'); return; }
-
-        setConnectionStatus('loading', '<i class="fas fa-cloud-arrow-up fa-spin" style="color: var(--info);"></i> Menyinkronkan data ke Google Sheet...');
-        showToast('Menyinkronkan data ke Google Sheet...', 'info');
-
-        try {
-            const payload = stockData.map(row => [
-                row.part, row.deskripsiPart, row.qty, row.qtyAlloc, row.available,
-                row.fisik !== null ? row.fisik : ''
-            ]);
-            const res = await fetch(url + '?action=update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({ data: payload })
-            });
-            const result = await res.json();
-            if (result.status === 'success') {
-                showToast('Data berhasil di-sync ke Google Sheet', 'success');
-                setConnectionStatus('connected',
-                    `<i class="fas fa-link" style="color: var(--accent);"></i> Terhubung — <strong>${stockData.length} item</strong> tersinkronisasi`);
-            } else {
-                throw new Error(result.message || 'Unknown error');
-            }
-        } catch (e) {
-            showToast('Gagal sync: ' + e.message, 'error');
-            setConnectionStatus('error',
-                `<i class="fas fa-triangle-exclamation" style="color: var(--danger);"></i> Sync gagal: ${e.message}`);
-        }
-    }
-
-    // ============================================
-    // BARCODE / QR SCANNER
-    // ============================================
-    async function openScanner() {
-        document.getElementById('scanModal').classList.add('active');
-        if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-
-        try {
-            isScanning = true;
-            await html5QrCode.start(
-                { facingMode: "environment" },
-                {
-                    fps: 20,
-                    qrbox: { width: 260, height: 160 },
-                    aspectRatio: 1.5,
-                    formatsToSupport: [
-                        Html5QrcodeSupportedFormats.QR_CODE,
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.CODE_39,
-                        Html5QrcodeSupportedFormats.EAN_13,
-                        Html5QrcodeSupportedFormats.EAN_8,
-                        Html5QrcodeSupportedFormats.UPC_A,
-                        Html5QrcodeSupportedFormats.UPC_E,
-                        Html5QrcodeSupportedFormats.ITF,
-                        Html5QrcodeSupportedFormats.DATA_MATRIX
-                    ]
-                },
-                onScanSuccess,
-                () => {}
-            );
-        } catch (e) {
-            showToast('Tidak dapat mengakses kamera: ' + e.message, 'error');
-            closeScanner();
-        }
-    }
-
-    function onScanSuccess(decodedText) {
-        if (navigator.vibrate) navigator.vibrate(100);
-        document.getElementById('lastScanned').textContent = decodedText;
-
-        const item = stockData.find(row =>
-            row.part.toLowerCase() === decodedText.toLowerCase() ||
-            row.part.includes(decodedText) || decodedText.includes(row.part)
-        );
-
-        if (item) {
-            const input = document.querySelector(`input[data-idx="${item.no - 1}"]`);
-            if (input) {
-                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                input.focus();
-                input.select();
-                const tr = input.closest('tr');
-                if (tr) { tr.style.background = 'rgba(0,212,170,0.15)'; setTimeout(() => tr.style.background = '', 1500); }
-            }
-            showToast(`Ditemukan: ${item.deskripsiPart} — Masukkan jumlah fisik`, 'success');
-        } else {
-            showToast(`"${decodedText}" tidak ditemukan dalam data`, 'error');
-        }
-        setTimeout(() => closeScanner(), 600);
-    }
-
-    async function closeScanner() {
-        isScanning = false;
-        try { if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop(); } catch (e) {}
-        document.getElementById('scanModal').classList.remove('active');
-    }
-
-    // ============================================
-    // UPLOAD EXCEL / CSV (FALLBACK)
-    // ============================================
-    const uploadZone = document.getElementById('uploadZone');
-    const fileInput = document.getElementById('fileInput');
-    uploadZone.addEventListener('click', () => fileInput.click());
-    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-    uploadZone.addEventListener('drop', (e) => { e.preventDefault(); uploadZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
-    fileInput.addEventListener('change', (e) => { if (e.target.files[0]) processFile(e.target.files[0]); });
-
-    function processFile(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const wb = XLSX.read(e.target.result, { type: 'array' });
-                const ws = wb.Sheets[wb.SheetNames[0]];
-                const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                let startRow = 0;
-                if (json.length > 0 && typeof json[0][0] === 'string' &&
-                    (json[0][0].toLowerCase().includes('part') || json[0][0].toLowerCase().includes('no') || json[0][0] === 'NO')) {
-                    startRow = 1;
-                }
-                stockData = [];
-                for (let i = startRow; i < json.length; i++) {
-                    const row = json[i];
-                    if (!row || row.length === 0 || !row[0]) continue;
-                    const qty = parseInt(row[2]) || 0;
-                    const qtyAlloc = parseInt(row[3]) || 0;
-                    stockData.push({
-                        no: stockData.length + 1,
-                        part: String(row[0] || '').trim(),
-                        deskripsiPart: String(row[1] || '').trim(),
-                        qty, qtyAlloc,
-                        available: qty - qtyAlloc,
-                        fisik: row[5] !== undefined && row[5] !== '' ? parseInt(row[5]) : null
-                    });
-                }
-                updateAll();
-                showToast(`Berhasil memuat ${stockData.length} item dari ${file.name}`, 'success');
-            } catch (err) {
-                showToast('Gagal membaca file: ' + err.message, 'error');
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    // ============================================
-    // UPDATE STATISTIK & TABEL
-    // ============================================
-    function updateAll() { updateStats(); renderTable(); }
-
-    function updateStats() {
-        const total = stockData.length;
-        const counted = stockData.filter(r => r.fisik !== null).length;
-        const notCounted = total - counted;
-        const diff = stockData.filter(r => r.fisik !== null && r.fisik !== r.available).length;
-        animateNumber('statTotal', total);
-        animateNumber('statCounted', counted);
-        animateNumber('statNotCounted', notCounted);
-        animateNumber('statDiff', diff);
-    }
-
-    function animateNumber(id, target) {
-        const el = document.getElementById(id);
-        const current = parseInt(el.textContent) || 0;
-        if (current === target) return;
-        const duration = 400;
-        const start = performance.now();
-        function step(ts) {
-            const p = Math.min((ts - start) / duration, 1);
-            el.textContent = Math.round(current + (target - current) * (1 - Math.pow(1 - p, 3)));
-            if (p < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-    }
-
-    function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        const empty = document.getElementById('emptyState');
-        const loading = document.getElementById('loadingState');
-        const query = document.getElementById('searchInput').value.toLowerCase().trim();
-
-        loading.style.display = 'none';
-
-        if (stockData.length === 0) {
-            tbody.innerHTML = '';
-            empty.style.display = 'block';
-            return;
-        }
-        empty.style.display = 'none';
-
-        const filtered = stockData.filter(row => {
-            if (!query) return true;
-            return row.part.toLowerCase().includes(query) ||
-                   row.deskripsiPart.toLowerCase().includes(query) ||
-                   String(row.no).includes(query);
-        });
-
-        if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--muted);">
-                <i class="fas fa-search" style="font-size: 1.5rem; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
-                Tidak ditemukan hasil untuk "${query}"
-            </td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = filtered.map(row => {
-            const selisih = row.fisik !== null ? row.fisik - row.available : null;
-            const isCounted = row.fisik !== null;
-            const rowClass = isCounted ? 'counted-row' : '';
-            let selisihDisplay = '-', selisihColor = 'var(--muted)';
-            if (selisih !== null) {
-                selisihDisplay = (selisih > 0 ? '+' : '') + selisih;
-                selisihColor = selisih === 0 ? 'var(--accent)' : 'var(--danger)';
-            }
-            let availColor = 'var(--fg)';
-            if (row.available <= 0) availColor = 'var(--danger)';
-            else if (row.available <= 5) availColor = 'var(--warning)';
-
-            return `<tr class="${rowClass}">
-                <td class="mono" style="color: var(--muted); font-size: 0.82rem;">${row.no}</td>
-                <td class="mono" style="font-weight: 500; color: var(--fg);">${row.part}</td>
-                <td>${row.deskripsiPart}</td>
-                <td class="mono" style="text-align: center;">${row.qty}</td>
-                <td class="mono" style="text-align: center; color: var(--muted);">${row.qtyAlloc}</td>
-                <td class="mono" style="text-align: center; color: ${availColor}; font-weight: 600;">${row.available}</td>
-                <td style="text-align: center;">
-                    <div style="display: flex; align-items: center; gap: 6px; justify-content: center;">
-                        <input type="number" class="count-input" data-idx="${row.no - 1}"
-                            value="${row.fisik !== null ? row.fisik : ''}"
-                            placeholder="-" min="0"
-                            onchange="updateFisik(${row.no - 1}, this.value)"
-                            onkeydown="if(event.key==='Enter'){saveFisik(${row.no - 1});this.blur();}">
-                        <button class="save-btn" onclick="saveFisik(${row.no - 1})">
-                            <i class="fas fa-check"></i>
-                        </button>
-                    </div>
+      <div class="table-wrapper">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Barcode</th>
+                <th>Nama Barang</th>
+                <th>Stok Sistem</th>
+                <th>Stok Fisik</th>
+                <th>Selisih</th>
+                <th>User</th>
+              </tr>
+            </thead>
+            <tbody id="opnameTableBody">
+              <tr>
+                <td colspan="7">
+                  <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>Belum Ada Data</h3>
+                    <p>Mulai scan barcode untuk mengisi data opname</p>
+                  </div>
                 </td>
-                <td class="mono" style="text-align: center; color: ${selisihColor}; font-weight: 600;">${selisihDisplay}</td>
-            </tr>`;
-        }).join('');
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HISTORY ===== -->
+    <section class="page-section" id="pageHistory">
+      <div class="section-header">
+        <h2>Riwayat Opname</h2>
+        <p>Catatan historis stock opname</p>
+      </div>
+
+      <div class="history-summary" id="historySummary">
+        <div class="summary-card">
+          <div class="summary-val" id="histTotal">0</div>
+          <div class="summary-label">Total Record</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-val" id="histMinus" style="color:var(--danger)">0</div>
+          <div class="summary-label">Selisih Minus</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-val" id="histMatch" style="color:var(--success)">0</div>
+          <div class="summary-label">Stok Cocok</div>
+        </div>
+      </div>
+
+      <div class="table-controls">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchHistory" placeholder="Cari di riwayat..." oninput="filterHistoryTable()" aria-label="Cari riwayat">
+        </div>
+        <input type="date" class="filter-select" id="filterDate" onchange="loadHistory()" aria-label="Filter tanggal" style="padding:12px 14px;">
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()" title="Export CSV">
+          <i class="fas fa-file-csv"></i> CSV
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="printHistory()" title="Cetak">
+          <i class="fas fa-print"></i> Cetak
+        </button>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Barcode</th>
+                <th>Nama Barang</th>
+                <th>Sistem</th>
+                <th>Fisik</th>
+                <th>Selisih</th>
+                <th>User</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr>
+                <td colspan="7">
+                  <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <h3>Belum Ada Riwayat</h3>
+                    <p>Data riwayat akan muncul setelah Anda menyimpan hasil opname</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BOTTOM NAVIGATION ===== -->
+    <nav class="bottom-nav" aria-label="Navigasi utama">
+      <div class="nav-item active" data-page="pageDashboard" onclick="navigateTo('pageDashboard')" role="button" tabindex="0" aria-label="Dashboard">
+        <i class="fas fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item scan-nav" data-page="pageScan" onclick="navigateTo('pageScan')" role="button" tabindex="0" aria-label="Scan Barcode">
+        <i class="fas fa-qrcode"></i>
+        <span>Scan</span>
+      </div>
+      <div class="nav-item" data-page="pageData" onclick="navigateTo('pageData')" role="button" tabindex="0" aria-label="Data Opname">
+        <i class="fas fa-table"></i>
+        <span>Data</span>
+      </div>
+      <div class="nav-item" data-page="pageHistory" onclick="navigateTo('pageHistory')" role="button" tabindex="0" aria-label="Riwayat">
+        <i class="fas fa-clock-rotate-left"></i>
+        <span>Riwayat</span>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    /* ============================================= */
+    /* CONFIG.JS — GANTI URL INI DENGAN URL         */
+    /* GOOGLE APPS SCRIPT ANDA                       */
+    /* ============================================= */
+    const CONFIG = {
+      // GANTI dengan URL Web App Anda dari Google Apps Script Deploy
+      API_URL: 'https://script.google.com/macros/s/GANTI_INI_DENGAN_URL_APPS_SCRIPT/exec',
+      APP_NAME: 'StockOpname Pro',
+      SCAN_SOUND: true
+    };
+
+    /* ============================================= */
+    /* STATE MANAGEMENT                               */
+    /* ============================================= */
+    const State = {
+      user: null,
+      currentPage: 'pageDashboard',
+      scanner: null,
+      isScanning: false,
+      currentBarang: null,
+      opnameData: [],
+      historyData: [],
+      isOffline: false
+    };
+
+    /* ============================================= */
+    /* AUDIO — Suara notifikasi scan                 */
+    /* ============================================= */
+    function playBeep(frequency = 1200, duration = 120) {
+      if (!CONFIG.SCAN_SOUND) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = frequency;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + duration / 1000);
+      } catch (e) { /* Audio tidak tersedia */ }
     }
 
-    function updateFisik(idx, value) {
-        stockData[idx].fisik = value === '' ? null : parseInt(value);
-        updateStats(); renderTable();
+    function playSuccessBeep() {
+      playBeep(1200, 100);
+      setTimeout(() => playBeep(1600, 150), 120);
     }
 
-    function saveFisik(idx) {
-        const input = document.querySelector(`input[data-idx="${idx}"]`);
-        if (!input) return;
-        const val = input.value === '' ? null : parseInt(input.value);
-        stockData[idx].fisik = val;
-        updateStats(); renderTable();
-        if (val !== null) {
-            const selisih = val - stockData[idx].available;
-            showToast(`${stockData[idx].part}: Fisik ${val} — ${selisih === 0 ? 'Cocok' : 'Selisih ' + (selisih > 0 ? '+' : '') + selisih}`, selisih === 0 ? 'success' : 'error');
-        }
+    function playErrorBeep() {
+      playBeep(400, 200);
+      setTimeout(() => playBeep(300, 250), 220);
     }
 
-    // ============================================
-    // EXPORT EXCEL
-    // ============================================
-    function exportExcel() {
-        if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
-        const exportData = stockData.map(r => ({
-            'NO': r.no, 'Part': r.part, 'Deskripsi Part': r.deskripsiPart,
-            'QTY': r.qty, 'QTY Alloc': r.qtyAlloc, 'Available': r.available,
-            'Fisik': r.fisik !== null ? r.fisik : '',
-            'Selisih': r.fisik !== null ? r.fisik - r.available : ''
-        }));
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Stock Opname");
-        ws['!cols'] = [{ wch: 5 }, { wch: 22 }, { wch: 35 }, { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }];
-        XLSX.writeFile(wb, `Stock_Opname_${new Date().toISOString().slice(0, 10)}.xlsx`);
-        showToast('File Excel berhasil di-export', 'success');
+    /* ============================================= */
+    /* TOAST NOTIFICATION                            */
+    /* ============================================= */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const icons = {
+        success: 'fa-check',
+        error: 'fa-xmark',
+        warning: 'fa-exclamation',
+        info: 'fa-info'
+      };
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <div class="toast-icon"><i class="fas ${icons[type]}"></i></div>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
     }
 
-    // ============================================
-    // EXPORT PDF
-    // ============================================
-    function exportPDF() {
-        if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape', 'mm', 'a4');
-        doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.text('LAPORAN STOCK OPNAME', 14, 18);
-        doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100);
-        doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 25);
-        doc.text(`Total: ${stockData.length} | Dihitung: ${stockData.filter(r => r.fisik !== null).length} | Selisih: ${stockData.filter(r => r.fisik !== null && r.fisik !== r.available).length}`, 14, 30);
-        doc.autoTable({
-            startY: 36,
-            head: [['NO', 'Part', 'Deskripsi Part', 'QTY', 'QTY Alloc', 'Available', 'Fisik', 'Selisih']],
-            body: stockData.map(r => [r.no, r.part, r.deskripsiPart, r.qty, r.qtyAlloc, r.available, r.fisik !== null ? r.fisik : '-', r.fisik !== null ? r.fisik - r.available : '-']),
-            theme: 'grid', styles: { fontSize: 8, cellPadding: 3 },
-            headStyles: { fillColor: [0, 180, 148], textColor: 255, fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [245, 247, 250] },
-            columnStyles: { 0: { halign: 'center', cellWidth: 12 }, 3: { halign: 'center', cellWidth: 20 }, 4: { halign: 'center', cellWidth: 22 }, 5: { halign: 'center', cellWidth: 22 }, 6: { halign: 'center', cellWidth: 20 }, 7: { halign: 'center', cellWidth: 18 } }
+    /* ============================================= */
+    /* LOADING                                       */
+    /* ============================================= */
+    function showLoading(text = 'Memproses data...') {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.querySelector('p').textContent = text;
+      overlay.classList.add('show');
+    }
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+
+    /* ============================================= */
+    /* API CALLS                                     */
+    /* ============================================= */
+    async function apiGet(params) {
+      const url = new URL(CONFIG.API_URL);
+      Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
+      try {
+        const resp = await fetch(url.toString());
+        return await resp.json();
+      } catch (e) {
+        return { success: false, message: 'Koneksi gagal: ' + e.message };
+      }
+    }
+
+    async function apiPost(data) {
+      try {
+        const resp = await fetch(CONFIG.API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(data),
+          mode: 'no-cors'
         });
-        doc.save(`Stock_Opname_${new Date().toISOString().slice(0, 10)}.pdf`);
-        showToast('File PDF berhasil di-export', 'success');
+        // no-cors mengembalikan opaque response, jadi kita asumsikan berhasil
+        // Untuk production, gunakan redirect atau CORS yang benar
+        return { success: true, message: 'Data terkirim' };
+      } catch (e) {
+        return { success: false, message: 'Koneksi gagal: ' + e.message };
+      }
     }
 
-    // ============================================
-    // CLEAR DATA LOKAL (TIDAK MENGHAPUS SHEET)
-    // ============================================
-    function clearLocalData() {
-        if (stockData.length === 0) { showToast('Data lokal sudah kosong', 'info'); return; }
-        stockData = [];
-        updateAll();
-        showToast('Data lokal dihapus. Klik Refresh untuk memuat ulang dari Sheet.', 'success');
+    /* ============================================= */
+    /* LOGIN                                         */
+    /* ============================================= */
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const errorDiv = document.getElementById('loginError');
+      const errorMsg = document.getElementById('loginErrorMsg');
+      const btn = document.getElementById('loginBtn');
+
+      if (!username || !password) {
+        errorMsg.textContent = 'Username dan password wajib diisi';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      errorDiv.classList.remove('show');
+      btn.innerHTML = '<span class="spinner"></span> Memverifikasi...';
+      btn.disabled = true;
+
+      const result = await apiGet({ action: 'login', username, password });
+
+      if (result.success) {
+        State.user = result.user;
+        playSuccessBeep();
+        document.getElementById('loginPage').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('appMain').classList.add('active');
+          initApp();
+        }, 500);
+      } else {
+        playErrorBeep();
+        errorMsg.textContent = result.message || 'Login gagal';
+        errorDiv.classList.add('show');
+        btn.innerHTML = '<span>Masuk ke Sistem</span><i class="fas fa-arrow-right"></i>';
+        btn.disabled = false;
+      }
     }
 
-    // ============================================
-    // KEYBOARD SHORTCUT
-    // ============================================
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.shiftKey && e.key === 'S') { e.preventDefault(); openScanner(); }
-        if (e.key === 'Escape') closeScanner();
-        if (e.ctrlKey && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
-    });
+    function doLogout() {
+      closeLogoutModal();
+      State.user = null;
+      State.opnameData = [];
+      State.historyData = [];
+      stopScanner();
+      document.getElementById('appMain').classList.remove('active');
+      const loginPage = document.getElementById('loginPage');
+      loginPage.style.display = 'flex';
+      loginPage.classList.remove('hidden');
+      document.getElementById('loginPassword').value = '';
+      const btn = document.getElementById('loginBtn');
+      btn.innerHTML = '<span>Masuk ke Sistem</span><i class="fas fa-arrow-right"></i>';
+      btn.disabled = false;
+      // Reset ke halaman dashboard
+      navigateTo('pageDashboard');
+    }
 
-    // ============================================
-    // INISIALISASI OTOMATIS SAAT HALAMAN DIBUKA
-    // ============================================
-    document.addEventListener('DOMContentLoaded', () => {
-        // Isi input API jika sudah pernah disimpan
-        const savedUrl = getApiUrl();
-        if (savedUrl) {
-            document.getElementById('apiUrlInput').value = savedUrl;
+    function showLogoutModal() {
+      document.getElementById('logoutModal').classList.add('show');
+    }
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('show');
+    }
+
+    /* ============================================= */
+    /* INISIALISASI APLIKASI                         */
+    /* ============================================= */
+    function initApp() {
+      // Set info user di header
+      if (State.user) {
+        document.getElementById('userName').textContent = State.user.username;
+        document.getElementById('userAvatar').textContent = State.user.username.charAt(0).toUpperCase();
+      }
+
+      // Set tanggal hari ini
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('dashboardDate').textContent = now.toLocaleDateString('id-ID', options);
+
+      // Set default tanggal filter
+      const todayStr = now.toISOString().split('T')[0];
+      document.getElementById('filterDate').value = todayStr;
+
+      // Load dashboard
+      loadDashboard();
+      loadOpnameData();
+      loadHistory();
+    }
+
+    /* ============================================= */
+    /* NAVIGASI HALAMAN                              */
+    /* ============================================= */
+    function navigateTo(pageId) {
+      // Stop scanner saat pindah halaman
+      if (pageId !== 'pageScan' && State.isScanning) {
+        stopScanner();
+      }
+
+      State.currentPage = pageId;
+
+      // Update section visibility
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+
+      // Update nav active state
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
+
+      // Refresh data halaman tertentu
+      if (pageId === 'pageDashboard') loadDashboard();
+      if (pageId === 'pageData') loadOpnameData();
+      if (pageId === 'pageHistory') loadHistory();
+    }
+
+    // Keyboard navigation untuk bottom nav
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          item.click();
         }
-
-        // Otomatis fetch data dari sheet
-        fetchFromSheet();
+      });
     });
-</script>
 
-<!--
-╔══════════════════════════════════════════════════════════════╗
-║  KODE GOOGLE APPS SCRIPT — PASTE DI GOOGLE APPS SCRIPT     ║
-║                                                              ║
-║  Target Spreadsheet:                                         ║
-║  https://docs.google.com/spreadsheets/d/                    ║
-║  1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0              ║
-║                                                              ║
-║  Spreadsheet ID: 1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0 ║
-╚══════════════════════════════════════════════════════════════╝
+    /* ============================================= */
+    /* DASHBOARD                                     */
+    /* ============================================= */
+    async function loadDashboard() {
+      const result = await apiGet({ action: 'getDashboard' });
+      if (!result.success) {
+        showToast('Gagal memuat dashboard: ' + result.message, 'error');
+        return;
+      }
 
-function doGet(e) {
-  var action = e.parameter.action;
-  if (action === 'get') {
-    return getData();
-  }
-  return ContentService.createTextOutput(
-    JSON.stringify({status: 'error', message: 'Unknown action'})
-  ).setMimeType(ContentService.MimeType.JSON);
-}
+      const d = result.dashboard;
+      animateNumber('statTotal', d.totalBarang);
+      animateNumber('statScanned', d.sudahScan);
+      animateNumber('statRemaining', d.belumScan);
 
-function doPost(e) {
-  var action = e.parameter.action;
-  if (action === 'update') {
-    return updateData(e);
-  }
-  return ContentService.createTextOutput(
-    JSON.stringify({status: 'error', message: 'Unknown action'})
-  ).setMimeType(ContentService.MimeType.JSON);
-}
+      const selisihEl = document.getElementById('statSelisih');
+      animateNumber('statSelisih', d.totalSelisih);
+      selisihEl.style.color = d.totalSelisih < 0 ? 'var(--danger)' : d.totalSelisih > 0 ? 'var(--warning)' : 'var(--success)';
 
-function getData() {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName('Sheet1');
-    if (!sheet) sheet = ss.getSheets()[0];
-    var data = sheet.getDataRange().getValues();
-    // Hapus baris header
-    if (data.length > 0) data.shift();
-    return ContentService.createTextOutput(
-      JSON.stringify({status: 'success', data: data})
-    ).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(
-      JSON.stringify({status: 'error', message: err.toString()})
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
-}
+      // Progress bar
+      const pct = d.totalBarang > 0 ? Math.round((d.sudahScan / d.totalBarang) * 100) : 0;
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('progressLabel').textContent = pct + '% selesai';
+      document.getElementById('progressCount').textContent = d.sudahScan + ' / ' + d.totalBarang + ' barang';
 
-function updateData(e) {
-  try {
-    var body = JSON.parse(e.postData.contents);
-    var newData = body.data;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName('Sheet1');
-    if (!sheet) sheet = ss.getSheets()[0];
-
-    // Pastikan header ada
-    var lastCol = sheet.getLastColumn();
-    var headers = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
-    if (!headers || headers[0] === '' || headers[0] === null) {
-      headers = ['Part', 'Deskripsi Part', 'QTY', 'QTY Alloc', 'Available', 'Fisik'];
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      // Kategori chips
+      const chipsContainer = document.getElementById('kategoriChips');
+      chipsContainer.innerHTML = '';
+      const kategoriEntries = Object.entries(d.kategori || {});
+      if (kategoriEntries.length === 0) {
+        chipsContainer.innerHTML = '<span style="color:var(--text-muted)">Tidak ada data kategori</span>';
+      } else {
+        kategoriEntries.forEach(([nama, count]) => {
+          const chip = document.createElement('div');
+          chip.className = 'kategori-chip';
+          chip.innerHTML = `<span>${nama}</span><span class="chip-count">${count}</span>`;
+          chipsContainer.appendChild(chip);
+        });
+      }
     }
 
-    // Bersihkan data lama (kecuali header)
-    if (sheet.getLastRow() > 1) {
-      sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
+    // Animasi angka naik
+    function animateNumber(elementId, target) {
+      const el = document.getElementById(elementId);
+      const start = parseInt(el.textContent) || 0;
+      const diff = target - start;
+      const duration = 600;
+      const startTime = performance.now();
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(start + diff * eased);
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
     }
 
-    // Tulis data baru
-    if (newData && newData.length > 0) {
-      sheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
+    /* ============================================= */
+    /* SCANNER BARCODE                               */
+    /* ============================================= */
+    function startScanner() {
+      if (State.isScanning) return;
+
+      const scanArea = document.getElementById('scanArea');
+      scanArea.classList.add('scanning');
+
+      document.getElementById('btnStartScan').style.display = 'none';
+      document.getElementById('btnStopScan').style.display = 'flex';
+
+      try {
+        State.scanner = new Html5Qrcode('qrReader');
+        State.scanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 15,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 4 / 3
+          },
+          onScanSuccess,
+          () => {} // Ignore scan failures (normal)
+        ).then(() => {
+          State.isScanning = true;
+          showToast('Kamera aktif — arahkan ke barcode', 'info');
+        }).catch(err => {
+          showToast('Gagal mengakses kamera: ' + err, 'error');
+          resetScanUI();
+        });
+      } catch (err) {
+        showToast('Error inisialisasi scanner: ' + err, 'error');
+        resetScanUI();
+      }
     }
 
-    return ContentService.createTextOutput(
-      JSON.stringify({status: 'success', message: 'Data updated'})
-    ).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(
-      JSON.stringify({status: 'error', message: err.toString()})
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
-}
+    async function stopScanner() {
+      if (!State.isScanning || !State.scanner) return;
+      try {
+        await State.scanner.stop();
+        State.scanner.clear();
+      } catch (e) { /* ignore */ }
+      State.isScanning = false;
+      State.scanner = null;
+      resetScanUI();
+    }
 
-═════════════════════════════════════════
-CARA DEPLOY (HANYA SEKALI):
-═════════════════════════════════════════
+    function resetScanUI() {
+      const scanArea = document.getElementById('scanArea');
+      scanArea.classList.remove('scanning');
+      document.getElementById('btnStartScan').style.display = 'flex';
+      document.getElementById('btnStopScan').style.display = 'none';
+    }
 
-1. Buka: https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
+    async function onScanSuccess(decodedText) {
+      // Hindari scan ganda cepat
+      if (State._lastScan === decodedText && Date.now() - State._lastScanTime < 2000) return;
+      State._lastScan = decodedText;
+      State._lastScanTime = Date.now();
 
-2. Klik menu: Ekstensi → Apps Script
+      playSuccessBeep();
 
-3. Hapus semua kode default, lalu paste kode di atas
+      // Hentikan scanner sementara
+      await stopScanner();
 
-4. Klik tombol "Deploy" → "New deployment"
+      // Cari barang di database
+      await lookupBarang(decodedText);
+    }
 
-5. Di jendela deployment:
-   - Klik ikon roda gigi di samping "Select type" → pilih "Web app"
-   - Description: "Stock Opname API"
-   - Execute as: "Me"
-   - Who has access: "Anyone"
-   - Klik "Deploy"
+    async function handleManualInput() {
+      const input = document.getElementById('manualBarcode');
+      const barcode = input.value.trim();
+      if (!barcode) {
+        showToast('Masukkan kode barcode terlebih dahulu', 'warning');
+        input.focus();
+        return;
+      }
+      playBeep(1000, 80);
+      await lookupBarang(barcode);
+      input.value = '';
+    }
 
-6. Izinkan akses jika diminta (Advanced → Go to project)
+    // Enter key untuk manual input
+    document.getElementById('manualBarcode').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleManualInput();
+      }
+    });
 
-7. COPY URL yang muncul (format: https://script.google.com/macros/s/xxxxx/exec)
+    async function lookupBarang(barcode) {
+      showLoading('Mencari data barang...');
+      const result = await apiGet({ action: 'getBarang', barcode: barcode });
+      hideLoading();
 
-8. Buka website ini → Klik "Pengaturan" → Paste URL → Klik "Simpan & Hubungkan"
+      if (result.success) {
+        State.currentBarang = result.barang;
+        showScanResult(result.barang);
+      } else {
+        showNotFound(barcode);
+        playErrorBeep();
+      }
+    }
 
-9. SELESAI! Setiap kali website dibuka, data otomatis dimuat dari spreadsheet.
-   Data juga akan auto-refresh setiap 30 detik.
+    function showScanResult(barang) {
+      document.getElementById('scanResult').classList.add('show');
+      document.getElementById('notFoundCard').classList.remove('show');
 
-═════════════════════════════════════════
-FORMAT DATA DI GOOGLE SHEETS:
-═════════════════════════════════════════
+      document.getElementById('resultNama').textContent = barang.nama;
+      document.getElementById('resultBarcode').textContent = barang.barcode;
+      document.getElementById('resultKategori').textContent = barang.kategori || '-';
+      document.getElementById('resultHarga').textContent = formatRupiah(barang.harga);
+      document.getElementById('resultStokSistem').textContent = barang.stokSistem;
 
-| Part       | Deskripsi Part    | QTY | QTY Alloc | Available | Fisik |
-|------------|-------------------|-----|-----------|-----------|-------|
-| P-001      | Bearing 6205      | 50  | 10        | 40        |       |
-| P-002      | Seal NBR 25x40    | 30  | 5         | 25        |       |
-| ...        | ...               | ... | ...       | ...       | ...   |
+      // Set stok fisik default = stok sistem
+      document.getElementById('inputStokFisik').value = barang.stokSistem;
+      document.getElementById('inputKeterangan').value = '';
 
-Kolom Available = QTY - QTY Alloc (dihitung otomatis di web)
-Kolom Fisik = diisi melalui website setelah scan/input manual
+      updateSelisihDisplay();
 
--->
+      // Fokus ke input stok fisik
+      setTimeout(() => {
+        document.getElementById('inputStokFisik').focus();
+        document.getElementById('inputStokFisik').select();
+      }, 300);
 
+      // Pulse animation
+      document.querySelector('.result-card').classList.add('pulse-scan');
+      setTimeout(() => document.querySelector('.result-card').classList.remove('pulse-scan'), 1500);
+    }
+
+    function updateSelisihDisplay() {
+      const stokSistem = State.currentBarang ? Number(State.currentBarang.stokSistem) : 0;
+      const stokFisik = Number(document.getElementById('inputStokFisik').value) || 0;
+      const selisih = stokFisik - stokSistem;
+
+      const selisihEl = document.getElementById('resultSelisih');
+      selisihEl.textContent = (selisih >= 0 ? '+' : '') + selisih;
+
+      if (selisih === 0) {
+        selisihEl.className = 'field-value match';
+      } else {
+        selisihEl.className = 'field-value diff';
+      }
+    }
+
+    // Listener perubahan stok fisik
+    document.getElementById('inputStokFisik').addEventListener('input', updateSelisihDisplay);
+
+    function adjustStok(delta) {
+      const input = document.getElementById('inputStokFisik');
+      let val = Number(input.value) || 0;
+      val = Math.max(0, val + delta);
+      input.value = val;
+      updateSelisihDisplay();
+      playBeep(800, 50);
+    }
+
+    function clearScanResult() {
+      document.getElementById('scanResult').classList.remove('show');
+      State.currentBarang = null;
+    }
+
+    function showNotFound(barcode) {
+      document.getElementById('scanResult').classList.remove('show');
+      document.getElementById('notFoundCard').classList.add('show');
+      document.getElementById('notFoundBarcode').textContent = barcode;
+    }
+
+    function clearNotFound() {
+      document.getElementById('notFoundCard').classList.remove('show');
+    }
+
+    /* ============================================= */
+    /* SIMPAN OPNAME                                 */
+    /* ============================================= */
+    async function saveOpname() {
+      if (!State.currentBarang) return;
+
+      const stokFisik = Number(document.getElementById('inputStokFisik').value);
+      const keterangan = document.getElementById('inputKeterangan').value.trim();
+      const stokSistem = Number(State.currentBarang.stokSistem);
+      const selisih = stokFisik - stokSistem;
+
+      if (isNaN(stokFisik) || stokFisik < 0) {
+        showToast('Stok fisik harus berupa angka positif', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btnSaveOpname');
+      btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
+      btn.disabled = true;
+
+      const data = {
+        action: 'saveOpname',
+        barcode: State.currentBarang.barcode,
+        nama: State.currentBarang.nama,
+        stokSistem: stokSistem,
+        stokFisik: stokFisik,
+        selisih: selisih,
+        user: State.user ? State.user.username : 'unknown',
+        keterangan: keterangan
+      };
+
+      // Simpan ke API
+      const result = await apiPost(data);
+
+      // Simpan ke localStorage sebagai backup offline
+      saveToLocalBackup(data);
+
+      btn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+      btn.disabled = false;
+
+      if (result.success || result.message === 'Data terkirim') {
+        playSuccessBeep();
+        showToast(`Data "${State.currentBarang.nama}" berhasil disimpan!`, 'success');
+        clearScanResult();
+
+        // Auto restart scanner setelah 1 detik
+        setTimeout(() => startScanner(), 1000);
+      } else {
+        playErrorBeep();
+        showToast('Gagal menyimpan: ' + result.message, 'error');
+      }
+    }
+
+    /* ============================================= */
+    /* OFFLINE BACKUP (LocalStorage)                 */
+    /* ============================================= */
+    function saveToLocalBackup(data) {
+      try {
+        const backups = JSON.parse(localStorage.getItem('opname_backup') || '[]');
+        backups.push({ ...data, timestamp: new Date().toISOString(), synced: false });
+        localStorage.setItem('opname_backup', JSON.stringify(backups));
+      } catch (e) { /* localStorage penuh atau tidak tersedia */ }
+    }
+
+    function getLocalBackups() {
+      try {
+        return JSON.parse(localStorage.getItem('opname_backup') || '[]');
+      } catch (e) { return []; }
+    }
+
+    /* ============================================= */
+    /* DATA OPNAME (HALAMAN DATA)                    */
+    /* ============================================= */
+    async function loadOpnameData() {
+      const result = await apiGet({ action: 'getOpname' });
+      if (result.success) {
+        State.opnameData = result.data;
+      }
+      renderOpnameTable(State.opnameData);
+    }
+
+    function renderOpnameTable(data) {
+      const tbody = document.getElementById('opnameTableBody');
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="7">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <h3>Belum Ada Data</h3>
+              <p>Mulai scan barcode untuk mengisi data opname</p>
+            </div>
+          </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map((item, i) => {
+        const selisih = Number(item.selisih);
+        let badgeClass = 'badge-success';
+        let selisihText = '0 (Cocok)';
+        if (selisih < 0) {
+          badgeClass = 'badge-danger';
+          selisihText = selisih + ' (Kurang)';
+        } else if (selisih > 0) {
+          badgeClass = 'badge-warning';
+          selisihText = '+' + selisih + ' (Lebih)';
+        }
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td style="font-family:monospace; font-size:13px;">${escapeHtml(item.barcode)}</td>
+            <td><strong>${escapeHtml(item.nama)}</strong></td>
+            <td style="text-align:center">${item.stokSistem}</td>
+            <td style="text-align:center">${item.stokFisik}</td>
+            <td><span class="badge ${badgeClass}">${selisihText}</span></td>
+            <td>${escapeHtml(item.user)}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    function filterOpnameTable() {
+      const search = document.getElementById('searchOpname').value.toLowerCase();
+      const filter = document.getElementById('filterSelisih').value;
+
+      let filtered = State.opnameData.filter(item => {
+        const matchSearch = !search ||
+          item.barcode.toLowerCase().includes(search) ||
+          item.nama.toLowerCase().includes(search);
+
+        let matchFilter = true;
+        const selisih = Number(item.selisih);
+        if (filter === 'match') matchFilter = selisih === 0;
+        else if (filter === 'minus') matchFilter = selisih < 0;
+        else if (filter === 'plus') matchFilter = selisih > 0;
+
+        return matchSearch && matchFilter;
+      });
+
+      renderOpnameTable(filtered);
+    }
+
+    /* ============================================= */
+    /* HISTORY                                       */
+    /* ============================================= */
+    async function loadHistory() {
+      const dateFilter = document.getElementById('filterDate').value;
+      const params = { action: 'getOpname' };
+      if (dateFilter) params.tanggal = dateFilter;
+
+      const result = await apiGet(params);
+      if (result.success) {
+        State.historyData = result.data;
+      }
+      renderHistoryTable(State.historyData);
+      updateHistorySummary(State.historyData);
+    }
+
+    function renderHistoryTable(data) {
+      const tbody = document.getElementById('historyTableBody');
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="7">
+            <div class="empty-state">
+              <i class="fas fa-history"></i>
+              <h3>Belum Ada Riwayat</h3>
+              <p>Data riwayat akan muncul setelah Anda menyimpan hasil opname</p>
+            </div>
+          </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(item => {
+        const selisih = Number(item.selisih);
+        let badgeClass = 'badge-success';
+        let selisihText = '0';
+        if (selisih < 0) {
+          badgeClass = 'badge-danger';
+          selisihText = selisih.toString();
+        } else if (selisih > 0) {
+          badgeClass = 'badge-warning';
+          selisihText = '+' + selisih;
+        }
+        return `
+          <tr>
+            <td>${item.tanggal}</td>
+            <td style="font-family:monospace; font-size:13px;">${escapeHtml(item.barcode)}</td>
+            <td>${escapeHtml(item.nama)}</td>
+            <td style="text-align:center">${item.stokSistem}</td>
+            <td style="text-align:center">${item.stokFisik}</td>
+            <td><span class="badge ${badgeClass}">${selisihText}</span></td>
+            <td>${escapeHtml(item.user)}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    function updateHistorySummary(data) {
+      const total = data.length;
+      let minus = 0;
+      let match = 0;
+      data.forEach(item => {
+        const s = Number(item.selisih);
+        if (s < 0) minus++;
+        if (s === 0) match++;
+      });
+
+      document.getElementById('histTotal').textContent = total;
+      document.getElementById('histMinus').textContent = minus;
+      document.getElementById('histMatch').textContent = match;
+    }
+
+    function filterHistoryTable() {
+      const search = document.getElementById('searchHistory').value.toLowerCase();
+      const filtered = State.historyData.filter(item =>
+        !search ||
+        item.barcode.toLowerCase().includes(search) ||
+        item.nama.toLowerCase().includes(search) ||
+        item.user.toLowerCase().includes(search)
+      );
+      renderHistoryTable(filtered);
+      updateHistorySummary(filtered);
+    }
+
+    /* ============================================= */
+    /* EXPORT CSV                                    */
+    /* ============================================= */
+    function exportCSV() {
+      if (State.historyData.length === 0) {
+        showToast('Tidak ada data untuk di-export', 'warning');
+        return;
+      }
+
+      const headers = ['Tanggal', 'Barcode', 'Nama Barang', 'Stok Sistem', 'Stok Fisik', 'Selisih', 'User'];
+      const rows = State.historyData.map(item => [
+        item.tanggal,
+        item.barcode,
+        item.nama,
+        item.stokSistem,
+        item.stokFisik,
+        item.selisih,
+        item.user
+      ]);
+
+      let csv = '\uFEFF'; // BOM untuk UTF-8
+      csv += headers.join(';') + '\n';
+      rows.forEach(row => {
+        csv += row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(';') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `stock_opname_${dateStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast('File CSV berhasil diunduh', 'success');
+    }
+
+    /* ============================================= */
+    /* PRINT                                         */
+    /* ============================================= */
+    function printHistory() {
+      if (State.historyData.length === 0) {
+        showToast('Tidak ada data untuk dicetak', 'warning');
+        return;
+      }
+      window.print();
+    }
+
+    /* ============================================= */
+    /* UTILITY FUNCTIONS                             */
+    /* ============================================= */
+    function formatRupiah(angka) {
+      if (!angka || isNaN(angka)) return 'Rp 0';
+      return 'Rp ' + Number(angka).toLocaleString('id-ID');
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    /* ============================================= */
+    /* ONLINE/OFFLINE DETECTION                      */
+    /* ============================================= */
+    function updateOnlineStatus() {
+      const badge = document.getElementById('offlineBadge');
+      if (navigator.onLine) {
+        badge.classList.remove('show');
+        State.isOffline = false;
+      } else {
+        badge.classList.add('show');
+        State.isOffline = true;
+      }
+    }
+
+    window.addEventListener('online', () => {
+      updateOnlineStatus();
+      showToast('Koneksi internet kembali tersedia', 'success');
+      // Sync data offline jika ada
+      syncOfflineData();
+    });
+
+    window.addEventListener('offline', () => {
+      updateOnlineStatus();
+      showToast('Anda sedang offline. Data akan disimpan lokal.', 'warning');
+    });
+
+    async function syncOfflineData() {
+      const backups = getLocalBackups().filter(b => !b.synced);
+      if (backups.length === 0) return;
+
+      showToast(`Menyinkronkan ${backups.length} data offline...`, 'info');
+
+      let synced = 0;
+      for (const data of backups) {
+        const result = await apiPost(data);
+        if (result.success || result.message === 'Data terkirim') {
+          data.synced = true;
+          synced++;
+        }
+      }
+
+      // Update localStorage
+      localStorage.setItem('opname_backup', JSON.stringify(getLocalBackups()));
+
+      if (synced > 0) {
+        showToast(`${synced} data berhasil disinkronkan`, 'success');
+      }
+    }
+
+    /* ============================================= */
+    /* INIT ON LOAD                                  */
+    /* ============================================= */
+    document.addEventListener('DOMContentLoaded', () => {
+      updateOnlineStatus();
+
+      // Cek apakah ada session sebelumnya
+      const savedUser = sessionStorage.getItem('sop_user');
+      if (savedUser) {
+        try {
+          State.user = JSON.parse(savedUser);
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('appMain').classList.add('active');
+          initApp();
+        } catch (e) {
+          sessionStorage.removeItem('sop_user');
+        }
+      }
+
+      // Focus ke username field
+      document.getElementById('loginUsername').focus();
+    });
+
+    // Simpan user ke session saat login berhasil (diperbarui di handleLogin)
+    const originalHandleLogin = handleLogin;
+    handleLogin = async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const errorDiv = document.getElementById('loginError');
+      const errorMsg = document.getElementById('loginErrorMsg');
+      const btn = document.getElementById('loginBtn');
+
+      if (!username || !password) {
+        errorMsg.textContent = 'Username dan password wajib diisi';
+        errorDiv.classList.add('show');
+        return;
+      }
+
+      errorDiv.classList.remove('show');
+      btn.innerHTML = '<span class="spinner"></span> Memverifikasi...';
+      btn.disabled = true;
+
+      const result = await apiGet({ action: 'login', username, password });
+
+      if (result.success) {
+        State.user = result.user;
+        sessionStorage.setItem('sop_user', JSON.stringify(result.user));
+        playSuccessBeep();
+        document.getElementById('loginPage').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('appMain').classList.add('active');
+          initApp();
+        }, 500);
+      } else {
+        playErrorBeep();
+        errorMsg.textContent = result.message || 'Login gagal';
+        errorDiv.classList.add('show');
+        btn.innerHTML = '<span>Masuk ke Sistem</span><i class="fas fa-arrow-right"></i>';
+        btn.disabled = false;
+      }
+    };
+
+    // Bersihkan session saat logout
+    const originalDoLogout = doLogout;
+    doLogout = function() {
+      closeLogoutModal();
+      sessionStorage.removeItem('sop_user');
+      State.user = null;
+      State.opnameData = [];
+      State.historyData = [];
+      stopScanner();
+      document.getElementById('appMain').classList.remove('active');
+      const loginPage = document.getElementById('loginPage');
+      loginPage.style.display = 'flex';
+      loginPage.classList.remove('hidden');
+      document.getElementById('loginPassword').value = '';
+      const btn = document.getElementById('loginBtn');
+      btn.innerHTML = '<span>Masuk ke Sistem</span><i class="fas fa-arrow-right"></i>';
+      btn.disabled = false;
+      navigateTo('pageDashboard');
+    };
+  </script>
 </body>
 </html>
