@@ -23,7 +23,6 @@
             --warning: #ffb830;
             --info: #3ea8ff;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Space Grotesk', sans-serif;
@@ -32,7 +31,6 @@
             min-height: 100vh;
             overflow-x: hidden;
         }
-
         body::before {
             content: '';
             position: fixed;
@@ -41,81 +39,43 @@
             background: radial-gradient(ellipse at 20% 20%, rgba(0,212,170,0.04) 0%, transparent 50%),
                         radial-gradient(ellipse at 80% 80%, rgba(62,168,255,0.03) 0%, transparent 50%);
             animation: bgDrift 20s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 0;
+            pointer-events: none; z-index: 0;
         }
-
         @keyframes bgDrift {
             0% { transform: translate(0, 0) rotate(0deg); }
             100% { transform: translate(-3%, -3%) rotate(2deg); }
         }
-
         .mono { font-family: 'JetBrains Mono', monospace; }
 
+        /* Stat Cards */
         .stat-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px 24px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 20px 24px;
+            position: relative; overflow: hidden; transition: all 0.3s ease;
         }
         .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
-            border-radius: 14px 14px 0 0;
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; border-radius: 14px 14px 0 0;
         }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(0,212,170,0.3);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-        }
+        .stat-card:hover { transform: translateY(-3px); border-color: rgba(0,212,170,0.3); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
         .stat-card.total::before { background: var(--accent); }
         .stat-card.counted::before { background: var(--info); }
         .stat-card.notcounted::before { background: var(--warning); }
         .stat-card.diff::before { background: var(--danger); }
+        .stat-number { font-size: 2rem; font-weight: 700; line-height: 1; margin: 8px 0 4px; }
 
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1;
-            margin: 8px 0 4px;
-        }
-
+        /* Inputs & Buttons */
         .input-field {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 14px;
-            color: var(--fg);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.9rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-            width: 100%;
+            background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+            padding: 10px 14px; color: var(--fg); font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; outline: none; width: 100%;
         }
-        .input-field:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-dim);
-        }
+        .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
         .input-field::placeholder { color: var(--muted); }
-
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 600;
-            font-size: 0.88rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+            border-radius: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+            font-size: 0.88rem; border: none; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
         }
         .btn:active { transform: scale(0.97); }
         .btn-primary { background: var(--accent); color: #0c0f14; }
@@ -125,185 +85,126 @@
         .btn-danger { background: rgba(255,77,106,0.12); color: var(--danger); border: 1px solid rgba(255,77,106,0.25); }
         .btn-danger:hover { background: rgba(255,77,106,0.2); }
         .btn-scan {
-            background: linear-gradient(135deg, var(--accent), #00b894);
-            color: #0c0f14;
-            font-size: 1rem;
-            padding: 14px 28px;
-            border-radius: 14px;
-            box-shadow: 0 4px 24px rgba(0,212,170,0.25);
+            background: linear-gradient(135deg, var(--accent), #00b894); color: #0c0f14;
+            font-size: 1rem; padding: 14px 28px; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,212,170,0.25);
         }
         .btn-scan:hover { box-shadow: 0 6px 32px rgba(0,212,170,0.4); transform: translateY(-2px); }
 
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
+        /* Table */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
         .data-table thead th {
-            background: var(--bg2);
-            color: var(--muted);
-            font-weight: 600;
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 2;
+            background: var(--bg2); color: var(--muted); font-weight: 600; font-size: 0.78rem;
+            text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 16px; text-align: left;
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2;
         }
         .data-table thead th:first-child { border-radius: 10px 0 0 0; }
         .data-table thead th:last-child { border-radius: 0 10px 0 0; }
         .data-table tbody tr { transition: background 0.15s; }
         .data-table tbody tr:hover { background: var(--card-hover); }
-        .data-table tbody td {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(38,45,61,0.5);
-            font-size: 0.88rem;
-        }
+        .data-table tbody td { padding: 12px 16px; border-bottom: 1px solid rgba(38,45,61,0.5); font-size: 0.88rem; }
         .data-table tbody tr.counted-row { background: rgba(0,212,170,0.04); }
         .data-table tbody tr.counted-row td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
+        /* Badge */
+        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .badge-counted { background: rgba(0,212,170,0.12); color: var(--accent); }
         .badge-pending { background: rgba(255,184,48,0.12); color: var(--warning); }
         .badge-diff { background: rgba(255,77,106,0.12); color: var(--danger); }
 
+        /* Upload Zone */
         .upload-zone {
-            border: 2px dashed var(--border);
-            border-radius: 14px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-            background: var(--bg2);
+            border: 2px dashed var(--border); border-radius: 14px; padding: 40px;
+            text-align: center; transition: all 0.3s; cursor: pointer; background: var(--bg2);
         }
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--accent);
-            background: var(--accent-dim);
-        }
+        .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-dim); }
 
+        /* Modal */
         .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            z-index: 100; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
         .modal-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 0;
-            max-width: 500px;
-            width: 95%;
-            overflow: hidden;
-            transform: scale(0.9);
-            transition: transform 0.3s;
+            background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+            padding: 0; max-width: 500px; width: 95%; overflow: hidden; transform: scale(0.9); transition: transform 0.3s;
         }
         .modal-overlay.active .modal-box { transform: scale(1); }
         #reader { width: 100%; }
         #reader video { border-radius: 0 !important; }
 
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
         .toast {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 300px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            animation: toastIn 0.4s ease;
-            font-size: 0.88rem;
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+            min-width: 300px; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            animation: toastIn 0.4s ease; font-size: 0.85rem;
         }
         .toast.success { border-left: 4px solid var(--accent); }
         .toast.error { border-left: 4px solid var(--danger); }
         .toast.info { border-left: 4px solid var(--info); }
-        @keyframes toastIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes toastOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
 
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-        .config-panel {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px 24px;
-        }
+        /* Config Panel */
+        .config-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; }
 
+        /* Count Input */
         .count-input {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 6px 10px;
-            color: var(--accent);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.88rem;
-            width: 80px;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.2s;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+            color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+            width: 80px; text-align: center; outline: none; transition: border-color 0.2s;
         }
-        .count-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-dim);
-        }
-
+        .count-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
         .save-btn {
-            background: var(--accent-dim);
-            color: var(--accent);
-            border: 1px solid rgba(0,212,170,0.25);
-            border-radius: 8px;
-            padding: 6px 14px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,212,170,0.25);
+            border-radius: 8px; padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
         .save-btn:hover { background: rgba(0,212,170,0.2); }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--muted);
-        }
+        /* Empty & Loading State */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
         .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+        .loading-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+
+        /* Spinner */
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Connection status bar */
+        .conn-bar {
+            display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            font-size: 0.8rem; margin-bottom: 20px;
+        }
+        .conn-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .conn-dot.loading { background: var(--warning); animation: blink 1s infinite; }
+        .conn-dot.connected { background: var(--accent); box-shadow: 0 0 8px rgba(0,212,170,0.5); }
+        .conn-dot.error { background: var(--danger); box-shadow: 0 0 8px rgba(255,77,106,0.5); }
+        .conn-dot.idle { background: var(--muted); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Auto-refresh pulse */
+        .refresh-pulse { animation: refreshPulse 3s ease-in-out infinite; }
+        @keyframes refreshPulse {
+            0%, 100% { opacity: 0.5; } 50% { opacity: 1; }
+        }
+
+        .sheet-link { color: var(--accent); text-decoration: none; word-break: break-all; }
+        .sheet-link:hover { text-decoration: underline; }
 
         @keyframes pulse-ring {
             0% { box-shadow: 0 0 0 0 rgba(0,212,170,0.4); }
@@ -312,29 +213,15 @@
         }
         .pulse-anim { animation: pulse-ring 2s infinite; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-in { animation: fadeIn 0.5s ease; }
-
-        /* Link sheet di config panel */
-        .sheet-link {
-            color: var(--accent);
-            text-decoration: none;
-            transition: opacity 0.2s;
-            word-break: break-all;
-        }
-        .sheet-link:hover { opacity: 0.8; text-decoration: underline; }
 
         @media (max-width: 768px) {
             .stat-grid { grid-template-columns: 1fr 1fr !important; }
             .stat-number { font-size: 1.5rem; }
             .action-bar { flex-direction: column; }
         }
-        @media (max-width: 480px) {
-            .stat-grid { grid-template-columns: 1fr !important; }
-        }
+        @media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr !important; } }
     </style>
 </head>
 <body>
@@ -342,7 +229,7 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Modal Kamera Scanner -->
+<!-- Modal Scanner -->
 <div class="modal-overlay" id="scanModal">
     <div class="modal-box">
         <div style="padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border);">
@@ -354,11 +241,9 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div style="position: relative;">
-            <div id="reader"></div>
-        </div>
-        <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px;">
-            <div style="flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;">
+        <div style="position: relative;"><div id="reader"></div></div>
+        <div style="padding: 16px 24px; border-top: 1px solid var(--border);">
+            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;">
                 <span style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Terakhir discan</span>
                 <div class="mono" id="lastScanned" style="font-size: 0.95rem; margin-top: 2px; color: var(--accent);">-</div>
             </div>
@@ -370,7 +255,7 @@
 <div style="position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 24px 20px;">
 
     <!-- Header -->
-    <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 14px;">
             <div style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), #00b894); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #0c0f14;">
                 <i class="fas fa-boxes-stacked"></i>
@@ -381,8 +266,8 @@
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="btn btn-outline" onclick="toggleConfig()" id="configToggle">
-                <i class="fas fa-gear"></i> Pengaturan API
+            <button class="btn btn-outline" onclick="toggleConfig()">
+                <i class="fas fa-gear"></i> Pengaturan
             </button>
             <button class="btn btn-scan pulse-anim" onclick="openScanner()">
                 <i class="fas fa-qrcode"></i> Scan Barcode
@@ -390,37 +275,47 @@
         </div>
     </header>
 
-    <!-- Panel Konfigurasi API -->
-    <div class="config-panel fade-in" id="configPanel" style="margin-bottom: 24px; display: none;">
+    <!-- Status Koneksi -->
+    <div class="conn-bar" id="connBar">
+        <div class="conn-dot loading" id="connDot"></div>
+        <span id="connText" style="flex: 1;">Menghubungkan ke Google Spreadsheet...</span>
+        <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;" onclick="manualRefresh()" id="refreshBtn" disabled>
+            <i class="fas fa-rotate"></i> Refresh
+        </button>
+        <span class="mono refresh-pulse" id="lastSync" style="font-size: 0.72rem; color: var(--muted);"></span>
+    </div>
+
+    <!-- Panel Konfigurasi (tersembunyi default) -->
+    <div class="config-panel fade-in" id="configPanel" style="margin-bottom: 20px; display: none;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
             <i class="fas fa-link" style="color: var(--accent);"></i>
-            <h3 style="font-weight: 700; font-size: 1rem;">Konfigurasi Google Sheets API</h3>
+            <h3 style="font-weight: 700; font-size: 1rem;">Konfigurasi API Endpoint</h3>
         </div>
         <div style="margin-bottom: 12px;">
             <label style="font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 6px;">
-                Paste API URL dari Google Apps Script di sini:
+                URL Google Apps Script Web App (auto-fill jika sudah pernah disimpan):
             </label>
             <input type="text" class="input-field mono" id="apiUrlInput"
                 placeholder="https://script.google.com/macros/s/xxxxx/exec"
                 style="font-size: 0.82rem;">
         </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="saveApiConfig()">
-                <i class="fas fa-save"></i> Simpan
-            </button>
-            <button class="btn btn-outline" onclick="fetchFromSheet()">
-                <i class="fas fa-cloud-arrow-down"></i> Ambil Data dari Sheet
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+            <button class="btn btn-primary" onclick="saveAndConnect()">
+                <i class="fas fa-plug"></i> Simpan & Hubungkan
             </button>
             <button class="btn btn-outline" onclick="syncToSheet()">
                 <i class="fas fa-cloud-arrow-up"></i> Sync ke Sheet
             </button>
         </div>
-        <div style="margin-top: 12px; padding: 12px 16px; background: var(--bg); border-radius: 10px; font-size: 0.78rem; color: var(--muted); line-height: 1.8;">
+        <div style="padding: 14px 16px; background: var(--bg); border-radius: 10px; font-size: 0.78rem; color: var(--muted); line-height: 1.9;">
             <i class="fas fa-circle-info" style="color: var(--info);"></i>
-            <strong>Cara setup:</strong> Buka Google Sheets → Extensions → Apps Script → Paste kode deploy → Deploy as Web App → Copy URL → Paste di atas.
-            <br><i class="fas fa-table" style="color: var(--accent); margin-right: 4px;"></i>
-            Link Spreadsheet:
-            <a href="https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0" target="_blank" class="sheet-link mono">https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0</a>
+            <strong style="color: var(--fg);">Cara setup koneksi otomatis:</strong>
+            <br>1. Buka <a href="https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0" target="_blank" class="sheet-link">Google Sheet ini</a>
+            <br>2. Klik <strong>Ekstensi → Apps Script</strong>
+            <br>3. Paste kode Apps Script (lihat bagian bawah source file ini)
+            <br>4. <strong>Deploy → New deployment → Web app</strong> → Execute as: Me → Access: Anyone
+            <br>5. Copy URL deploy, paste di kolom atas, klik <strong>Simpan & Hubungkan</strong>
+            <br>6. Setelah itu, website akan <strong style="color: var(--accent);">otomatis terhubung</strong> setiap kali dibuka
             <br><i class="fas fa-key" style="color: var(--warning); margin-right: 4px;"></i>
             Spreadsheet ID: <span class="mono" style="color: var(--accent);">1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0</span>
         </div>
@@ -454,12 +349,12 @@
         </div>
     </div>
 
-    <!-- Upload & Aksi -->
+    <!-- Upload (opsional, sebagai fallback) -->
     <div class="upload-zone" id="uploadZone" style="margin-bottom: 24px;">
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
-        <i class="fas fa-file-excel" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 12px; display: block;"></i>
-        <p style="font-weight: 600; margin-bottom: 4px;">Upload Excel / CSV untuk Memulai</p>
-        <p style="font-size: 0.82rem; color: var(--muted);">Atau ambil data langsung dari Google Sheet melalui Pengaturan API</p>
+        <i class="fas fa-file-excel" style="font-size: 2rem; color: var(--muted); margin-bottom: 10px; display: block;"></i>
+        <p style="font-weight: 600; margin-bottom: 4px; font-size: 0.9rem;">Upload Excel / CSV (Opsional)</p>
+        <p style="font-size: 0.8rem; color: var(--muted);">Data otomatis dimuat dari Google Spreadsheet. Upload hanya jika diperlukan.</p>
     </div>
 
     <!-- Tombol Aksi -->
@@ -470,8 +365,8 @@
         <button class="btn btn-outline" onclick="exportPDF()">
             <i class="fas fa-file-pdf"></i> Export PDF
         </button>
-        <button class="btn btn-danger" onclick="clearAll()">
-            <i class="fas fa-trash-can"></i> Clear
+        <button class="btn btn-danger" onclick="clearLocalData()">
+            <i class="fas fa-trash-can"></i> Clear Lokal
         </button>
     </div>
 
@@ -498,39 +393,51 @@
                         <th style="width: 85px; text-align: center;">Selisih</th>
                     </tr>
                 </thead>
-                <tbody id="tableBody">
-                </tbody>
+                <tbody id="tableBody"></tbody>
             </table>
         </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" id="loadingState">
+            <div class="spinner"></div>
+            <p style="font-weight: 600; margin-bottom: 4px;">Memuat data dari Google Spreadsheet...</p>
+            <p style="font-size: 0.82rem;" id="loadingDetail">Menghubungkan ke server...</p>
+        </div>
+
         <!-- Empty State -->
-        <div class="empty-state" id="emptyState">
+        <div class="empty-state" id="emptyState" style="display: none;">
             <i class="fas fa-inbox" style="display: block;"></i>
-            <p style="font-weight: 600; margin-bottom: 4px;">Belum Ada Data</p>
-            <p style="font-size: 0.82rem;">Upload file Excel atau ambil data dari Google Sheet untuk memulai</p>
+            <p style="font-weight: 600; margin-bottom: 4px;">Tidak Ada Data</p>
+            <p style="font-size: 0.82rem;">Pastikan Google Sheets sudah berisi data dan API sudah dikonfigurasi</p>
         </div>
     </div>
 
     <!-- Footer -->
     <footer style="text-align: center; padding: 32px 0 16px; color: var(--muted); font-size: 0.78rem;">
-        Stock Opname System &mdash; Terintegrasi dengan Google Sheets & GitHub
+        Stock Opname System &mdash; Auto-sync dengan
+        <a href="https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0" target="_blank" class="sheet-link">Google Spreadsheet</a>
     </footer>
 </div>
 
-<!-- SheetJS & jsPDF -->
+<!-- Libraries -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
     // ============================================
-    // DATA & STATE
+    // KONSTANTA & STATE
     // ============================================
+    const SHEET_ID = '1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0';
+    const REFRESH_INTERVAL = 30000; // Auto-refresh setiap 30 detik
     let stockData = [];
     let html5QrCode = null;
     let isScanning = false;
+    let refreshTimer = null;
+    let isConnected = false;
 
     // ============================================
-    // TOAST NOTIFICATION
+    // TOAST
     // ============================================
     function showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
@@ -538,12 +445,40 @@
         toast.className = `toast ${type}`;
         const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
         const colors = { success: 'var(--accent)', error: 'var(--danger)', info: 'var(--info)' };
-        toast.innerHTML = `<i class="fas ${icons[type]}" style="color: ${colors[type]}; font-size: 1.1rem;"></i><span>${message}</span>`;
+        toast.innerHTML = `<i class="fas ${icons[type]}" style="color: ${colors[type]}; font-size: 1.1rem; flex-shrink: 0;"></i><span>${message}</span>`;
         container.appendChild(toast);
         setTimeout(() => {
             toast.style.animation = 'toastOut 0.3s ease forwards';
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, 3500);
+    }
+
+    // ============================================
+    // STATUS KONEKSI
+    // ============================================
+    function setConnectionStatus(status, text) {
+        const dot = document.getElementById('connDot');
+        const txt = document.getElementById('connText');
+        const btn = document.getElementById('refreshBtn');
+        const syncEl = document.getElementById('lastSync');
+
+        dot.className = 'conn-dot ' + status;
+        txt.innerHTML = text;
+
+        if (status === 'connected') {
+            btn.disabled = false;
+            isConnected = true;
+            const now = new Date();
+            syncEl.textContent = now.getHours().toString().padStart(2,'0') + ':' +
+                                 now.getMinutes().toString().padStart(2,'0') + ':' +
+                                 now.getSeconds().toString().padStart(2,'0');
+        } else if (status === 'error') {
+            btn.disabled = false;
+            isConnected = false;
+        } else {
+            btn.disabled = true;
+            isConnected = false;
+        }
     }
 
     // ============================================
@@ -554,65 +489,133 @@
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     }
 
+    function getApiUrl() {
+        return localStorage.getItem('sheetApiUrl_' + SHEET_ID) || '';
+    }
+
     function saveApiConfig() {
         const url = document.getElementById('apiUrlInput').value.trim();
-        if (!url) { showToast('Masukkan URL API terlebih dahulu', 'error'); return; }
-        localStorage.setItem('sheetApiUrl', url);
-        showToast('URL API berhasil disimpan', 'success');
+        if (!url) { showToast('Masukkan URL API terlebih dahulu', 'error'); return false; }
+        localStorage.setItem('sheetApiUrl_' + SHEET_ID, url);
+        return true;
     }
 
-    function getApiUrl() {
-        return localStorage.getItem('sheetApiUrl') || '';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const saved = getApiUrl();
-        if (saved) document.getElementById('apiUrlInput').value = saved;
-    });
-
-    // ============================================
-    // GOOGLE SHEETS INTEGRASI
-    // Spreadsheet ID: 1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
-    // ============================================
-    async function fetchFromSheet() {
-        const url = getApiUrl();
-        if (!url) { showToast('Atur URL API di Pengaturan terlebih dahulu', 'error'); return; }
-        showToast('Mengambil data dari Google Sheet...', 'info');
-        try {
-            const res = await fetch(url + '?action=get');
-            const data = await res.json();
-            if (data.status === 'success' && data.data && data.data.length > 0) {
-                stockData = data.data.map((row, idx) => ({
-                    no: idx + 1,
-                    part: String(row[0] || '').trim(),
-                    deskripsiPart: String(row[1] || '').trim(),
-                    qty: parseInt(row[2]) || 0,
-                    qtyAlloc: parseInt(row[3]) || 0,
-                    available: (parseInt(row[2]) || 0) - (parseInt(row[3]) || 0),
-                    fisik: row[5] !== undefined && row[5] !== '' ? parseInt(row[5]) : null,
-                }));
-                updateAll();
-                showToast(`Berhasil mengambil ${stockData.length} data dari Sheet`, 'success');
-            } else {
-                showToast('Data kosong atau format tidak sesuai', 'error');
-            }
-        } catch (e) {
-            showToast('Gagal mengambil data: ' + e.message, 'error');
+    function saveAndConnect() {
+        if (saveApiConfig()) {
+            showToast('URL tersimpan, menghubungkan...', 'info');
+            fetchFromSheet();
         }
     }
 
+    // ============================================
+    // FETCH DATA DARI GOOGLE SHEET (OTOMATIS)
+    // ============================================
+    async function fetchFromSheet() {
+        const url = getApiUrl();
+        if (!url) {
+            setConnectionStatus('error',
+                '<i class="fas fa-unlink" style="color: var(--danger);"></i> Belum dikonfigurasi — <a href="javascript:toggleConfig()" style="color: var(--accent); text-decoration: underline;">Buka Pengaturan</a> untuk paste URL API');
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            return;
+        }
+
+        setConnectionStatus('loading', '<i class="fas fa-spinner fa-spin" style="color: var(--warning);"></i> Mengambil data dari Google Spreadsheet...');
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('loadingDetail').textContent = 'Menghubungkan ke ' + new URL(url).hostname + '...';
+
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 15000);
+
+            const res = await fetch(url + '?action=get&t=' + Date.now(), {
+                signal: controller.signal
+            });
+            clearTimeout(timeout);
+
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+
+            const data = await res.json();
+
+            if (data.status === 'success' && data.data && data.data.length > 0) {
+                stockData = data.data.map((row, idx) => {
+                    const qty = parseInt(row[2]) || 0;
+                    const qtyAlloc = parseInt(row[3]) || 0;
+                    return {
+                        no: idx + 1,
+                        part: String(row[0] || '').trim(),
+                        deskripsiPart: String(row[1] || '').trim(),
+                        qty: qty,
+                        qtyAlloc: qtyAlloc,
+                        available: qty - qtyAlloc,
+                        fisik: (row[5] !== undefined && row[5] !== '' && row[5] !== null) ? parseInt(row[5]) : null,
+                    };
+                });
+                updateAll();
+                setConnectionStatus('connected',
+                    `<i class="fas fa-link" style="color: var(--accent);"></i> Terhubung — <strong>${stockData.length} item</strong> dimuat otomatis`);
+                document.getElementById('loadingState').style.display = 'none';
+                startAutoRefresh();
+            } else if (data.status === 'success' && (!data.data || data.data.length === 0)) {
+                stockData = [];
+                updateAll();
+                setConnectionStatus('connected',
+                    '<i class="fas fa-link" style="color: var(--accent);"></i> Terhubung — Spreadsheet kosong');
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                startAutoRefresh();
+            } else {
+                throw new Error(data.message || 'Format respons tidak sesuai');
+            }
+        } catch (e) {
+            let errorMsg = e.message;
+            if (e.name === 'AbortError') errorMsg = 'Timeout (15 detik)';
+            if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')) {
+                errorMsg = 'Tidak dapat menjangkau server. Pastikan URL benar dan deployment aktif.';
+            }
+            setConnectionStatus('error',
+                `<i class="fas fa-triangle-exclamation" style="color: var(--danger);"></i> Gagal terhubung: ${errorMsg}`);
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+
+            // Jika ada data lokal dari sebelumnya, tetap tampilkan
+            if (stockData.length > 0) {
+                document.getElementById('emptyState').style.display = 'none';
+                renderTable();
+            }
+        }
+    }
+
+    // ============================================
+    // AUTO-REFRESH PERIODIK
+    // ============================================
+    function startAutoRefresh() {
+        if (refreshTimer) clearInterval(refreshTimer);
+        refreshTimer = setInterval(() => {
+            if (isConnected) {
+                fetchFromSheet();
+            }
+        }, REFRESH_INTERVAL);
+    }
+
+    function manualRefresh() {
+        fetchFromSheet();
+    }
+
+    // ============================================
+    // SYNC KE SHEET
+    // ============================================
     async function syncToSheet() {
         const url = getApiUrl();
         if (!url) { showToast('Atur URL API di Pengaturan terlebih dahulu', 'error'); return; }
         if (stockData.length === 0) { showToast('Tidak ada data untuk di-sync', 'error'); return; }
+
+        setConnectionStatus('loading', '<i class="fas fa-cloud-arrow-up fa-spin" style="color: var(--info);"></i> Menyinkronkan data ke Google Sheet...');
         showToast('Menyinkronkan data ke Google Sheet...', 'info');
+
         try {
             const payload = stockData.map(row => [
-                row.part,
-                row.deskripsiPart,
-                row.qty,
-                row.qtyAlloc,
-                row.available,
+                row.part, row.deskripsiPart, row.qty, row.qtyAlloc, row.available,
                 row.fisik !== null ? row.fisik : ''
             ]);
             const res = await fetch(url + '?action=update', {
@@ -623,11 +626,15 @@
             const result = await res.json();
             if (result.status === 'success') {
                 showToast('Data berhasil di-sync ke Google Sheet', 'success');
+                setConnectionStatus('connected',
+                    `<i class="fas fa-link" style="color: var(--accent);"></i> Terhubung — <strong>${stockData.length} item</strong> tersinkronisasi`);
             } else {
-                showToast('Gagal sync: ' + (result.message || 'Unknown error'), 'error');
+                throw new Error(result.message || 'Unknown error');
             }
         } catch (e) {
             showToast('Gagal sync: ' + e.message, 'error');
+            setConnectionStatus('error',
+                `<i class="fas fa-triangle-exclamation" style="color: var(--danger);"></i> Sync gagal: ${e.message}`);
         }
     }
 
@@ -635,35 +642,29 @@
     // BARCODE / QR SCANNER
     // ============================================
     async function openScanner() {
-        const modal = document.getElementById('scanModal');
-        modal.classList.add('active');
-
-        if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("reader");
-        }
-
-        const config = {
-            fps: 20,
-            qrbox: { width: 260, height: 160 },
-            aspectRatio: 1.5,
-            formatsToSupport: [
-                Html5QrcodeSupportedFormats.QR_CODE,
-                Html5QrcodeSupportedFormats.CODE_128,
-                Html5QrcodeSupportedFormats.CODE_39,
-                Html5QrcodeSupportedFormats.EAN_13,
-                Html5QrcodeSupportedFormats.EAN_8,
-                Html5QrcodeSupportedFormats.UPC_A,
-                Html5QrcodeSupportedFormats.UPC_E,
-                Html5QrcodeSupportedFormats.ITF,
-                Html5QrcodeSupportedFormats.DATA_MATRIX
-            ]
-        };
+        document.getElementById('scanModal').classList.add('active');
+        if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
         try {
             isScanning = true;
             await html5QrCode.start(
                 { facingMode: "environment" },
-                config,
+                {
+                    fps: 20,
+                    qrbox: { width: 260, height: 160 },
+                    aspectRatio: 1.5,
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.ITF,
+                        Html5QrcodeSupportedFormats.DATA_MATRIX
+                    ]
+                },
                 onScanSuccess,
                 () => {}
             );
@@ -679,8 +680,7 @@
 
         const item = stockData.find(row =>
             row.part.toLowerCase() === decodedText.toLowerCase() ||
-            row.part.includes(decodedText) ||
-            decodedText.includes(row.part)
+            row.part.includes(decodedText) || decodedText.includes(row.part)
         );
 
         if (item) {
@@ -689,50 +689,32 @@
                 input.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 input.focus();
                 input.select();
-                const row = input.closest('tr');
-                if (row) {
-                    row.style.background = 'rgba(0,212,170,0.15)';
-                    setTimeout(() => { row.style.background = ''; }, 1500);
-                }
+                const tr = input.closest('tr');
+                if (tr) { tr.style.background = 'rgba(0,212,170,0.15)'; setTimeout(() => tr.style.background = '', 1500); }
             }
             showToast(`Ditemukan: ${item.deskripsiPart} — Masukkan jumlah fisik`, 'success');
         } else {
             showToast(`"${decodedText}" tidak ditemukan dalam data`, 'error');
         }
-
         setTimeout(() => closeScanner(), 600);
     }
 
     async function closeScanner() {
         isScanning = false;
-        try {
-            if (html5QrCode && html5QrCode.isScanning) {
-                await html5QrCode.stop();
-            }
-        } catch (e) {}
+        try { if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop(); } catch (e) {}
         document.getElementById('scanModal').classList.remove('active');
     }
 
     // ============================================
-    // UPLOAD EXCEL / CSV
+    // UPLOAD EXCEL / CSV (FALLBACK)
     // ============================================
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('fileInput');
-
     uploadZone.addEventListener('click', () => fileInput.click());
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-    });
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
     uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
-    });
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files[0]) processFile(e.target.files[0]);
-    });
+    uploadZone.addEventListener('drop', (e) => { e.preventDefault(); uploadZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', (e) => { if (e.target.files[0]) processFile(e.target.files[0]); });
 
     function processFile(file) {
         const reader = new FileReader();
@@ -741,13 +723,11 @@
                 const wb = XLSX.read(e.target.result, { type: 'array' });
                 const ws = wb.Sheets[wb.SheetNames[0]];
                 const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
-
                 let startRow = 0;
                 if (json.length > 0 && typeof json[0][0] === 'string' &&
                     (json[0][0].toLowerCase().includes('part') || json[0][0].toLowerCase().includes('no') || json[0][0] === 'NO')) {
                     startRow = 1;
                 }
-
                 stockData = [];
                 for (let i = startRow; i < json.length; i++) {
                     const row = json[i];
@@ -758,13 +738,11 @@
                         no: stockData.length + 1,
                         part: String(row[0] || '').trim(),
                         deskripsiPart: String(row[1] || '').trim(),
-                        qty: qty,
-                        qtyAlloc: qtyAlloc,
+                        qty, qtyAlloc,
                         available: qty - qtyAlloc,
                         fisik: row[5] !== undefined && row[5] !== '' ? parseInt(row[5]) : null
                     });
                 }
-
                 updateAll();
                 showToast(`Berhasil memuat ${stockData.length} item dari ${file.name}`, 'success');
             } catch (err) {
@@ -777,17 +755,13 @@
     // ============================================
     // UPDATE STATISTIK & TABEL
     // ============================================
-    function updateAll() {
-        updateStats();
-        renderTable();
-    }
+    function updateAll() { updateStats(); renderTable(); }
 
     function updateStats() {
         const total = stockData.length;
         const counted = stockData.filter(r => r.fisik !== null).length;
         const notCounted = total - counted;
         const diff = stockData.filter(r => r.fisik !== null && r.fisik !== r.available).length;
-
         animateNumber('statTotal', total);
         animateNumber('statCounted', counted);
         animateNumber('statNotCounted', notCounted);
@@ -801,10 +775,9 @@
         const duration = 400;
         const start = performance.now();
         function step(ts) {
-            const progress = Math.min((ts - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            el.textContent = Math.round(current + (target - current) * eased);
-            if (progress < 1) requestAnimationFrame(step);
+            const p = Math.min((ts - start) / duration, 1);
+            el.textContent = Math.round(current + (target - current) * (1 - Math.pow(1 - p, 3)));
+            if (p < 1) requestAnimationFrame(step);
         }
         requestAnimationFrame(step);
     }
@@ -812,7 +785,10 @@
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         const empty = document.getElementById('emptyState');
+        const loading = document.getElementById('loadingState');
         const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+        loading.style.display = 'none';
 
         if (stockData.length === 0) {
             tbody.innerHTML = '';
@@ -839,16 +815,12 @@
         tbody.innerHTML = filtered.map(row => {
             const selisih = row.fisik !== null ? row.fisik - row.available : null;
             const isCounted = row.fisik !== null;
-            const hasDiff = selisih !== null && selisih !== 0;
             const rowClass = isCounted ? 'counted-row' : '';
-
-            let selisihDisplay = '-';
-            let selisihColor = 'var(--muted)';
+            let selisihDisplay = '-', selisihColor = 'var(--muted)';
             if (selisih !== null) {
                 selisihDisplay = (selisih > 0 ? '+' : '') + selisih;
                 selisihColor = selisih === 0 ? 'var(--accent)' : 'var(--danger)';
             }
-
             let availColor = 'var(--fg)';
             if (row.available <= 0) availColor = 'var(--danger)';
             else if (row.available <= 5) availColor = 'var(--warning)';
@@ -866,7 +838,7 @@
                             value="${row.fisik !== null ? row.fisik : ''}"
                             placeholder="-" min="0"
                             onchange="updateFisik(${row.no - 1}, this.value)"
-                            onkeydown="if(event.key==='Enter') this.blur()">
+                            onkeydown="if(event.key==='Enter'){saveFisik(${row.no - 1});this.blur();}">
                         <button class="save-btn" onclick="saveFisik(${row.no - 1})">
                             <i class="fas fa-check"></i>
                         </button>
@@ -878,24 +850,19 @@
     }
 
     function updateFisik(idx, value) {
-        const val = value === '' ? null : parseInt(value);
-        stockData[idx].fisik = val;
-        updateStats();
-        renderTable();
+        stockData[idx].fisik = value === '' ? null : parseInt(value);
+        updateStats(); renderTable();
     }
 
     function saveFisik(idx) {
         const input = document.querySelector(`input[data-idx="${idx}"]`);
-        if (input) {
-            const val = input.value === '' ? null : parseInt(input.value);
-            stockData[idx].fisik = val;
-            updateStats();
-            renderTable();
-            if (val !== null) {
-                const selisih = val - stockData[idx].available;
-                const status = selisih === 0 ? 'cocok' : `selisih ${selisih > 0 ? '+' : ''}${selisih}`;
-                showToast(`${stockData[idx].part}: Fisik ${val} — ${status}`, selisih === 0 ? 'success' : 'error');
-            }
+        if (!input) return;
+        const val = input.value === '' ? null : parseInt(input.value);
+        stockData[idx].fisik = val;
+        updateStats(); renderTable();
+        if (val !== null) {
+            const selisih = val - stockData[idx].available;
+            showToast(`${stockData[idx].part}: Fisik ${val} — ${selisih === 0 ? 'Cocok' : 'Selisih ' + (selisih > 0 ? '+' : '') + selisih}`, selisih === 0 ? 'success' : 'error');
         }
     }
 
@@ -904,27 +871,16 @@
     // ============================================
     function exportExcel() {
         if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
-
-        const exportData = stockData.map(row => ({
-            'NO': row.no,
-            'Part': row.part,
-            'Deskripsi Part': row.deskripsiPart,
-            'QTY': row.qty,
-            'QTY Alloc': row.qtyAlloc,
-            'Available': row.available,
-            'Fisik': row.fisik !== null ? row.fisik : '',
-            'Selisih': row.fisik !== null ? row.fisik - row.available : ''
+        const exportData = stockData.map(r => ({
+            'NO': r.no, 'Part': r.part, 'Deskripsi Part': r.deskripsiPart,
+            'QTY': r.qty, 'QTY Alloc': r.qtyAlloc, 'Available': r.available,
+            'Fisik': r.fisik !== null ? r.fisik : '',
+            'Selisih': r.fisik !== null ? r.fisik - r.available : ''
         }));
-
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Stock Opname");
-
-        ws['!cols'] = [
-            { wch: 5 }, { wch: 22 }, { wch: 35 }, { wch: 8 },
-            { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }
-        ];
-
+        ws['!cols'] = [{ wch: 5 }, { wch: 22 }, { wch: 35 }, { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }];
         XLSX.writeFile(wb, `Stock_Opname_${new Date().toISOString().slice(0, 10)}.xlsx`);
         showToast('File Excel berhasil di-export', 'success');
     }
@@ -934,60 +890,33 @@
     // ============================================
     function exportPDF() {
         if (stockData.length === 0) { showToast('Tidak ada data untuk di-export', 'error'); return; }
-
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('landscape', 'mm', 'a4');
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('LAPORAN STOCK OPNAME', 14, 18);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(100);
+        doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.text('LAPORAN STOCK OPNAME', 14, 18);
+        doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100);
         doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 25);
-        doc.text(`Total Item: ${stockData.length} | Sudah Dihitung: ${stockData.filter(r => r.fisik !== null).length} | Ada Selisih: ${stockData.filter(r => r.fisik !== null && r.fisik !== r.available).length}`, 14, 30);
-
-        const tableData = stockData.map(row => [
-            row.no,
-            row.part,
-            row.deskripsiPart,
-            row.qty,
-            row.qtyAlloc,
-            row.available,
-            row.fisik !== null ? row.fisik : '-',
-            row.fisik !== null ? (row.fisik - row.available) : '-'
-        ]);
-
+        doc.text(`Total: ${stockData.length} | Dihitung: ${stockData.filter(r => r.fisik !== null).length} | Selisih: ${stockData.filter(r => r.fisik !== null && r.fisik !== r.available).length}`, 14, 30);
         doc.autoTable({
             startY: 36,
             head: [['NO', 'Part', 'Deskripsi Part', 'QTY', 'QTY Alloc', 'Available', 'Fisik', 'Selisih']],
-            body: tableData,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 3 },
+            body: stockData.map(r => [r.no, r.part, r.deskripsiPart, r.qty, r.qtyAlloc, r.available, r.fisik !== null ? r.fisik : '-', r.fisik !== null ? r.fisik - r.available : '-']),
+            theme: 'grid', styles: { fontSize: 8, cellPadding: 3 },
             headStyles: { fillColor: [0, 180, 148], textColor: 255, fontStyle: 'bold' },
             alternateRowStyles: { fillColor: [245, 247, 250] },
-            columnStyles: {
-                0: { halign: 'center', cellWidth: 12 },
-                3: { halign: 'center', cellWidth: 20 },
-                4: { halign: 'center', cellWidth: 22 },
-                5: { halign: 'center', cellWidth: 22 },
-                6: { halign: 'center', cellWidth: 20 },
-                7: { halign: 'center', cellWidth: 18 },
-            }
+            columnStyles: { 0: { halign: 'center', cellWidth: 12 }, 3: { halign: 'center', cellWidth: 20 }, 4: { halign: 'center', cellWidth: 22 }, 5: { halign: 'center', cellWidth: 22 }, 6: { halign: 'center', cellWidth: 20 }, 7: { halign: 'center', cellWidth: 18 } }
         });
-
         doc.save(`Stock_Opname_${new Date().toISOString().slice(0, 10)}.pdf`);
         showToast('File PDF berhasil di-export', 'success');
     }
 
     // ============================================
-    // CLEAR DATA
+    // CLEAR DATA LOKAL (TIDAK MENGHAPUS SHEET)
     // ============================================
-    function clearAll() {
-        if (stockData.length === 0) { showToast('Data sudah kosong', 'info'); return; }
+    function clearLocalData() {
+        if (stockData.length === 0) { showToast('Data lokal sudah kosong', 'info'); return; }
         stockData = [];
         updateAll();
-        showToast('Semua data telah dihapus', 'success');
+        showToast('Data lokal dihapus. Klik Refresh untuk memuat ulang dari Sheet.', 'success');
     }
 
     // ============================================
@@ -995,34 +924,44 @@
     // ============================================
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.shiftKey && e.key === 'S') { e.preventDefault(); openScanner(); }
-        if (e.key === 'Escape') { closeScanner(); }
+        if (e.key === 'Escape') closeScanner();
         if (e.ctrlKey && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
     });
 
     // ============================================
-    // INISIALISASI
+    // INISIALISASI OTOMATIS SAAT HALAMAN DIBUKA
     // ============================================
-    updateAll();
+    document.addEventListener('DOMContentLoaded', () => {
+        // Isi input API jika sudah pernah disimpan
+        const savedUrl = getApiUrl();
+        if (savedUrl) {
+            document.getElementById('apiUrlInput').value = savedUrl;
+        }
+
+        // Otomatis fetch data dari sheet
+        fetchFromSheet();
+    });
 </script>
 
 <!--
-============================================
-KODE GOOGLE APPS SCRIPT
-Paste kode ini di Google Apps Script Anda
-(Ekstensi > Apps Script di Google Sheets)
-
-Target Spreadsheet:
-https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0/edit?gid=0#gid=0
-Spreadsheet ID: 1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
-============================================
+╔══════════════════════════════════════════════════════════════╗
+║  KODE GOOGLE APPS SCRIPT — PASTE DI GOOGLE APPS SCRIPT     ║
+║                                                              ║
+║  Target Spreadsheet:                                         ║
+║  https://docs.google.com/spreadsheets/d/                    ║
+║  1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0              ║
+║                                                              ║
+║  Spreadsheet ID: 1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0 ║
+╚══════════════════════════════════════════════════════════════╝
 
 function doGet(e) {
   var action = e.parameter.action;
   if (action === 'get') {
     return getData();
   }
-  return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'Unknown action'}))
-    .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(
+    JSON.stringify({status: 'error', message: 'Unknown action'})
+  ).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -1030,58 +969,106 @@ function doPost(e) {
   if (action === 'update') {
     return updateData(e);
   }
-  return ContentService.createTextOutput(JSON.stringify({status: 'error', message: 'Unknown action'}))
-    .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(
+    JSON.stringify({status: 'error', message: 'Unknown action'})
+  ).setMimeType(ContentService.MimeType.JSON);
 }
 
 function getData() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Sheet1');
-  if (!sheet) sheet = ss.getSheets()[0];
-  var data = sheet.getDataRange().getValues();
-  if (data.length > 0) data.shift();
-  return ContentService.createTextOutput(JSON.stringify({status: 'success', data: data}))
-    .setMimeType(ContentService.MimeType.JSON);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Sheet1');
+    if (!sheet) sheet = ss.getSheets()[0];
+    var data = sheet.getDataRange().getValues();
+    // Hapus baris header
+    if (data.length > 0) data.shift();
+    return ContentService.createTextOutput(
+      JSON.stringify({status: 'success', data: data})
+    ).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({status: 'error', message: err.toString()})
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function updateData(e) {
-  var body = JSON.parse(e.postData.contents);
-  var newData = body.data;
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Sheet1');
-  if (!sheet) sheet = ss.getSheets()[0];
+  try {
+    var body = JSON.parse(e.postData.contents);
+    var newData = body.data;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Sheet1');
+    if (!sheet) sheet = ss.getSheets()[0];
 
-  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  if (!headers || headers[0] === '') {
-    headers = ['Part', 'Deskripsi Part', 'QTY', 'QTY Alloc', 'Available', 'Fisik'];
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    // Pastikan header ada
+    var lastCol = sheet.getLastColumn();
+    var headers = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+    if (!headers || headers[0] === '' || headers[0] === null) {
+      headers = ['Part', 'Deskripsi Part', 'QTY', 'QTY Alloc', 'Available', 'Fisik'];
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    }
+
+    // Bersihkan data lama (kecuali header)
+    if (sheet.getLastRow() > 1) {
+      sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
+    }
+
+    // Tulis data baru
+    if (newData && newData.length > 0) {
+      sheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
+    }
+
+    return ContentService.createTextOutput(
+      JSON.stringify({status: 'success', message: 'Data updated'})
+    ).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({status: 'error', message: err.toString()})
+    ).setMimeType(ContentService.MimeType.JSON);
   }
-
-  if (sheet.getLastRow() > 1) {
-    sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
-  }
-
-  if (newData && newData.length > 0) {
-    sheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
-  }
-
-  return ContentService.createTextOutput(JSON.stringify({status: 'success', message: 'Data updated'}))
-    .setMimeType(ContentService.MimeType.JSON);
 }
 
-============================================
-CARA DEPLOY:
-1. Buka spreadsheet: https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
-2. Klik Ekstensi > Apps Script
-3. Hapus kode default, paste kode di atas
-4. Klik Deploy > New deployment
-5. Pilih type "Web app"
-6. Execute as: Me
-7. Who has access: Anyone
-8. Klik Deploy
-9. Copy URL yang muncul
-10. Paste URL tersebut di kolom "Paste API URL" di website ini
-============================================
+═════════════════════════════════════════
+CARA DEPLOY (HANYA SEKALI):
+═════════════════════════════════════════
+
+1. Buka: https://docs.google.com/spreadsheets/d/1NZw2oZ98b9JQlN1-6nhCvXr_khSukTX4YTKsUWcR0y0
+
+2. Klik menu: Ekstensi → Apps Script
+
+3. Hapus semua kode default, lalu paste kode di atas
+
+4. Klik tombol "Deploy" → "New deployment"
+
+5. Di jendela deployment:
+   - Klik ikon roda gigi di samping "Select type" → pilih "Web app"
+   - Description: "Stock Opname API"
+   - Execute as: "Me"
+   - Who has access: "Anyone"
+   - Klik "Deploy"
+
+6. Izinkan akses jika diminta (Advanced → Go to project)
+
+7. COPY URL yang muncul (format: https://script.google.com/macros/s/xxxxx/exec)
+
+8. Buka website ini → Klik "Pengaturan" → Paste URL → Klik "Simpan & Hubungkan"
+
+9. SELESAI! Setiap kali website dibuka, data otomatis dimuat dari spreadsheet.
+   Data juga akan auto-refresh setiap 30 detik.
+
+═════════════════════════════════════════
+FORMAT DATA DI GOOGLE SHEETS:
+═════════════════════════════════════════
+
+| Part       | Deskripsi Part    | QTY | QTY Alloc | Available | Fisik |
+|------------|-------------------|-----|-----------|-----------|-------|
+| P-001      | Bearing 6205      | 50  | 10        | 40        |       |
+| P-002      | Seal NBR 25x40    | 30  | 5         | 25        |       |
+| ...        | ...               | ... | ...       | ...       | ...   |
+
+Kolom Available = QTY - QTY Alloc (dihitung otomatis di web)
+Kolom Fisik = diisi melalui website setelah scan/input manual
+
 -->
 
 </body>
