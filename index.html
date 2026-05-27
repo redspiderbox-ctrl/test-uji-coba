@@ -508,272 +508,115 @@
         }
 
         // --- Core Logic: Add Data ---
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            
-            const partNumber = document.getElementById('inpPartNumber').value;
-            const partName = document.getElementById('inpPartName').value;
-            const location = document.getElementById('inpLocation').value;
-            const qty = parseInt(document.getElementById('inpQty').value);
-            const apiUrl = localStorage.getItem('gs_api_url');
+       // --- GANTI FUNGSI INI DI DALAM <script> ---
 
-            // 1. Create Local Object
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    
+    // 1. Ambil Data dari Form
+    const partNumber = document.getElementById('inpPartNumber').value;
+    const partName = document.getElementById('inpPartName').value;
+    const location = document.getElementById('inpLocation').value;
+    const qty = parseInt(document.getElementById('inpQty').value);
+    
+    // Validasi sederhana
+    if(!partNumber) {
+        showToast("Part Number wajib diisi!", "error");
+        return;
+    }
+
+    const apiUrl = localStorage.getItem('gs_api_url');
+    if (!apiUrl) {
+        openApiModal(); // Paksa user set API jika belum ada
+        showToast("URL API belum diset!", "error");
+        return;
+    }
+
+    // Ubah tombol jadi loading
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+    // 2. Siapkan Data
+    const payload = {
+        partNumber: partNumber,
+        partName: partName,
+        location: location,
+        qty: qty
+    };
+
+    // 3. Kirim ke Google Spreadsheet
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            // Gunakan mode 'cors' agar kita bisa baca respon JSON
+            mode: 'cors', 
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        // Coba baca hasilnya
+        const result = await response.json();
+
+        if (result.result === 'success') {
+            // SUKSES SIMPAN KE SPREADSHEET
+            showToast("Data BERHASIL tersimpan ke Spreadsheet!", "success");
+
+            // Tambahkan ke Tabel Lokal
             const newItem = {
                 id: Date.now(),
                 timestamp: new Date().toLocaleString('id-ID'),
                 partNumber,
                 partName,
                 location,
-                qty,
-                synced: false
+                qty
             };
-
-            // 2. Add to Local Array (Optimistic UI)
-            stockData.unshift(newItem); // Add to top
+            stockData.unshift(newItem);
             renderTable();
-            
-            // Reset Form (Focus back to Part Number for rapid scanning)
+
+            // Reset Form
             document.getElementById('inpPartName').value = '';
             document.getElementById('inpLocation').value = '';
             document.getElementById('inpQty').value = '1';
             document.getElementById('inpPartNumber').value = '';
             document.getElementById('inpPartNumber').focus();
 
-            // 3. Send to Google Sheets
-            if (apiUrl) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        mode: 'no-cors', // Important for GAS
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            partNumber: newItem.partNumber,
-                            partName: newItem.partName,
-                            location: newItem.location,
-                            qty: newItem.qty
-                        })
-                    });
-                    
-                    // Note: no-cors means we can't read the response status directly
-                    // But we assume success if no network error thrown.
-                    newItem.synced = true;
-                    showToast("Data tersimpan ke Spreadsheet", "success");
-                } catch (error) {
-                    console.error("Gagal sync:", error);
-                    showToast("Gagal koneksi ke Spreadsheet (Cek Internet/URL)", "error");
-                }
-            } else {
-                showToast("Data disimpan lokal (API URL belum diset)", "error");
-            }
+        } else {
+            // Error dari script
+            throw new Error(result.error || "Gagal menyimpan data");
         }
 
-        // --- Scanner Logic ---
-        function toggleScanner() {
-            const scanArea = document.getElementById('scanArea');
-            const scanBtn = document.getElementById('scanBtn');
-            
-            if (!isScanning) {
-                // Start Scanner
-                scanArea.style.display = 'block';
-                scanBtn.innerHTML = '<i class="fas fa-stop"></i> Scanning...';
-                scanBtn.classList.replace('btn-primary', 'btn-danger');
-                
-                html5QrcodeScanner = new Html5Qrcode("reader");
-                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-                
-                html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
-                .catch(err => {
-                    showToast("Gagal akses kamera: " + err, "error");
-                    stopScanner();
-                });
-                isScanning = true;
-            } else {
-                stopScanner();
-            }
-        }
-
-        function stopScanner() {
-            if (html5QrcodeScanner && isScanning) {
-                html5QrcodeScanner.stop().then(() => {
-                    html5QrcodeScanner.clear();
-                    document.getElementById('scanArea').style.display = 'none';
-                    const scanBtn = document.getElementById('scanBtn');
-                    scanBtn.innerHTML = '<i class="fas fa-camera"></i> Scan Barcode';
-                    scanBtn.classList.replace('btn-danger', 'btn-primary');
-                    isScanning = false;
-                    
-                    // Focus input so user can type immediately if needed
-                    document.getElementById('inpPartNumber').focus();
-                }).catch(err => console.error("Failed to stop scanner", err));
-            }
-        }
-
-        function onScanSuccess(decodedText, decodedResult) {
-            // Play a beep sound (optional, browser dependent)
-            // console.log(`Scan result: ${decodedText}`);
-            
-            // Fill input
-            document.getElementById('inpPartNumber').value = decodedText;
-            
-            // Visual feedback
-            showToast("Barcode Terdeteksi: " + decodedText, "success");
-            
-            // Auto submit or wait for user to fill details? 
-            // Let's wait for user to fill details, but maybe focus on Name or Qty
-            document.getElementById('inpPartName').focus();
-            
-            // Optionally stop scanner after one scan to prevent duplicates
-            // stopScanner(); 
-        }
-
-        // --- UI Rendering ---
-        function renderTable(data = stockData) {
-            const tbody = document.getElementById('tableBody');
-            const emptyState = document.getElementById('emptyState');
-            
-            tbody.innerHTML = '';
-            
-            // Update Stats
-            document.getElementById('totalItems').innerText = stockData.length;
-            const totalQty = stockData.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
-            document.getElementById('totalQty').innerText = totalQty;
-            document.getElementById('scannedCount').innerText = stockData.filter(i => i.partNumber).length; // Simplified
-
-            if (data.length === 0) {
-                emptyState.style.display = 'block';
-                return;
-            } else {
-                emptyState.style.display = 'none';
-            }
-
-            data.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td><strong>${item.partNumber}</strong></td>
-                    <td>${item.partName || '-'}</td>
-                    <td>${item.location || '-'}</td>
-                    <td>${item.qty}</td>
-                    <td style="font-size: 0.8rem; color: #888;">${item.timestamp}</td>
-                    <td>
-                        <button class="btn btn-outline" style="padding: 5px 10px; border: none; color: var(--danger-color);" onclick="deleteItem(${item.id})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function deleteItem(id) {
-            if(confirm('Hapus item ini dari daftar tampilan?')) {
-                stockData = stockData.filter(item => item.id !== id);
-                renderTable();
-            }
-        }
-
-        function clearLocalData() {
-            if(confirm('Hapus semua data tampilan lokal? Data di Spreadsheet tidak terhapus.')) {
-                stockData = [];
-                renderTable();
-            }
-        }
-
-        function filterTable() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = stockData.filter(item => 
-                item.partNumber.toLowerCase().includes(query) || 
-                item.partName.toLowerCase().includes(query)
-            );
-            renderTable(filtered);
-        }
-
-        // --- Export & Import Utilities ---
-        function exportToCSV() {
-            if (stockData.length === 0) {
-                showToast("Tidak ada data untuk diexport", "error");
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Timestamp,Part Number,Part Name,Location,Qty\n"; // Header
-
-            stockData.forEach(row => {
-                csvContent += `${row.timestamp},"${row.partNumber}","${row.partName}","${row.location}",${row.qty}\n`;
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "stock_opname_export.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function handleFileUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            showToast("Membaca file Excel/CSV...", "success");
-            
-            // Simple CSV Reader logic (For real XLSX, need SheetJS library, keeping it vanilla here)
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const rows = text.split('\n');
-                let addedCount = 0;
-
-                // Skip header i=1
-                for(let i = 1; i < rows.length; i++) {
-                    const cols = rows[i].split(','); // Simple split, assumes no commas in values
-                    if (cols.length >= 2) {
-                        const newItem = {
-                            id: Date.now() + i,
-                            timestamp: new Date().toLocaleString('id-ID'),
-                            partNumber: cols[0].replace(/"/g, '').trim(),
-                            partName: cols[1] ? cols[1].replace(/"/g, '').trim() : '',
-                            location: cols[2] ? cols[2].replace(/"/g, '').trim() : '',
-                            qty: cols[3] ? parseInt(cols[3].replace(/"/g, '').trim()) : 1,
-                            synced: false // Need to push to server manually if needed
-                        };
-                        if(newItem.partNumber) {
-                            stockData.push(newItem);
-                            addedCount++;
-                        }
-                    }
-                }
-                renderTable();
-                showToast(`Berhasil import ${addedCount} baris`, "success");
-                input.value = ''; // Reset
-            };
-            reader.readAsText(file);
-        }
-
-        // --- Toast Notification Helper ---
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
-            const msgSpan = document.getElementById('toast-message');
-
-            toast.className = 'toast'; // reset
-            if (type === 'success') {
-                toast.classList.add('success');
-                icon.className = 'fas fa-check-circle';
-                icon.style.color = 'var(--success-color)';
-            } else {
-                toast.classList.add('error');
-                icon.className = 'fas fa-exclamation-circle';
-                icon.style.color = 'var(--danger-color)';
-            }
-
-            msgSpan.innerText = message;
-            toast.classList.add('show');
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+    } catch (error) {
+        console.error("Sync Error:", error);
+        // Fallback: Jika error jaringan atau CORS, tetap simpan di LOCALE
+        // Tapi beri tahu user ada masalah koneksi
+        showToast("Koneksi Lemah. Data disimpan Lokal Sementara.", "error");
+        
+        const newItem = {
+            id: Date.now(),
+            timestamp: new Date().toLocaleString('id-ID') + " (Offline)",
+            partNumber,
+            partName,
+            location,
+            qty,
+            synced: false
+        };
+        stockData.unshift(newItem);
+        renderTable();
+        
+        // Reset form agar bisa lanjut scan
+        document.getElementById('inpPartNumber').value = '';
+        document.getElementById('inpPartNumber').focus();
+    } finally {
+        // Kembalikan tombol ke kondisi semula
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+}
     </script>
 </body>
 </html>
