@@ -70,127 +70,485 @@
       100% { background-color: transparent; }
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
-    .animate-fade-up { animation: fadeSlideUp 0.5s ease-out forwards; }
+    .animate-fade-up {
+      animation: fadeSlideUp 0.5s ease-out forwards;
+    }
+
     .animate-delay-1 { animation-delay: 0.1s; opacity: 0; }
     .animate-delay-2 { animation-delay: 0.2s; opacity: 0; }
     .animate-delay-3 { animation-delay: 0.3s; opacity: 0; }
 
-    .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
 
     .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 20px; border-radius: 8px; font-weight: 500; font-size: 14px;
-      transition: all 0.2s ease; cursor: pointer; border: none; outline: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      outline: none;
     }
-    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .btn-primary { background: var(--accent); color: var(--bg); }
-    .btn-primary:hover { background: #fbbf24; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(250,204,21,0.3); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-    .btn-secondary { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
-    .btn-secondary:hover { background: var(--border); border-color: var(--muted); }
-    .btn-danger { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.4); }
-    .btn-danger:hover { background: var(--danger); color: white; }
-    .btn-ghost { background: transparent; color: var(--muted); padding: 8px; }
-    .btn-ghost:hover { color: var(--fg); background: rgba(255,255,255,0.05); }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-primary:hover {
+      background: #fbbf24;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(250, 204, 21, 0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+      border-color: var(--muted);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.4);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      padding: 8px;
+    }
+
+    .btn-ghost:hover {
+      color: var(--fg);
+      background: rgba(255,255,255,0.05);
+    }
 
     .input {
-      background: var(--bg-secondary); border: 1px solid var(--border); color: var(--fg);
-      padding: 10px 14px; border-radius: 8px; font-size: 14px; transition: all 0.2s ease;
-      width: 100%; font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      width: 100%;
+      font-family: 'Space Grotesk', sans-serif;
     }
-    .input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-    .input::placeholder { color: var(--muted); }
-    .input-highlight { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-dim) !important; }
 
-    .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--card); }
-    table { width: 100%; border-collapse: collapse; }
-    th {
-      background: var(--bg-secondary); padding: 14px 16px; text-align: left; font-weight: 600;
-      font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
-      border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; z-index: 5;
+    .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
     }
-    td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+
+    .input::placeholder { color: var(--muted); }
+
+    .input-highlight {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px var(--accent-dim) !important;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      background: var(--bg-secondary);
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
     tr:last-child td { border-bottom: none; }
-    tr:hover { background: rgba(250,204,21,0.03); }
-    tr.highlight { background: var(--accent-dim); animation: highlight-row 2s ease-out forwards; }
+    tr:hover { background: rgba(250, 204, 21, 0.03); }
+
+    tr.highlight {
+      background: var(--accent-dim);
+      animation: highlight-row 2s ease-out forwards;
+    }
 
     .selisih-positive { color: var(--success); font-weight: 600; }
     .selisih-negative { color: var(--danger); font-weight: 600; }
     .selisih-zero { color: var(--muted); }
 
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
 
-    .drop-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; transition: all 0.3s ease; cursor: pointer; }
-    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: var(--accent-dim); }
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
 
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
-      display: flex; align-items: center; justify-content: center; z-index: 100;
-      opacity: 0; visibility: hidden; transition: all 0.3s ease;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
     }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
     .modal-content {
-      background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px;
-      max-width: 500px; width: 90%; transform: scale(0.9); transition: transform 0.3s ease;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
     }
-    .modal-overlay.active .modal-content { transform: scale(1); }
-    .modal-content.modal-lg { max-width: 600px; }
+
+    .modal-overlay.active .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-content.modal-lg {
+      max-width: 600px;
+    }
 
     .stat-card {
       background: linear-gradient(135deg, var(--card) 0%, var(--bg-secondary) 100%);
-      border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
     }
-    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent);
+    }
+
     .stat-card.stat-green::before { background: var(--success); }
     .stat-card.stat-yellow::before { background: var(--warning); }
     .stat-card.stat-red::before { background: var(--danger); }
 
-    #qr-reader { width: 100%; border-radius: 12px; overflow: hidden; }
-    #qr-reader video { border-radius: 12px; }
-    #qr-reader__scan_region { background: transparent !important; }
-    #qr-reader__dashboard { display: none !important; }
+    #qr-reader {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+    }
 
-    .scanner-frame { position: relative; width: 100%; max-width: 400px; margin: 0 auto; }
-    .scanner-frame::before, .scanner-frame::after { content: ''; position: absolute; width: 40px; height: 40px; border: 3px solid var(--accent); z-index: 10; pointer-events: none; }
-    .scanner-frame::before { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-    .scanner-frame::after { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+    #qr-reader video {
+      border-radius: 12px;
+    }
 
-    .scanner-frame-bottom::before, .scanner-frame-bottom::after { content: ''; position: absolute; width: 40px; height: 40px; border: 3px solid var(--accent); z-index: 10; pointer-events: none; }
-    .scanner-frame-bottom::before { bottom: 10px; left: 10px; border-right: none; border-top: none; }
-    .scanner-frame-bottom::after { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+    #qr-reader__scan_region {
+      background: transparent !important;
+    }
 
-    .cooldown-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; border-radius: 12px; z-index: 20; }
-    .cooldown-timer { position: relative; width: 80px; height: 80px; }
-    .cooldown-timer svg { transform: rotate(-90deg); }
-    .cooldown-timer circle { fill: none; stroke-width: 4; }
+    #qr-reader__dashboard {
+      display: none !important;
+    }
+
+    .scanner-frame {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .scanner-frame::before,
+    .scanner-frame::after {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--accent);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .scanner-frame::before {
+      top: 10px;
+      left: 10px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .scanner-frame::after {
+      top: 10px;
+      right: 10px;
+      border-left: none;
+      border-bottom: none;
+    }
+
+    .scanner-frame-bottom::before,
+    .scanner-frame-bottom::after {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--accent);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .scanner-frame-bottom::before {
+      bottom: 10px;
+      left: 10px;
+      border-right: none;
+      border-top: none;
+    }
+
+    .scanner-frame-bottom::after {
+      bottom: 10px;
+      right: 10px;
+      border-left: none;
+      border-top: none;
+    }
+
+    .cooldown-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      z-index: 20;
+    }
+
+    .cooldown-timer {
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+
+    .cooldown-timer svg {
+      transform: rotate(-90deg);
+    }
+
+    .cooldown-timer circle {
+      fill: none;
+      stroke-width: 4;
+    }
+
     .cooldown-timer .bg { stroke: var(--border); }
-    .cooldown-timer .progress { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 226; stroke-dashoffset: 0; transition: stroke-dashoffset 0.1s linear; }
-    .cooldown-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: var(--accent); }
 
-    .scan-success { position: absolute; inset: 0; background: rgba(34,197,94,0.2); display: flex; align-items: center; justify-content: center; border-radius: 12px; z-index: 15; }
+    .cooldown-timer .progress {
+      stroke: var(--accent);
+      stroke-linecap: round;
+      stroke-dasharray: 226;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear;
+    }
 
-    .volume-slider { -webkit-appearance: none; appearance: none; height: 4px; background: var(--border); border-radius: 2px; outline: none; }
-    .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; }
-    .volume-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; border: none; }
+    .cooldown-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--accent);
+    }
 
-    .toast-container { position: fixed; top: 80px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
-    .toast { padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; animation: fadeSlideUp 0.3s ease-out; display: flex; align-items: center; gap: 10px; min-width: 280px; max-width: 400px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-    .toast-success { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
-    .toast-error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
-    .toast-info { background: rgba(250,204,21,0.15); border: 1px solid rgba(250,204,21,0.3); color: #facc15; }
+    .scan-success {
+      position: absolute;
+      inset: 0;
+      background: rgba(34, 197, 94, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      z-index: 15;
+    }
 
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      animation: fadeSlideUp 0.3s ease-out;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 280px;
+      max-width: 400px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .toast-success {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+
+    .toast-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+
+    .toast-info {
+      background: rgba(250, 204, 21, 0.15);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      color: #facc15;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
     .status-dot.connected { background: var(--success); box-shadow: 0 0 6px var(--success); }
     .status-dot.disconnected { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
     .status-dot.loading { background: var(--warning); animation: pulse-glow 1.5s infinite; }
 
-    .settings-panel { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease; }
-    .settings-panel.open { max-height: 300px; }
+    .settings-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+    }
 
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
-    @media (max-width: 768px) { .hide-mobile { display: none; } th, td { padding: 10px 12px; font-size: 13px; } .modal-content { padding: 16px; } }
+    .settings-panel.open {
+      max-height: 300px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hide-mobile { display: none; }
+      th, td { padding: 10px 12px; font-size: 13px; }
+      .modal-content { padding: 16px; }
+    }
   </style>
 </head>
 <body class="bg-pattern grid-overlay">
@@ -202,7 +560,9 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3 animate-fade-up">
           <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
-            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
           </div>
           <div>
             <h1 class="text-lg font-bold">Stock Opname</h1>
@@ -212,15 +572,23 @@
             </div>
           </div>
         </div>
+
         <div class="flex items-center gap-2 animate-fade-up animate-delay-1">
           <button onclick="openSettings()" class="btn btn-ghost" title="Pengaturan API">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
           </button>
           <button onclick="refreshData()" class="btn btn-ghost" id="btnRefresh" title="Refresh data">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
           </button>
           <button onclick="openScannerModal()" class="btn btn-primary">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h2m10 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h2m10 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+            </svg>
             <span class="hide-mobile">Scan Barcode</span>
           </button>
         </div>
@@ -229,16 +597,23 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-6">
-    <!-- Settings Panel -->
+
     <div class="settings-panel mb-6" id="settingsPanel">
       <div class="card" style="border-color: rgba(250,204,21,0.3);">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-bold flex items-center gap-2">
-            <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
             Koneksi API
           </h3>
-          <button onclick="closeSettings()" class="btn btn-ghost"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+          <button onclick="closeSettings()" class="btn btn-ghost">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
+
         <div class="mb-4">
           <label class="block text-sm text-gray-400 mb-2">Google Apps Script Web App URL</label>
           <div class="flex gap-2">
@@ -247,83 +622,139 @@
           </div>
           <p class="text-xs text-gray-600 mt-2">Paste URL dari Deploy > New Deployment > Web App di Google Apps Script</p>
         </div>
+
         <div class="flex flex-wrap gap-2">
-          <button onclick="testConnection()" class="btn btn-secondary text-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Test Koneksi</button>
-          <button onclick="syncToSheet()" class="btn btn-secondary text-sm" id="btnSyncToSheet" disabled><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg> Upload ke Sheet</button>
-          <button onclick="resetSheetQty()" class="btn btn-danger text-sm" id="btnResetSheet" disabled>Reset Fisik (Sheet)</button>
+          <button onclick="testConnection()" class="btn btn-secondary text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Test Koneksi
+          </button>
+          <button onclick="syncToSheet()" class="btn btn-secondary text-sm" id="btnSyncToSheet" disabled>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            Upload ke Sheet
+          </button>
+          <button onclick="resetSheetQty()" class="btn btn-danger text-sm" id="btnResetSheet" disabled>
+            Reset Fisik (Sheet)
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="stat-card animate-fade-up animate-delay-1"><p class="text-xs text-gray-500 mb-1">Total Items</p><p id="stat-total" class="text-2xl font-bold font-mono">0</p></div>
-      <div class="stat-card stat-green animate-fade-up animate-delay-1"><p class="text-xs text-gray-500 mb-1">Sudah Dihitung</p><p id="stat-counted" class="text-2xl font-bold font-mono text-green-400">0</p></div>
-      <div class="stat-card stat-yellow animate-fade-up animate-delay-2"><p class="text-xs text-gray-500 mb-1">Belum Dihitung</p><p id="stat-pending" class="text-2xl font-bold font-mono text-yellow-400">0</p></div>
-      <div class="stat-card stat-red animate-fade-up animate-delay-3"><p class="text-xs text-gray-500 mb-1">Ada Selisih</p><p id="stat-diff" class="text-2xl font-bold font-mono text-red-400">0</p></div>
+      <div class="stat-card animate-fade-up animate-delay-1">
+        <p class="text-xs text-gray-500 mb-1">Total Items</p>
+        <p id="stat-total" class="text-2xl font-bold font-mono">0</p>
+      </div>
+      <div class="stat-card stat-green animate-fade-up animate-delay-1">
+        <p class="text-xs text-gray-500 mb-1">Sudah Dihitung</p>
+        <p id="stat-counted" class="text-2xl font-bold font-mono text-green-400">0</p>
+      </div>
+      <div class="stat-card stat-yellow animate-fade-up animate-delay-2">
+        <p class="text-xs text-gray-500 mb-1">Belum Dihitung</p>
+        <p id="stat-pending" class="text-2xl font-bold font-mono text-yellow-400">0</p>
+      </div>
+      <div class="stat-card stat-red animate-fade-up animate-delay-3">
+        <p class="text-xs text-gray-500 mb-1">Ada Selisih</p>
+        <p id="stat-diff" class="text-2xl font-bold font-mono text-red-400">0</p>
+      </div>
     </div>
 
-    <!-- Action Bar -->
     <div class="card mb-6 animate-fade-up animate-delay-2">
       <div class="flex flex-wrap items-center gap-4">
         <div class="flex-1 min-w-[200px]">
           <label class="drop-zone block" id="dropZone">
             <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
-            <svg class="w-8 h-8 mx-auto mb-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <svg class="w-8 h-8 mx-auto mb-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
             <p class="text-sm text-gray-400">Drop Excel file atau klik untuk upload</p>
-            <p class="text-xs text-gray-600 mt-1">Format: PART, DESKRIPSI PART, QTY, QTY ALLOC, AVAILABLE</p>
+            <p class="text-xs text-gray-600 mt-1">Format: .xlsx, .xls</p>
           </label>
         </div>
+
         <div class="flex flex-wrap gap-2">
-          <button onclick="downloadExcel()" class="btn btn-secondary" id="btnDownloadExcel" disabled><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Export Excel</button>
-          <button onclick="downloadPDF()" class="btn btn-secondary" id="btnDownloadPDF" disabled><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> Export PDF</button>
-          <button onclick="clearLocalData()" class="btn btn-danger" id="btnClear" disabled><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Clear</button>
+          <button onclick="downloadExcel()" class="btn btn-secondary" id="btnDownloadExcel" disabled>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Export Excel
+          </button>
+          <button onclick="downloadPDF()" class="btn btn-secondary" id="btnDownloadPDF" disabled>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Export PDF
+          </button>
+          <button onclick="clearLocalData()" class="btn btn-danger" id="btnClear" disabled>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Clear
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Search -->
     <div class="mb-4 animate-fade-up animate-delay-3">
       <div class="relative">
-        <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" id="searchInput" class="input pl-10" placeholder="Cari berdasarkan Part atau Deskripsi..." oninput="filterData()">
-        <button onclick="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-700 rounded transition-colors text-gray-500 hover:text-gray-300" title="Clear search"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" id="searchInput" class="input pl-10" placeholder="Cari berdasarkan No, Part, atau Deskripsi..." oninput="filterData()">
+        <button onclick="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-700 rounded transition-colors text-gray-500 hover:text-gray-300" title="Clear search">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <!-- Table -->
     <div class="table-container animate-fade-up animate-delay-3" id="tableWrapper" style="max-height: 65vh; overflow-y: auto;">
       <table>
         <thead>
           <tr>
-            <th>Part</th>
-            <th>Deskripsi Part</th>
+            <th>NO</th>
+            <th>PART</th>
+            <th>DESKRIPSI PART</th>
             <th class="text-right">QTY</th>
-            <th class="text-right">QTY Alloc</th>
-            <th class="text-right">Available</th>
-            <th class="text-right">Fisik</th>
-            <th class="text-right">Selisih</th>
-            <th class="text-center">Aksi</th>
+            <th class="text-right">QTY ALLOC</th>
+            <th class="text-right">AVAILABLE</th>
+            <th class="text-right">FISIK</th>
+            <th class="text-right">SELISIH</th>
+            <th class="text-center">AKSI</th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="8" class="text-center py-12"><svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="text-gray-500">Belum ada data</p><p class="text-sm text-gray-600">Upload file Excel atau ambil dari Google Sheet</p></td></tr>
+          <tr>
+            <td colspan="9" class="text-center py-12">
+              <svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <p class="text-gray-500">Belum ada data</p>
+              <p class="text-sm text-gray-600">Upload file Excel atau ambil dari Google Sheet</p>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Info -->
     <div class="mt-6 p-4 rounded-lg" style="background: var(--accent-dim); border: 1px solid rgba(250,204,21,0.3);">
       <div class="flex items-start gap-3">
-        <svg class="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <svg class="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
         <div class="text-sm">
           <p class="text-yellow-400 font-medium mb-1">Alur Penggunaan</p>
           <ol class="text-gray-400 space-y-1 list-decimal list-inside">
             <li>Klik ikon roda gigi, paste URL Google Apps Script, lalu Simpan</li>
             <li>Upload Excel atau klik Refresh untuk ambil data dari Sheet</li>
-            <li>Scan barcode — Fisik otomatis +1 dan tersimpan ke Sheet</li>
-            <li>Item yang di-scan otomatis muncul di pencarian dan tabel di-scroll ke atas</li>
-            <li>Format Excel: <span class="font-mono text-gray-300">PART, DESKRIPSI PART, QTY, QTY ALLOC, AVAILABLE</span></li>
+            <li>Format Excel: <span class="font-mono text-gray-300">NO, PART, DESKRIPSI PART, QTY, QTY ALLOC</span></li>
+            <li>AVAILABLE = QTY - QTY ALLOC (otomatis terhitung)</li>
+            <li>SELISIH = FISIK - AVAILABLE (otomatis terhitung)</li>
+            <li>Scan barcode — FISIK otomatis +1, data scroll ke atas</li>
           </ol>
         </div>
       </div>
@@ -337,31 +768,88 @@
         <h3 class="text-lg font-bold">Scan Barcode</h3>
         <div class="flex items-center gap-2">
           <div class="flex items-center gap-2 px-3 py-1 rounded-lg" style="background: var(--bg-secondary);">
-            <button onclick="toggleMute()" id="muteBtn" class="p-1 hover:text-yellow-400 transition-colors"><svg id="volumeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg></button>
+            <button onclick="toggleMute()" id="muteBtn" class="p-1 hover:text-yellow-400 transition-colors">
+              <svg id="volumeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+              </svg>
+            </button>
             <input type="range" id="volumeSlider" class="volume-slider w-16" min="0" max="100" value="70" oninput="updateVolume()">
           </div>
-          <button onclick="closeScannerModal()" class="p-2 hover:bg-gray-800 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+          <button onclick="closeScannerModal()" class="p-2 hover:bg-gray-800 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
       </div>
+
       <div class="flex gap-2 mb-4">
-        <button onclick="switchTab('camera')" id="tabCamera" class="btn btn-primary flex-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Kamera</button>
-        <button onclick="switchTab('manual')" id="tabManual" class="btn btn-secondary flex-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Manual</button>
+        <button onclick="switchTab('camera')" id="tabCamera" class="btn btn-primary flex-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Kamera
+        </button>
+        <button onclick="switchTab('manual')" id="tabManual" class="btn btn-secondary flex-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Manual
+        </button>
       </div>
+
       <div id="cameraTab" class="mb-4">
         <div class="scanner-frame scanner-frame-bottom relative bg-gray-900 rounded-xl overflow-hidden">
           <div id="qr-reader"></div>
-          <div id="scanSuccess" class="scan-success hidden"><svg class="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-          <div id="cooldownOverlay" class="cooldown-overlay hidden"><div class="cooldown-timer"><svg width="80" height="80" viewBox="0 0 80 80"><circle class="bg" cx="40" cy="40" r="36"/><circle class="progress" id="cooldownCircle" cx="40" cy="40" r="36"/></svg><div class="cooldown-number" id="cooldownNumber">3</div></div></div>
+          <div id="scanSuccess" class="scan-success hidden">
+            <svg class="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div id="cooldownOverlay" class="cooldown-overlay hidden">
+            <div class="cooldown-timer">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle class="bg" cx="40" cy="40" r="36"/>
+                <circle class="progress" id="cooldownCircle" cx="40" cy="40" r="36"/>
+              </svg>
+              <div class="cooldown-number" id="cooldownNumber">3</div>
+            </div>
+          </div>
         </div>
-        <div class="mt-3 text-center"><p class="text-sm text-gray-400">Arahkan kamera ke barcode</p><p class="text-xs text-gray-500 mt-1">Jeda 3 detik setelah berhasil scan</p></div>
+        <div class="mt-3 text-center">
+          <p class="text-sm text-gray-400">Arahkan kamera ke barcode</p>
+          <p class="text-xs text-gray-500 mt-1">Jeda 3 detik setelah berhasil scan</p>
+        </div>
       </div>
+
       <div id="manualTab" class="hidden mb-4">
-        <div class="mb-4"><label class="block text-sm text-gray-400 mb-2">Input Manual / Barcode Scanner</label><input type="text" id="barcodeInput" class="input font-mono" placeholder="Scan atau ketik Part Number..."><p class="text-xs text-gray-500 mt-2">Arahkan barcode scanner ke input field di atas</p></div>
-        <div class="mb-4"><label class="block text-sm text-gray-400 mb-2">Fisik</label><input type="number" id="qtyInputManual" class="input font-mono" placeholder="0" min="0"></div>
-        <div id="scanResultManual" class="hidden mb-4 p-3 rounded-lg bg-gray-800"><p class="text-sm text-gray-400">Item ditemukan:</p><p id="scanResultTextManual" class="font-medium"></p></div>
-        <button onclick="processManualInput()" class="btn btn-primary w-full"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Update Fisik</button>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">Input Manual / Barcode Scanner</label>
+          <input type="text" id="barcodeInput" class="input font-mono" placeholder="Scan atau ketik Part Number...">
+          <p class="text-xs text-gray-500 mt-2">Arahkan barcode scanner ke input field di atas</p>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">QTY Fisik</label>
+          <input type="number" id="qtyInputManual" class="input font-mono" placeholder="0" min="0">
+        </div>
+        <div id="scanResultManual" class="hidden mb-4 p-3 rounded-lg bg-gray-800">
+          <p class="text-sm text-gray-400">Item ditemukan:</p>
+          <p id="scanResultTextManual" class="font-medium"></p>
+        </div>
+        <button onclick="processManualInput()" class="btn btn-primary w-full">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Update Fisik
+        </button>
       </div>
-      <div id="scanResult" class="hidden p-3 rounded-lg bg-gray-800 mb-4"><p class="text-sm text-gray-400">Item terdeteksi:</p><p id="scanResultText" class="font-medium text-green-400"></p></div>
+
+      <div id="scanResult" class="hidden p-3 rounded-lg bg-gray-800 mb-4">
+        <p class="text-sm text-gray-400">Item terdeteksi:</p>
+        <p id="scanResultText" class="font-medium text-green-400"></p>
+      </div>
+
       <button onclick="closeScannerModal()" class="btn btn-secondary w-full mt-2">Tutup</button>
     </div>
   </div>
@@ -371,18 +859,47 @@
     <div class="modal-content">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-bold">Edit Fisik</h3>
-        <button onclick="closeEditModal()" class="p-2 hover:bg-gray-800 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <button onclick="closeEditModal()" class="p-2 hover:bg-gray-800 rounded-lg transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
-      <div class="mb-4"><p class="text-sm text-gray-400 mb-1">Part Number</p><p id="editPart" class="font-mono font-bold text-lg"></p></div>
-      <div class="mb-4"><p class="text-sm text-gray-400 mb-1">Deskripsi</p><p id="editDesc" class="text-gray-300"></p></div>
+      <div class="mb-4">
+        <p class="text-sm text-gray-400 mb-1">Part Number</p>
+        <p id="editPart" class="font-mono font-bold text-lg"></p>
+      </div>
+      <div class="mb-4">
+        <p class="text-sm text-gray-400 mb-1">Deskripsi</p>
+        <p id="editDesc" class="text-gray-300"></p>
+      </div>
       <div class="grid grid-cols-3 gap-4 mb-4">
-        <div><p class="text-sm text-gray-400 mb-1">QTY</p><p id="editQty" class="font-mono font-bold text-xl"></p></div>
-        <div><p class="text-sm text-gray-400 mb-1">Available</p><p id="editAvailable" class="font-mono font-bold text-xl text-blue-400"></p></div>
-        <div><label class="text-sm text-gray-400 mb-1 block">Fisik</label><input type="number" id="editQtyFisik" class="input font-mono text-lg" min="0"></div>
+        <div>
+          <p class="text-sm text-gray-400 mb-1">QTY</p>
+          <p id="editQty" class="font-mono font-bold text-xl"></p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-400 mb-1">QTY Alloc</p>
+          <p id="editQtyAlloc" class="font-mono font-bold text-xl"></p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-400 mb-1">Available</p>
+          <p id="editAvailable" class="font-mono font-bold text-xl text-yellow-400"></p>
+        </div>
       </div>
-      <input type="hidden" id="editIndex"><input type="hidden" id="editRowIndex">
+      <div class="mb-4">
+        <label class="text-sm text-gray-400 mb-1 block">Fisik</label>
+        <input type="number" id="editQtyFisik" class="input font-mono text-lg" min="0">
+      </div>
+      <input type="hidden" id="editIndex">
+      <input type="hidden" id="editRowIndex">
       <div class="flex gap-2">
-        <button onclick="saveEdit()" class="btn btn-primary flex-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Simpan</button>
+        <button onclick="saveEdit()" class="btn btn-primary flex-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Simpan
+        </button>
         <button onclick="closeEditModal()" class="btn btn-secondary">Batal</button>
       </div>
     </div>
@@ -392,135 +909,615 @@
     let stockData = [];
     let filteredData = [];
     let apiUrl = '';
+
     let html5QrCode = null;
     let isScanning = false;
     let cooldownActive = false;
     let cooldownInterval = null;
+
     let audioContext = null;
     let isMuted = false;
     let volume = 0.7;
 
     document.addEventListener('DOMContentLoaded', () => {
-      setupFileUpload(); setupManualInput(); initAudio(); loadApiUrl(); loadVolumePreferences();
+      setupFileUpload();
+      setupManualInput();
+      initAudio();
+      loadApiUrl();
+      loadVolumePreferences();
     });
 
-    // ===== API URL =====
     function loadApiUrl() {
       apiUrl = localStorage.getItem('stockOpnameApiUrl') || '';
-      if (apiUrl) { document.getElementById('apiUrlInput').value = apiUrl; updateConnectionStatus('loading', 'Memeriksa...'); testConnection(true); }
+      const input = document.getElementById('apiUrlInput');
+      if (apiUrl) {
+        input.value = apiUrl;
+        updateConnectionStatus('loading', 'Memeriksa...');
+        testConnection(true);
+      }
     }
+
     function saveApiUrl() {
-      const url = document.getElementById('apiUrlInput').value.trim();
-      if (!url) { showToast('Masukkan URL','error'); return; }
-      try { new URL(url); } catch(e) { showToast('Format URL tidak valid','error'); return; }
-      apiUrl = url; localStorage.setItem('stockOpnameApiUrl', url); showToast('URL API tersimpan','success'); testConnection();
+      const input = document.getElementById('apiUrlInput');
+      const url = input.value.trim();
+      if (!url) { showToast('Masukkan URL terlebih dahulu', 'error'); return; }
+      try { new URL(url); } catch (e) { showToast('Format URL tidak valid', 'error'); return; }
+      apiUrl = url;
+      localStorage.setItem('stockOpnameApiUrl', url);
+      showToast('URL API tersimpan', 'success');
+      testConnection();
     }
+
     function openSettings() { document.getElementById('settingsPanel').classList.add('open'); }
     function closeSettings() { document.getElementById('settingsPanel').classList.remove('open'); }
-    function updateConnectionStatus(s, t) {
-      document.getElementById('statusDot').className = 'status-dot ' + s;
-      document.getElementById('statusText').textContent = t;
-      const h = !!apiUrl;
-      document.getElementById('btnSyncToSheet').disabled = !h;
-      document.getElementById('btnResetSheet').disabled = !h;
+
+    function updateConnectionStatus(status, text) {
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      dot.className = 'status-dot ' + status;
+      txt.textContent = text;
+      const hasApi = !!apiUrl;
+      document.getElementById('btnSyncToSheet').disabled = !hasApi;
+      document.getElementById('btnResetSheet').disabled = !hasApi;
     }
 
-    // ===== API CALLS =====
     async function apiGet(action) {
       if (!apiUrl) return null;
-      try { const r = await fetch(`${apiUrl}?action=${action}`); if(!r.ok) throw new Error(); return await r.json(); } catch(e) { return null; }
+      try {
+        const res = await fetch(`${apiUrl}?action=${action}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch (e) { console.error('API GET error:', e); return null; }
     }
+
     async function apiPost(payload) {
       if (!apiUrl) return null;
-      try { const r = await fetch(apiUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) }); if(!r.ok) throw new Error(); return await r.json(); } catch(e) { return null; }
+      try {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch (e) { console.error('API POST error:', e); return null; }
     }
+
     async function testConnection(silent) {
-      if (!apiUrl) { if(!silent) showToast('Belum ada URL API','error'); updateConnectionStatus('disconnected','Belum terhubung'); return; }
-      updateConnectionStatus('loading','Memeriksa...');
-      const r = await apiGet('check');
-      if (r&&r.status==='ok') { updateConnectionStatus('connected','Terhubung ke Sheet'); if(!silent) showToast('Koneksi berhasil!','success'); }
-      else { updateConnectionStatus('disconnected','Gagal terhubung'); if(!silent) showToast('Gagal terhubung','error'); }
+      if (!apiUrl) {
+        if (!silent) showToast('Belum ada URL API', 'error');
+        updateConnectionStatus('disconnected', 'Belum terhubung');
+        return;
+      }
+      updateConnectionStatus('loading', 'Memeriksa...');
+      const result = await apiGet('check');
+      if (result && result.status === 'ok') {
+        updateConnectionStatus('connected', 'Terhubung ke Sheet');
+        if (!silent) showToast('Koneksi berhasil!', 'success');
+      } else {
+        updateConnectionStatus('disconnected', 'Gagal terhubung');
+        if (!silent) showToast('Gagal terhubung ke API', 'error');
+      }
     }
+
     async function refreshData() {
-      if (!apiUrl) { showToast('Atur URL API terlebih dahulu','info'); openSettings(); return; }
-      updateConnectionStatus('loading','Memuat data...'); showToast('Mengambil data dari Sheet...','info');
-      const r = await apiGet('read');
-      if (r&&r.data) {
-        stockData = r.data.map(i => ({ part:i.part, deskripsi:i.deskripsi, qty:i.qty, qtyAlloc:i.qtyAlloc, available:i.available, fisik:i.fisik, rowIndex:i.rowIndex }));
-        filteredData=[...stockData]; renderTable(); updateStats(); updateButtons(true);
-        updateConnectionStatus('connected','Terhubung — '+stockData.length+' items'); showToast(stockData.length+' item dimuat','success');
-      } else { updateConnectionStatus('disconnected','Gagal memuat'); showToast('Gagal mengambil data','error'); }
+      if (!apiUrl) { showToast('Atur URL API terlebih dahulu', 'info'); openSettings(); return; }
+      updateConnectionStatus('loading', 'Memuat data...');
+      showToast('Mengambil data dari Sheet...', 'info');
+      const result = await apiGet('read');
+      if (result && result.data) {
+        stockData = result.data.map(item => ({
+          no: item.no,
+          part: item.part,
+          deskripsi: item.deskripsi,
+          qty: item.qty || 0,
+          qtyAlloc: item.qtyAlloc || 0,
+          available: (item.qty || 0) - (item.qtyAlloc || 0),
+          fisik: item.fisik !== undefined && item.fisik !== null ? item.fisik : null,
+          rowIndex: item.rowIndex
+        }));
+        filteredData = [...stockData];
+        renderTable();
+        updateStats();
+        updateButtons(true);
+        updateConnectionStatus('connected', 'Terhubung — ' + stockData.length + ' items');
+        showToast(`${stockData.length} item dimuat dari Sheet`, 'success');
+      } else {
+        updateConnectionStatus('disconnected', 'Gagal memuat');
+        showToast('Gagal mengambil data dari Sheet', 'error');
+      }
     }
-    async function updateQtyToSheet(ri, f) { if(!apiUrl||!ri) return; await apiPost({action:'update',rowIndex:ri,fisik:f}); }
+
+    async function updateQtyToSheet(rowIndex, fisik) {
+      if (!apiUrl || !rowIndex) return;
+      await apiPost({ action: 'update', rowIndex: rowIndex, qtyFisik: fisik });
+    }
+
     async function syncToSheet() {
-      if(!apiUrl){showToast('Atur URL API','info');return;} if(!stockData.length){showToast('Tidak ada data','info');return;}
-      if(!confirm('Upload semua data lokal ke Google Sheet? Data lama di Sheet akan ditimpa.')) return;
-      showToast('Mengupload...','info');
-      const r = await apiPost({action:'import',data:stockData.map(i=>({part:i.part,deskripsi:i.deskripsi,qty:i.qty,qtyAlloc:i.qtyAlloc,available:i.available,fisik:i.fisik}))});
-      if(r&&r.success){showToast(r.imported+' item diupload','success');setTimeout(()=>refreshData(),500);}else showToast('Gagal upload','error');
+      if (!apiUrl) { showToast('Atur URL API terlebih dahulu', 'info'); return; }
+      if (stockData.length === 0) { showToast('Tidak ada data untuk di-sync', 'info'); return; }
+      if (!confirm('Upload semua data lokal ke Google Sheet? Data lama di Sheet akan ditimpa.')) return;
+      showToast('Mengupload data ke Sheet...', 'info');
+      const result = await apiPost({
+        action: 'import',
+        data: stockData.map(item => ({
+          no: item.no, part: item.part, deskripsi: item.deskripsi,
+          qty: item.qty, qtyAlloc: item.qtyAlloc, fisik: item.fisik
+        }))
+      });
+      if (result && result.success) {
+        showToast(`${result.imported} item berhasil diupload`, 'success');
+        setTimeout(() => refreshData(), 500);
+      } else { showToast('Gagal upload ke Sheet', 'error'); }
     }
+
     async function resetSheetQty() {
-      if(!apiUrl) return; if(!confirm('Reset semua Fisik di Google Sheet?')) return;
-      const r = await apiPost({action:'reset'}); if(r&&r.success){showToast('Fisik direset','success');refreshData();}else showToast('Gagal reset','error');
+      if (!apiUrl) return;
+      if (!confirm('Reset semua Fisik di Google Sheet?')) return;
+      const result = await apiPost({ action: 'reset' });
+      if (result && result.success) { showToast('Fisik di Sheet berhasil direset', 'success'); refreshData(); }
+      else { showToast('Gagal reset Fisik', 'error'); }
     }
 
-    // ===== AUDIO =====
-    function initAudio(){try{audioContext=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}
-    function resumeAudio(){if(audioContext&&audioContext.state==='suspended')audioContext.resume()}
-    function playBeep(f=880,d=150,t='sine'){if(!audioContext||isMuted)return;resumeAudio();const o=audioContext.createOscillator(),g=audioContext.createGain();o.connect(g);g.connect(audioContext.destination);o.frequency.value=f;o.type=t;g.gain.setValueAtTime(0,audioContext.currentTime);g.gain.linearRampToValueAtTime(volume,audioContext.currentTime+0.01);g.gain.linearRampToValueAtTime(volume,audioContext.currentTime+d/1000);g.gain.linearRampToValueAtTime(0,audioContext.currentTime+d/1000+0.05);o.start(audioContext.currentTime);o.stop(audioContext.currentTime+d/1000+0.05)}
-    function playSuccessBeep(){if(!audioContext||isMuted)return;resumeAudio();playBeep(1200,100,'sine');setTimeout(()=>playBeep(1000,100,'sine'),120)}
-    function playErrorBeep(){if(!audioContext||isMuted)return;resumeAudio();playBeep(300,300,'square')}
-    function toggleMute(){isMuted=!isMuted;updateVolumeIcon();localStorage.setItem('scannerMuted',isMuted)}
-    function updateVolume(){const s=document.getElementById('volumeSlider');volume=s.value/100;isMuted=volume===0;updateVolumeIcon();localStorage.setItem('scannerVolume',volume)}
-    function updateVolumeIcon(){const i=document.getElementById('volumeIcon'),s=document.getElementById('volumeSlider');if(isMuted||volume===0){i.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>';s.value=0}else{i.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>';s.value=volume*100}}
-    function loadVolumePreferences(){const sv=localStorage.getItem('scannerVolume'),sm=localStorage.getItem('scannerMuted');if(sv!==null){volume=parseFloat(sv);document.getElementById('volumeSlider').value=volume*100}if(sm!==null)isMuted=sm==='true';updateVolumeIcon()}
+    function initAudio() {
+      try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { console.warn('Web Audio API not supported'); }
+    }
 
-    // ===== TOAST =====
-    function showToast(m,t='info'){const c=document.getElementById('toastContainer'),e=document.createElement('div');e.className=`toast toast-${t}`;const i={success:'<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',error:'<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',info:'<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'};e.innerHTML=`${i[t]||i.info}<span>${m}</span>`;c.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateX(100%)';e.style.transition='all 0.3s ease';setTimeout(()=>e.remove(),300)},3500)}
+    function resumeAudio() { if (audioContext && audioContext.state === 'suspended') audioContext.resume(); }
 
-    // ===== FILE UPLOAD =====
-    function setupFileUpload(){const dz=document.getElementById('dropZone'),fi=document.getElementById('fileInput');dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover')});dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0])});fi.addEventListener('change',e=>{if(e.target.files[0])processFile(e.target.files[0])})}
-    function processFile(file){const r=new FileReader();r.onload=e=>{try{const d=new Uint8Array(e.target.result),wb=XLSX.read(d,{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],j=XLSX.utils.sheet_to_json(ws,{header:1});stockData=[];for(let i=1;i<j.length;i++){const row=j[i];if(row&&row.length>0&&row[0]!==undefined&&row[0]!==''){stockData.push({part:String(row[0]||'').trim(),deskripsi:String(row[1]||'').trim(),qty:Number(row[2])||0,qtyAlloc:Number(row[3])||0,available:Number(row[4])||0,fisik:row[5]!==undefined&&row[5]!==''?Number(row[5])||0:null,rowIndex:null})}}if(!stockData.length){showToast('Tidak ada data valid','error');return}filteredData=[...stockData];renderTable();updateStats();updateButtons(true);showToast(stockData.length+' item dimuat dari Excel','success');if(apiUrl)syncToSheet()}catch(err){console.error(err);showToast('Gagal membaca Excel','error')}};r.readAsArrayBuffer(file)}
+    function playBeep(frequency = 880, duration = 150, type = 'sine') {
+      if (!audioContext || isMuted) return;
+      resumeAudio();
+      const o = audioContext.createOscillator();
+      const g = audioContext.createGain();
+      o.connect(g); g.connect(audioContext.destination);
+      o.frequency.value = frequency; o.type = type;
+      g.gain.setValueAtTime(0, audioContext.currentTime);
+      g.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
+      g.gain.linearRampToValueAtTime(volume, audioContext.currentTime + duration / 1000);
+      g.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration / 1000 + 0.05);
+      o.start(audioContext.currentTime);
+      o.stop(audioContext.currentTime + duration / 1000 + 0.05);
+    }
 
-    // ===== TABLE & SCROLL =====
-    function renderTable(){const tb=document.getElementById('tableBody');if(!filteredData.length){tb.innerHTML=`<tr><td colspan="8" class="text-center py-12"><svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="text-gray-500">${stockData.length===0?'Belum ada data':'Tidak ada hasil'}</p></td></tr>`;return}tb.innerHTML=filteredData.map(item=>{const idx=stockData.findIndex(d=>d.part===item.part);const sel=item.fisik!==null?item.fisik-item.available:null;let sc='selisih-zero',st='-';if(sel!==null){if(sel>0){sc='selisih-positive';st=`+${sel}`}else if(sel<0){sc='selisih-negative';st=sel.toString()}else st='0'}return`<tr id="row-${idx}"><td class="font-mono font-medium">${escapeHtml(item.part)}</td><td>${escapeHtml(item.deskripsi)}</td><td class="text-right font-mono">${item.qty}</td><td class="text-right font-mono">${item.qtyAlloc}</td><td class="text-right font-mono text-blue-400">${item.available}</td><td class="text-right font-mono">${item.fisik!==null?item.fisik:'-'}</td><td class="text-right font-mono ${sc}">${st}</td><td class="text-center"><button onclick="openEditModal(${idx})" class="p-2 hover:bg-gray-700 rounded-lg transition-colors" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button></td></tr>`}).join('')}
-    function scrollToRow(i){requestAnimationFrame(()=>{const r=document.getElementById(`row-${i}`);if(r)r.scrollIntoView({behavior:'smooth',block:'start'})})}
-    function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
-    function updateStats(){const t=stockData.length,c=stockData.filter(i=>i.fisik!==null).length,d=stockData.filter(i=>i.fisik!==null&&i.fisik!==i.available).length;document.getElementById('stat-total').textContent=t;document.getElementById('stat-counted').textContent=c;document.getElementById('stat-pending').textContent=t-c;document.getElementById('stat-diff').textContent=d}
-    function updateButtons(h){document.getElementById('btnDownloadExcel').disabled=!h;document.getElementById('btnDownloadPDF').disabled=!h;document.getElementById('btnClear').disabled=!h}
-    function filterData(){const q=document.getElementById('searchInput').value.toLowerCase().trim();filteredData=!q?[...stockData]:stockData.filter(i=>i.part.toLowerCase().includes(q)||i.deskripsi.toLowerCase().includes(q));renderTable()}
-    function clearSearch(){document.getElementById('searchInput').value='';filterData()}
-    function highlightSearchInput(){const e=document.getElementById('searchInput');e.classList.add('input-highlight');setTimeout(()=>e.classList.remove('input-highlight'),1000)}
+    function playSuccessBeep() { if (!audioContext || isMuted) return; resumeAudio(); playBeep(1200, 100); setTimeout(() => playBeep(1000, 100), 120); }
+    function playErrorBeep() { if (!audioContext || isMuted) return; resumeAudio(); playBeep(300, 300, 'square'); }
 
-    // ===== SCANNER =====
-    function switchTab(tab){const ct=document.getElementById('cameraTab'),mt=document.getElementById('manualTab'),tc=document.getElementById('tabCamera'),tm=document.getElementById('tabManual');if(tab==='camera'){ct.classList.remove('hidden');mt.classList.add('hidden');tc.className='btn btn-primary flex-1';tm.className='btn btn-secondary flex-1';startCamera()}else{ct.classList.add('hidden');mt.classList.remove('hidden');tc.className='btn btn-secondary flex-1';tm.className='btn btn-primary flex-1';stopCamera();setTimeout(()=>document.getElementById('barcodeInput').focus(),100)}}
-    function openScannerModal(){document.getElementById('scannerModal').classList.add('active');document.getElementById('scanResult').classList.add('hidden');loadVolumePreferences();switchTab('camera')}
-    function closeScannerModal(){document.getElementById('scannerModal').classList.remove('active');stopCamera();clearCooldown()}
-    async function startCamera(){if(html5QrCode&&isScanning)return;try{html5QrCode=new Html5Qrcode("qr-reader");await html5QrCode.start({facingMode:"environment"},{fps:10,qrbox:(vw,vh)=>{let m=Math.min(vw,vh);return{width:Math.floor(m*0.7),height:Math.floor(m*0.7)}},aspectRatio:1.0},onScanSuccess,()=>{});isScanning=true}catch(e){console.error(e);showToast("Gagal mengakses kamera","error");switchTab('manual')}}
-    async function stopCamera(){if(html5QrCode&&isScanning){try{await html5QrCode.stop();html5QrCode.clear()}catch(e){}isScanning=false}}
-    function onScanSuccess(decodedText){if(cooldownActive)return;const pn=decodedText.trim(),idx=stockData.findIndex(i=>i.part.toLowerCase()===pn.toLowerCase());if(idx===-1){playErrorBeep();document.getElementById('scanResult').classList.remove('hidden');document.getElementById('scanResultText').textContent=`Part "${pn}" tidak ditemukan`;document.getElementById('scanResultText').className='font-medium text-red-400';startCooldown();return}playSuccessBeep();const cf=stockData[idx].fisik||0;stockData[idx].fisik=cf+1;if(stockData[idx].rowIndex)updateQtyToSheet(stockData[idx].rowIndex,stockData[idx].fisik);document.getElementById('scanSuccess').classList.remove('hidden');setTimeout(()=>document.getElementById('scanSuccess').classList.add('hidden'),500);document.getElementById('scanResult').classList.remove('hidden');document.getElementById('scanResultText').textContent=`${stockData[idx].part} - ${stockData[idx].deskripsi} (Fisik: ${stockData[idx].fisik})`;document.getElementById('scanResultText').className='font-medium text-green-400';document.getElementById('searchInput').value=pn;highlightSearchInput();filterData();updateStats();const row=document.getElementById(`row-${idx}`);if(row){row.classList.add('highlight');scrollToRow(idx)}startCooldown()}
-    function startCooldown(){cooldownActive=true;const o=document.getElementById('cooldownOverlay'),c=document.getElementById('cooldownCircle'),n=document.getElementById('cooldownNumber');o.classList.remove('hidden');let s=3,circ=2*Math.PI*36;c.style.strokeDasharray=circ;c.style.strokeDashoffset=0;n.textContent=s;cooldownInterval=setInterval(()=>{s--;n.textContent=s;c.style.strokeDashoffset=circ*(1-s/3);if(s<=0)clearCooldown()},1000)}
-    function clearCooldown(){cooldownActive=false;if(cooldownInterval){clearInterval(cooldownInterval);cooldownInterval=null}document.getElementById('cooldownOverlay').classList.add('hidden')}
+    function toggleMute() { isMuted = !isMuted; updateVolumeIcon(); localStorage.setItem('scannerMuted', isMuted); }
 
-    // ===== MANUAL INPUT =====
-    function setupManualInput(){const bi=document.getElementById('barcodeInput');bi.addEventListener('input',e=>{const v=e.target.value.trim();if(v.length>=2){const f=stockData.find(i=>i.part.toLowerCase()===v.toLowerCase()||i.part.toLowerCase().includes(v.toLowerCase()));if(f){document.getElementById('scanResultManual').classList.remove('hidden');document.getElementById('scanResultTextManual').textContent=`${f.part} - ${f.deskripsi} (Available: ${f.available})`}else document.getElementById('scanResultManual').classList.add('hidden')}else document.getElementById('scanResultManual').classList.add('hidden')});bi.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();processManualInput()}})}
-    function processManualInput(){const pn=document.getElementById('barcodeInput').value.trim(),q=parseInt(document.getElementById('qtyInputManual').value);if(!pn){showToast('Masukkan Part Number','error');return}if(isNaN(q)||q<0){showToast('Masukkan QTY valid','error');return}const idx=stockData.findIndex(i=>i.part.toLowerCase()===pn.toLowerCase());if(idx===-1){playErrorBeep();showToast(`Part "${pn}" tidak ditemukan`,'error');return}playSuccessBeep();stockData[idx].fisik=q;if(stockData[idx].rowIndex)updateQtyToSheet(stockData[idx].rowIndex,q);document.getElementById('searchInput').value=pn;highlightSearchInput();filterData();updateStats();const row=document.getElementById(`row-${idx}`);if(row){row.classList.add('highlight');scrollToRow(idx)}document.getElementById('barcodeInput').value='';document.getElementById('qtyInputManual').value='';document.getElementById('scanResultManual').classList.add('hidden');document.getElementById('barcodeInput').focus();showToast(`${stockData[idx].part} — Fisik: ${q}`,'success')}
+    function updateVolume() {
+      const s = document.getElementById('volumeSlider');
+      volume = s.value / 100; isMuted = volume === 0;
+      updateVolumeIcon(); localStorage.setItem('scannerVolume', volume);
+    }
 
-    // ===== EDIT MODAL =====
-    function openEditModal(i){const item=stockData[i];document.getElementById('editPart').textContent=item.part;document.getElementById('editDesc').textContent=item.deskripsi;document.getElementById('editQty').textContent=item.qty;document.getElementById('editAvailable').textContent=item.available;document.getElementById('editQtyFisik').value=item.fisik!==null?item.fisik:'';document.getElementById('editIndex').value=i;document.getElementById('editRowIndex').value=item.rowIndex||'';document.getElementById('editModal').classList.add('active');setTimeout(()=>document.getElementById('editQtyFisik').focus(),100)}
-    function closeEditModal(){document.getElementById('editModal').classList.remove('active')}
-    function saveEdit(){const idx=parseInt(document.getElementById('editIndex').value),ri=parseInt(document.getElementById('editRowIndex').value)||null,qv=document.getElementById('editQtyFisik').value;stockData[idx].fisik=qv===''?null:parseInt(qv)||0;if(ri){stockData[idx].rowIndex=ri;updateQtyToSheet(ri,stockData[idx].fisik)}document.getElementById('searchInput').value=stockData[idx].part;highlightSearchInput();filterData();updateStats();closeEditModal();const row=document.getElementById(`row-${idx}`);if(row){row.classList.add('highlight');scrollToRow(idx)}showToast('Fisik diperbarui','success')}
+    function updateVolumeIcon() {
+      const icon = document.getElementById('volumeIcon');
+      const slider = document.getElementById('volumeSlider');
+      if (isMuted || volume === 0) {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>';
+        slider.value = 0;
+      } else {
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>';
+        slider.value = volume * 100;
+      }
+    }
 
-    // ===== EXPORT =====
-    function downloadExcel(){if(!stockData.length)return;const ed=[['PART','DESKRIPSI PART','QTY','QTY ALLOC','AVAILABLE','FISIK','SELISIH']];stockData.forEach(i=>{const s=i.fisik!==null?i.fisik-i.available:'';ed.push([i.part,i.deskripsi,i.qty,i.qtyAlloc,i.available,i.fisik!==null?i.fisik:'',s])});const ws=XLSX.utils.aoa_to_sheet(ed),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Stock Opname');ws['!cols']=[{wch:20},{wch:40},{wch:10},{wch:12},{wch:12},{wch:10},{wch:10}];XLSX.writeFile(wb,`Stock_Opname_${new Date().toISOString().split('T')[0]}.xlsx`);showToast('Excel diunduh','success')}
-    function downloadPDF(){if(!stockData.length)return;const{jsPDF}=window.jspdf,doc=new jsPDF('l','mm','a4');doc.setFontSize(16);doc.setFont(undefined,'bold');doc.text('LAPORAN STOCK OPNAME SPAREPART',148,15,{align:'center'});doc.setFontSize(10);doc.setFont(undefined,'normal');doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}`,148,22,{align:'center'});const cnt=stockData.filter(i=>i.fisik!==null).length,dif=stockData.filter(i=>i.fisik!==null&&i.fisik!==i.available).length;doc.setFontSize(9);doc.text(`Total: ${stockData.length} | Dihitung: ${cnt} | Selisih: ${dif}`,148,28,{align:'center'});const td=stockData.map(i=>{const s=i.fisik!==null?i.fisik-i.available:'-';let ss='-';if(s!=='-'){ss=s>0?`+${s}`:s.toString()}return[i.part,i.deskripsi.substring(0,45),i.qty,i.qtyAlloc,i.available,i.fisik!==null?i.fisik:'-',ss]});doc.autoTable({startY:33,head:[['PART','DESKRIPSI PART','QTY','QTY ALLOC','AVAILABLE','FISIK','SELISIH']],body:td,theme:'striped',headStyles:{fillColor:[26,26,29],textColor:250,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:8},columnStyles:{0:{cellWidth:30},1:{cellWidth:70},2:{halign:'center',cellWidth:18},3:{halign:'center',cellWidth:22},4:{halign:'center',cellWidth:22},5:{halign:'center',cellWidth:18},6:{halign:'center',cellWidth:18}},didParseCell:d=>{if(d.column.index===6&&d.cell.section==='body'){const v=d.cell.raw;if(typeof v==='string'){if(v.startsWith('+'))d.cell.styles.textColor=[34,197,94];else if(v.startsWith('-'))d.cell.styles.textColor=[239,68,68]}}}});const pc=doc.internal.getNumberOfPages();for(let i=1;i<=pc;i++){doc.setPage(i);doc.setFontSize(8);doc.text(`Halaman ${i} dari ${pc}`,doc.internal.pageSize.getWidth()/2,doc.internal.pageSize.getHeight()-10,{align:'center'})}doc.save(`Stock_Opname_${new Date().toISOString().split('T')[0]}.pdf`);showToast('PDF diunduh','success')}
+    function loadVolumePreferences() {
+      const sv = localStorage.getItem('scannerVolume');
+      const sm = localStorage.getItem('scannerMuted');
+      if (sv !== null) { volume = parseFloat(sv); document.getElementById('volumeSlider').value = volume * 100; }
+      if (sm !== null) { isMuted = sm === 'true'; }
+      updateVolumeIcon();
+    }
 
-    // ===== CLEAR =====
-    function clearLocalData(){if(!confirm('Hapus semua data lokal?'))return;stockData=[];filteredData=[];document.getElementById('searchInput').value='';document.getElementById('fileInput').value='';renderTable();updateStats();updateButtons(false);showToast('Data lokal dihapus','info')}
+    function showToast(message, type = 'info') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      const icons = {
+        success: '<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+        error: '<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+        info: '<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      };
+      t.innerHTML = `${icons[type] || icons.info}<span>${message}</span>`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(100%)'; t.style.transition = 'all 0.3s ease'; setTimeout(() => t.remove(), 300); }, 3500);
+    }
 
-    // ===== SHORTCUTS =====
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeScannerModal();closeEditModal();closeSettings()}});
-    document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o){o.classList.remove('active');stopCamera();clearCooldown()}})});
+    function setupFileUpload() {
+      const dz = document.getElementById('dropZone');
+      const fi = document.getElementById('fileInput');
+      dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', () => { dz.classList.remove('dragover'); });
+      dz.addEventListener('drop', (e) => { e.preventDefault(); dz.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if (f) processFile(f); });
+      fi.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) processFile(f); });
+    }
+
+    function processFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const wb = XLSX.read(data, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+          stockData = [];
+          for (let i = 1; i < json.length; i++) {
+            const r = json[i];
+            if (r && r.length > 0 && r[0] !== undefined && r[0] !== '') {
+              const qty = Number(r[3]) || 0;
+              const qtyAlloc = Number(r[4]) || 0;
+              stockData.push({
+                no: Number(r[0]) || i,
+                part: String(r[1] || '').trim(),
+                deskripsi: String(r[2] || '').trim(),
+                qty: qty,
+                qtyAlloc: qtyAlloc,
+                available: qty - qtyAlloc,
+                fisik: r[5] !== undefined && r[5] !== '' ? Number(r[5]) || 0 : null,
+                rowIndex: null
+              });
+            }
+          }
+
+          if (stockData.length === 0) { showToast('Tidak ada data valid', 'error'); return; }
+          filteredData = [...stockData];
+          renderTable(); updateStats(); updateButtons(true);
+          showToast(`${stockData.length} item dimuat dari Excel`, 'success');
+          if (apiUrl) syncToSheet();
+        } catch (error) { console.error(error); showToast('Gagal membaca file Excel', 'error'); }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-12">
+          <svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <p class="text-gray-500">${stockData.length === 0 ? 'Belum ada data' : 'Tidak ada hasil pencarian'}</p>
+          <p class="text-sm text-gray-600">${stockData.length === 0 ? 'Upload file Excel atau ambil dari Sheet' : 'Coba kata kunci lain'}</p></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredData.map((item) => {
+        const idx = stockData.findIndex(d => d.no === item.no && d.part === item.part);
+        const selisih = item.fisik !== null ? item.fisik - item.available : null;
+        let sClass = 'selisih-zero', sText = '-';
+        if (selisih !== null) {
+          if (selisih > 0) { sClass = 'selisih-positive'; sText = `+${selisih}`; }
+          else if (selisih < 0) { sClass = 'selisih-negative'; sText = selisih.toString(); }
+          else { sText = '0'; }
+        }
+        return `<tr id="row-${idx}">
+          <td class="font-mono">${item.no}</td>
+          <td class="font-mono font-medium">${escapeHtml(item.part)}</td>
+          <td>${escapeHtml(item.deskripsi)}</td>
+          <td class="text-right font-mono">${item.qty}</td>
+          <td class="text-right font-mono">${item.qtyAlloc}</td>
+          <td class="text-right font-mono font-bold text-yellow-400">${item.available}</td>
+          <td class="text-right font-mono">${item.fisik !== null ? item.fisik : '-'}</td>
+          <td class="text-right font-mono ${sClass}">${sText}</td>
+          <td class="text-center">
+            <button onclick="openEditModal(${idx})" class="p-2 hover:bg-gray-700 rounded-lg transition-colors" title="Edit">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+          </td></tr>`;
+      }).join('');
+    }
+
+    function scrollToRow(index) {
+      requestAnimationFrame(() => {
+        const row = document.getElementById(`row-${index}`);
+        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
+
+    function updateStats() {
+      const total = stockData.length;
+      const counted = stockData.filter(i => i.fisik !== null).length;
+      const pending = total - counted;
+      const diff = stockData.filter(i => i.fisik !== null && i.fisik !== i.available).length;
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-counted').textContent = counted;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-diff').textContent = diff;
+    }
+
+    function updateButtons(hasData) {
+      document.getElementById('btnDownloadExcel').disabled = !hasData;
+      document.getElementById('btnDownloadPDF').disabled = !hasData;
+      document.getElementById('btnClear').disabled = !hasData;
+    }
+
+    function filterData() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      filteredData = !q ? [...stockData] : stockData.filter(i =>
+        i.no.toString().includes(q) || i.part.toLowerCase().includes(q) || i.deskripsi.toLowerCase().includes(q)
+      );
+      renderTable();
+    }
+
+    function clearSearch() { document.getElementById('searchInput').value = ''; filterData(); }
+
+    function highlightSearchInput() {
+      const el = document.getElementById('searchInput');
+      el.classList.add('input-highlight');
+      setTimeout(() => el.classList.remove('input-highlight'), 1000);
+    }
+
+    function switchTab(tab) {
+      const ct = document.getElementById('cameraTab'), mt = document.getElementById('manualTab');
+      const tc = document.getElementById('tabCamera'), tm = document.getElementById('tabManual');
+      if (tab === 'camera') {
+        ct.classList.remove('hidden'); mt.classList.add('hidden');
+        tc.className = 'btn btn-primary flex-1'; tm.className = 'btn btn-secondary flex-1';
+        startCamera();
+      } else {
+        ct.classList.add('hidden'); mt.classList.remove('hidden');
+        tc.className = 'btn btn-secondary flex-1'; tm.className = 'btn btn-primary flex-1';
+        stopCamera(); setTimeout(() => document.getElementById('barcodeInput').focus(), 100);
+      }
+    }
+
+    function openScannerModal() {
+      document.getElementById('scannerModal').classList.add('active');
+      document.getElementById('scanResult').classList.add('hidden');
+      loadVolumePreferences(); switchTab('camera');
+    }
+
+    function closeScannerModal() {
+      document.getElementById('scannerModal').classList.remove('active');
+      stopCamera(); clearCooldown();
+    }
+
+    async function startCamera() {
+      if (html5QrCode && isScanning) return;
+      try {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: (vw, vh) => ({ width: Math.floor(Math.min(vw, vh) * 0.7), height: Math.floor(Math.min(vw, vh) * 0.7) }), aspectRatio: 1.0 },
+          onScanSuccess, () => {}
+        );
+        isScanning = true;
+      } catch (err) { console.error(err); showToast("Gagal mengakses kamera", "error"); switchTab('manual'); }
+    }
+
+    async function stopCamera() {
+      if (html5QrCode && isScanning) {
+        try { await html5QrCode.stop(); html5QrCode.clear(); } catch (err) { console.error(err); }
+        isScanning = false;
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+      if (cooldownActive) return;
+      const pn = decodedText.trim();
+      const idx = stockData.findIndex(i => i.part.toLowerCase() === pn.toLowerCase());
+      if (idx === -1) {
+        playErrorBeep();
+        document.getElementById('scanResult').classList.remove('hidden');
+        document.getElementById('scanResultText').textContent = `Part "${pn}" tidak ditemukan`;
+        document.getElementById('scanResultText').className = 'font-medium text-red-400';
+        startCooldown(); return;
+      }
+
+      playSuccessBeep();
+      const cur = stockData[idx].fisik || 0;
+      stockData[idx].fisik = cur + 1;
+
+      if (stockData[idx].rowIndex) updateQtyToSheet(stockData[idx].rowIndex, stockData[idx].fisik);
+
+      showScanSuccess();
+      document.getElementById('scanResult').classList.remove('hidden');
+      document.getElementById('scanResultText').textContent =
+        `${stockData[idx].part} - ${stockData[idx].deskripsi} (Fisik: ${stockData[idx].fisik})`;
+      document.getElementById('scanResultText').className = 'font-medium text-green-400';
+
+      document.getElementById('searchInput').value = pn;
+      highlightSearchInput(); filterData(); updateStats();
+
+      const row = document.getElementById(`row-${idx}`);
+      if (row) { row.classList.add('highlight'); scrollToRow(idx); }
+      startCooldown();
+    }
+
+    function showScanSuccess() {
+      const el = document.getElementById('scanSuccess');
+      el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 500);
+    }
+
+    function startCooldown() {
+      cooldownActive = true;
+      const ov = document.getElementById('cooldownOverlay');
+      const circ = document.getElementById('cooldownCircle');
+      const num = document.getElementById('cooldownNumber');
+      ov.classList.remove('hidden');
+      let s = 3; const t = 3; const c = 2 * Math.PI * 36;
+      circ.style.strokeDasharray = c; circ.style.strokeDashoffset = 0; num.textContent = s;
+      cooldownInterval = setInterval(() => {
+        s--; num.textContent = s;
+        circ.style.strokeDashoffset = c * (1 - s / t);
+        if (s <= 0) clearCooldown();
+      }, 1000);
+    }
+
+    function clearCooldown() {
+      cooldownActive = false;
+      if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; }
+      document.getElementById('cooldownOverlay').classList.add('hidden');
+    }
+
+    function setupManualInput() {
+      const bi = document.getElementById('barcodeInput');
+      bi.addEventListener('input', (e) => {
+        const v = e.target.value.trim();
+        if (v.length >= 2) {
+          const f = stockData.find(i => i.part.toLowerCase() === v.toLowerCase() || i.part.toLowerCase().includes(v.toLowerCase()));
+          if (f) {
+            document.getElementById('scanResultManual').classList.remove('hidden');
+            document.getElementById('scanResultTextManual').textContent = `${f.part} - ${f.deskripsi} (Available: ${f.available})`;
+          } else { document.getElementById('scanResultManual').classList.add('hidden'); }
+        } else { document.getElementById('scanResultManual').classList.add('hidden'); }
+      });
+      bi.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); processManualInput(); } });
+    }
+
+    function processManualInput() {
+      const pn = document.getElementById('barcodeInput').value.trim();
+      const qty = parseInt(document.getElementById('qtyInputManual').value);
+      if (!pn) { showToast('Masukkan Part Number', 'error'); return; }
+      if (isNaN(qty) || qty < 0) { showToast('Masukkan Fisik yang valid', 'error'); return; }
+      const idx = stockData.findIndex(i => i.part.toLowerCase() === pn.toLowerCase());
+      if (idx === -1) { playErrorBeep(); showToast(`Part "${pn}" tidak ditemukan`, 'error'); return; }
+
+      playSuccessBeep();
+      stockData[idx].fisik = qty;
+      if (stockData[idx].rowIndex) updateQtyToSheet(stockData[idx].rowIndex, qty);
+
+      document.getElementById('searchInput').value = pn;
+      highlightSearchInput(); filterData(); updateStats();
+
+      const row = document.getElementById(`row-${idx}`);
+      if (row) { row.classList.add('highlight'); scrollToRow(idx); }
+
+      document.getElementById('barcodeInput').value = '';
+      document.getElementById('qtyInputManual').value = '';
+      document.getElementById('scanResultManual').classList.add('hidden');
+      document.getElementById('barcodeInput').focus();
+      showToast(`${stockData[idx].part} — Fisik: ${qty}`, 'success');
+    }
+
+    function openEditModal(index) {
+      const item = stockData[index];
+      document.getElementById('editPart').textContent = item.part;
+      document.getElementById('editDesc').textContent = item.deskripsi;
+      document.getElementById('editQty').textContent = item.qty;
+      document.getElementById('editQtyAlloc').textContent = item.qtyAlloc;
+      document.getElementById('editAvailable').textContent = item.available;
+      document.getElementById('editQtyFisik').value = item.fisik !== null ? item.fisik : '';
+      document.getElementById('editIndex').value = index;
+      document.getElementById('editRowIndex').value = item.rowIndex || '';
+      document.getElementById('editModal').classList.add('active');
+      setTimeout(() => document.getElementById('editQtyFisik').focus(), 100);
+    }
+
+    function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+
+    function saveEdit() {
+      const idx = parseInt(document.getElementById('editIndex').value);
+      const ri = parseInt(document.getElementById('editRowIndex').value) || null;
+      const val = document.getElementById('editQtyFisik').value;
+      stockData[idx].fisik = val === '' ? null : parseInt(val) || 0;
+      if (ri) { stockData[idx].rowIndex = ri; updateQtyToSheet(ri, stockData[idx].fisik); }
+
+      document.getElementById('searchInput').value = stockData[idx].part;
+      highlightSearchInput(); filterData(); updateStats(); closeEditModal();
+
+      const row = document.getElementById(`row-${idx}`);
+      if (row) { row.classList.add('highlight'); scrollToRow(idx); }
+      showToast('Fisik diperbarui', 'success');
+    }
+
+    function downloadExcel() {
+      if (stockData.length === 0) return;
+      const exp = [['NO', 'PART', 'DESKRIPSI PART', 'QTY', 'QTY ALLOC', 'AVAILABLE', 'FISIK', 'SELISIH']];
+      stockData.forEach(i => {
+        const selisih = i.fisik !== null ? i.fisik - i.available : '';
+        exp.push([i.no, i.part, i.deskripsi, i.qty, i.qtyAlloc, i.available, i.fisik !== null ? i.fisik : '', selisih]);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(exp);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname');
+      ws['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 40 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }];
+      XLSX.writeFile(wb, `Stock_Opname_${new Date().toISOString().split('T')[0]}.xlsx`);
+      showToast('File Excel berhasil diunduh', 'success');
+    }
+
+    function downloadPDF() {
+      if (stockData.length === 0) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4');
+
+      doc.setFontSize(16); doc.setFont(undefined, 'bold');
+      doc.text('LAPORAN STOCK OPNAME SPAREPART', 148, 15, { align: 'center' });
+
+      doc.setFontSize(10); doc.setFont(undefined, 'normal');
+      doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`, 148, 22, { align: 'center' });
+
+      const counted = stockData.filter(i => i.fisik !== null).length;
+      const diff = stockData.filter(i => i.fisik !== null && i.fisik !== i.available).length;
+      doc.setFontSize(9);
+      doc.text(`Total: ${stockData.length}  |  Dihitung: ${counted}  |  Selisih: ${diff}`, 148, 28, { align: 'center' });
+
+      const td = stockData.map(i => {
+        const s = i.fisik !== null ? i.fisik - i.available : '-';
+        let st = '-';
+        if (s !== '-') { if (s > 0) st = `+${s}`; else if (s < 0) st = s.toString(); else st = '0'; }
+        return [i.no, i.part, i.deskripsi.substring(0, 45), i.qty, i.qtyAlloc, i.available, i.fisik !== null ? i.fisik : '-', st];
+      });
+
+      doc.autoTable({
+        startY: 33,
+        head: [['NO', 'PART', 'DESKRIPSI', 'QTY', 'ALLOC', 'AVAIL', 'FISIK', 'SELISIH']],
+        body: td,
+        theme: 'striped',
+        headStyles: { fillColor: [26, 26, 29], textColor: 250, fontStyle: 'bold', fontSize: 8 },
+        bodyStyles: { fontSize: 7 },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 10 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 65 },
+          3: { halign: 'center', cellWidth: 18 },
+          4: { halign: 'center', cellWidth: 18 },
+          5: { halign: 'center', cellWidth: 18 },
+          6: { halign: 'center', cellWidth: 18 },
+          7: { halign: 'center', cellWidth: 18 }
+        },
+        didParseCell: function(data) {
+          if (data.column.index === 7 && data.cell.section === 'body') {
+            const v = data.cell.raw;
+            if (typeof v === 'string') {
+              if (v.startsWith('+')) data.cell.styles.textColor = [34, 197, 94];
+              else if (v.startsWith('-')) data.cell.styles.textColor = [239, 68, 68];
+            }
+          }
+        }
+      });
+
+      const pc = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pc; i++) {
+        doc.setPage(i); doc.setFontSize(8);
+        doc.text(`Halaman ${i} dari ${pc}`, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+      }
+      doc.save(`Stock_Opname_${new Date().toISOString().split('T')[0]}.pdf`);
+      showToast('File PDF berhasil diunduh', 'success');
+    }
+
+    function clearLocalData() {
+      if (!confirm('Hapus semua data lokal?')) return;
+      stockData = []; filteredData = [];
+      document.getElementById('searchInput').value = '';
+      document.getElementById('fileInput').value = '';
+      renderTable(); updateStats(); updateButtons(false);
+      showToast('Data lokal dihapus', 'info');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeScannerModal(); closeEditModal(); closeSettings(); }
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', (e) => {
+        if (e.target === o) { o.classList.remove('active'); stopCamera(); clearCooldown(); }
+      });
+    });
   </script>
 </body>
 </html>
